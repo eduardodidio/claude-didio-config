@@ -1,0 +1,227 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Didio Dark Theme - Obsidian Matte */
+    --background: 220 15% 5%;
+    --foreground: 0 0% 96%;
+
+    --card: 220 15% 8%;
+    --card-foreground: 0 0% 96%;
+
+    --popover: 220 15% 9%;
+    --popover-foreground: 0 0% 96%;
+
+    /* Didio Purple - technical */
+    --primary: 265 70% 65%;
+    --primary-foreground: 220 15% 5%;
+
+    --secondary: 220 15% 12%;
+    --secondary-foreground: 0 0% 80%;
+
+    --muted: 220 15% 11%;
+    --muted-foreground: 220 10% 48%;
+
+    --accent: 265 70% 65%;
+    --accent-foreground: 220 15% 5%;
+
+    --destructive: 15 70% 52%;
+    --destructive-foreground: 0 0% 96%;
+
+    --border: 220 15% 14%;
+    --input: 220 15% 14%;
+    --ring: 265 70% 65%;
+
+    --radius: 0.75rem;
+
+    /* Didio-specific tokens */
+    --didio: 265 70% 65%;
+    --didio-glow: 265 70% 65%;
+    --didio-dim: 265 45% 35%;
+    --surface-1: 220 15% 8%;
+    --surface-2: 220 15% 11%;
+    --surface-3: 220 15% 14%;
+    --profit: 265 70% 65%;
+    --loss: 15 70% 52%;
+    --neutral: 220 10% 55%;
+
+    /* Connection status */
+    --status-active: 150 70% 55%;
+    --status-inactive: 0 70% 55%;
+    --status-warning: 38 90% 55%;
+
+    /* Sidebar */
+    --sidebar-background: 220 15% 6%;
+    --sidebar-foreground: 0 0% 80%;
+    --sidebar-primary: 265 70% 65%;
+    --sidebar-primary-foreground: 220 15% 5%;
+    --sidebar-accent: 220 15% 11%;
+    --sidebar-accent-foreground: 0 0% 90%;
+    --sidebar-border: 220 15% 12%;
+    --sidebar-ring: 265 70% 65%;
+  }
+
+  .dark {
+    --background: 220 15% 5%;
+    --foreground: 0 0% 96%;
+
+    --card: 220 15% 8%;
+    --card-foreground: 0 0% 96%;
+
+    --popover: 220 15% 9%;
+    --popover-foreground: 0 0% 96%;
+
+    --primary: 265 70% 65%;
+    --primary-foreground: 220 15% 5%;
+
+    --secondary: 220 15% 12%;
+    --secondary-foreground: 0 0% 80%;
+
+    --muted: 220 15% 11%;
+    --muted-foreground: 220 10% 48%;
+
+    --accent: 265 70% 65%;
+    --accent-foreground: 220 15% 5%;
+
+    --destructive: 15 70% 52%;
+    --destructive-foreground: 0 0% 96%;
+
+    --border: 220 15% 14%;
+    --input: 220 15% 14%;
+    --ring: 265 70% 65%;
+
+    --didio: 265 70% 65%;
+    --didio-glow: 265 70% 65%;
+    --didio-dim: 265 45% 35%;
+    --surface-1: 220 15% 8%;
+    --surface-2: 220 15% 11%;
+    --surface-3: 220 15% 14%;
+    --profit: 265 70% 65%;
+    --loss: 15 70% 52%;
+    --neutral: 220 10% 55%;
+
+    --status-active: 150 70% 55%;
+    --status-inactive: 0 70% 55%;
+    --status-warning: 38 90% 55%;
+
+    --sidebar-background: 220 15% 6%;
+    --sidebar-foreground: 0 0% 80%;
+    --sidebar-primary: 265 70% 65%;
+    --sidebar-primary-foreground: 220 15% 5%;
+    --sidebar-accent: 220 15% 11%;
+    --sidebar-accent-foreground: 0 0% 90%;
+    --sidebar-border: 220 15% 12%;
+    --sidebar-ring: 265 70% 65%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    color-scheme: dark;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Geist Sans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-feature-settings: 'tnum' 1;
+    letter-spacing: -0.01em;
+  }
+
+  .font-mono, .tabular-nums, [data-value] {
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Scrollbar styling */
+  ::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+  ::-webkit-scrollbar-track {
+    background: hsl(var(--background));
+  }
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--border));
+    border-radius: 2px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground));
+  }
+}
+
+@layer components {
+  .didio-glow {
+    box-shadow: 0 0 12px hsl(var(--didio) / 0.4), 0 0 24px hsl(var(--didio) / 0.15);
+  }
+
+  .didio-glow-pulse {
+    animation: didio-pulse 2.5s ease-in-out infinite;
+  }
+
+  @keyframes didio-pulse {
+    0%, 100% { box-shadow: 0 0 8px hsl(var(--didio) / 0.3), 0 0 16px hsl(var(--didio) / 0.1); }
+    50% { box-shadow: 0 0 16px hsl(var(--didio) / 0.6), 0 0 32px hsl(var(--didio) / 0.25); }
+  }
+
+  .loss-glow {
+    box-shadow: 0 0 8px hsl(var(--loss) / 0.35);
+  }
+
+  .surface-card {
+    @apply bg-card border border-border rounded-xl;
+  }
+
+  .data-label {
+    @apply text-xs font-medium tracking-wide text-muted-foreground uppercase;
+  }
+
+  .data-value {
+    @apply font-mono tabular-nums;
+  }
+
+  .profit-text {
+    @apply text-primary;
+  }
+
+  .loss-text {
+    color: hsl(var(--loss));
+  }
+
+  .status-dot {
+    @apply w-2 h-2 rounded-full flex-shrink-0;
+  }
+
+  .status-dot-active {
+    background: hsl(var(--status-active));
+    box-shadow: 0 0 8px hsl(var(--status-active));
+  }
+
+  .status-dot-inactive {
+    background: hsl(var(--status-inactive));
+    box-shadow: 0 0 8px hsl(var(--status-inactive) / 0.6);
+  }
+
+  .btn-didio {
+    @apply bg-primary text-primary-foreground font-bold rounded-lg text-sm transition-all duration-100 active:scale-95 hover:brightness-110;
+  }
+
+  .tab-nav-item {
+    @apply px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200;
+  }
+
+  .tab-nav-item.active {
+    @apply bg-secondary text-foreground;
+  }
+
+  .tab-nav-item:not(.active) {
+    @apply text-muted-foreground hover:text-foreground hover:bg-secondary/60;
+  }
+}

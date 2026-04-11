@@ -1,0 +1,32 @@
+%% Architecture diagram template for a didio feature.
+%% Rename to <FXX>-architecture.mmd when you copy it into docs/diagrams/.
+%% Show: which layers/modules this feature touches, and how data flows
+%% between them. Use subgraphs to make layers explicit.
+
+flowchart LR
+    subgraph Client["Client"]
+        UI["UI Component"]
+    end
+
+    subgraph API["API Layer"]
+        CTRL["Controller"]
+    end
+
+    subgraph App["Application Layer"]
+        UC["UseCase / Service"]
+    end
+
+    subgraph Domain["Domain"]
+        ENT["Entity / Aggregate"]
+    end
+
+    subgraph Infra["Infrastructure"]
+        DB[("Database")]
+        EXT["External API"]
+    end
+
+    UI -->|HTTP| CTRL
+    CTRL -->|invoke| UC
+    UC -->|operates on| ENT
+    UC -->|persist| DB
+    UC -->|call| EXT

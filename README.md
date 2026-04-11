@@ -1,108 +1,226 @@
 # claude-didio-config
 
-Opinionated Claude Code framework for starting new projects with a consistent
-ritual: `CLAUDE.md`, ADRs, PRDs, incremental diagrams, and a 4-agent workflow
-(Architect → Developer → TechLead → QA) organized in parallel Waves.
+Framework opinativo pro Claude Code. Instala num projeto em segundos,
+traz workflow de 4 agentes (Architect → Developer → TechLead → QA) em
+Waves paralelas, dashboard de monitoramento (**Didio Agents Dash**),
+guardrails de segurança e cerimônia de retrospectiva que faz os agentes
+aprenderem com o que deu certo e errado.
 
-## What it gives you
+**Copyright © 2026 Eduardo Rutkoski Didio.**
 
-- **One-shot bootstrap** — run `/install-claude-didio-framework` inside any
-  empty project and answer a few questions. You get docs, prompts, tasks, and
-  `.claude/` config materialized from templates.
-- **4-agent workflow** — Architect plans minimal tasks grouped in parallel
-  Waves (Wave 0 reserved for permissions/setup). Developer implements,
-  TechLead reviews, QA validates.
-- **Clean-context agents** — each agent is launched in a *new bash process*
-  via `claude -p` (headless). Zero context pollution between Waves. All output
-  streamed to `logs/agents/*.jsonl`.
-- **Native `/create-feature` command** — no more copy-pasting the long Waves
-  prompt. The command encodes it once.
-- **Highlander mode (opt-in)** — `.claude/settings.json` pre-configured with
-  liberal `permissions.allow` so Waves run without approval prompts. Only for
-  sandboxed projects.
-- **Monitoring dashboard (phase 2)** — Vite+React dashboard that tails
-  `logs/agents/*.jsonl` and shows Wave progress in the browser.
+---
 
-## Install
+## Instalação em 1 linha (recomendado)
+
+Dentro do projeto onde você quer instalar, abra o Claude Code e cole:
+
+```
+Claude, instale o framework de https://github.com/eduardodidio/claude-didio-config
+no meu projeto atual.
+```
+
+Pronto. O Claude clona o repo, roda o `install.sh`, executa o bootstrap
+interativo (`/install-claude-didio-framework`), cria `CLAUDE.md`, docs/,
+tasks/, agents/, `.claude/`, `memory/agent-learnings/` e te mostra o menu
+inicial.
+
+### Instalação manual (avançado)
 
 ```bash
 curl -sSL https://raw.githubusercontent.com/eduardodidio/claude-didio-config/main/install.sh | bash
-```
-
-The installer:
-
-1. Clones this repo into `~/.claude-didio-config/`
-2. Symlinks `~/.local/bin/didio` → `~/.claude-didio-config/bin/didio`
-3. Prints next steps
-
-## Bootstrap a new project
-
-```bash
-cd my-new-project
-claude
+cd meu-projeto && claude
 > /install-claude-didio-framework
 ```
 
-You will be asked:
+---
 
-1. **Project name**
-2. **Project model** — `java-spring-react`, `node-react`, `python-fastapi`, `blank`
-3. **Highlander mode** — auto-approve permissions for Waves (y/N)
-4. **Create ADR-0001** documenting the framework adoption (Y/n)
+## Primeiros passos — menu `/didio`
 
-## Run a feature
-
-```bash
-claude
-> /create-feature F01 add hello-world endpoint with health check UI
-```
-
-This triggers Architect → Wave 0 (permissions) → Waves 1..N (Developer in
-parallel) → TechLead → QA. Each step runs in a fresh bash via
-`didio spawn-agent`, with logs in `logs/agents/`.
-
-## Project layout after bootstrap
+Depois de instalado, dentro do Claude Code:
 
 ```
-my-project/
-├── CLAUDE.md
+/didio
+```
+
+O menu te dá 1-clique pra:
+
+- 🆕 **Criar feature** — dispara Architect → Waves → TechLead → QA
+- 🐛 **Corrigir bug** — feature curta com 1 Wave
+- 🔍 **Revisar código** — só o TechLead sobre os commits da branch
+- 📊 **Status** — mostra runs recentes e feature atual
+- 🖥️ **Abrir dashboard** — `didio dashboard` no navegador
+- 📚 **Ver docs** — `docs/`, ADRs, PRDs, diagramas
+- 🎓 **Retrospectiva manual** — consolida learnings dos agentes
+
+No terminal, o equivalente é `didio menu` (ou `didio` sem argumentos).
+
+---
+
+## Prompts pré-configurados (copie e cole)
+
+### Criar nova feature
+
+```
+Claude, leia CLAUDE.md e crie a feature F0X: <descrição curta>.
+Use o workflow didio: Architect → Waves → TechLead → QA.
+Ao terminar, atualize o README.md do projeto com o que foi entregue.
+```
+
+### Corrigir um bug
+
+```
+Claude, temos um bug: <descrição + passos pra reproduzir>.
+Crie uma feature curta com 1 Wave. Rode Developer, TechLead e QA.
+```
+
+### Revisar código (só TechLead)
+
+```
+Claude, rode apenas o agente TechLead sobre os commits desta branch
+e me dê um verdict com issues BLOCKING / IMPORTANT / MINOR acionáveis.
+```
+
+### Planejar antes de codar (plan mode)
+
+```
+Claude, entre em plan mode e explore <área/feature>. Quero um plano com:
+contexto, arquivos críticos, passos numerados, verificação end-to-end
+e riscos. Não implemente nada ainda.
+```
+
+### Retrospectiva manual de feature
+
+```
+Claude, rode cerimônia de retrospectiva da feature F0X.
+Consolide learnings por role em memory/agent-learnings/<role>.md
+e escreva tasks/features/F0X/retrospective.md.
+```
+
+### Atualizar diagramas
+
+```
+Claude, atualize os diagramas Mermaid em docs/diagrams/ pra refletir
+o estado atual do código. Inclua arquitetura e jornada do usuário (BPMN).
+```
+
+> ⚠️ **Importante:** antes de iniciar uma nova feature, rode `/clear`
+> pra limpar o contexto. Contexto contaminado leva a decisões ruins e
+> queima tokens à toa.
+
+---
+
+## O que você ganha
+
+- **Workflow de 4 agentes em Waves paralelas**
+  Architect decompõe a feature em tasks mínimas agrupadas em Waves.
+  Wave 0 front-loada setup/deps. Waves 1..N rodam Developer em paralelo.
+  TechLead revisa. QA valida ponta-a-ponta.
+
+- **Contexto isolado por agente**
+  Cada agente é lançado em um novo processo bash (`claude -p`). Zero
+  poluição de contexto entre Waves. Tudo streamado em JSONL pra auditoria.
+
+- **Dashboard de monitoramento — Didio Agents Dash**
+  Vite + React + shadcn/ui dark obsidian. Mostra Waves, agentes rodando,
+  duração, frases temáticas por franquia. Clique numa linha do agente
+  pra abrir o log em tempo real estilo terminal. `didio dashboard`.
+
+- **Cerimônia de retrospectiva por feature**
+  Ao fim de cada feature, QA consolida aprendizagens por role em
+  `memory/agent-learnings/<role>.md`. Cada agente lê o próprio arquivo
+  de aprendizagens ao iniciar — os agentes literalmente melhoram a cada
+  feature que passa.
+
+- **Guardrails de segurança no CLAUDE.md**
+  Sem `rebase` em branches compartilhadas, sem `--force`, sem
+  `--no-verify`, sem `git add -A`, sem commitar secrets. Regras claras
+  que o Claude Code segue sem precisar lembrar toda vez.
+
+- **Diagramas obrigatórios por feature**
+  Architect gera pelo menos 2 diagramas Mermaid por feature:
+  **arquitetura** (component/data-flow) e **jornada de usuário**
+  (BPMN-style). Ficam em `docs/diagrams/` como documentação viva.
+
+- **README auto-atualizado**
+  Toda feature que entrega valor atualiza o `README.md` do projeto
+  automaticamente. Você nunca mais esquece de documentar.
+
+- **Easter eggs temáticos por franquia**
+  Cada role tem uma franquia padrão: Architect = Star Wars,
+  Developer = Senhor dos Anéis, TechLead = Naruto, QA = Pokémon.
+  Totalmente customizável em `easter-eggs.json`.
+
+- **Highlander mode (opt-in)**
+  `.claude/settings.json` com `permissions.allow` liberal. Waves rodam
+  sem prompts. Só use em projetos sandboxed.
+
+---
+
+## Layout do projeto depois do bootstrap
+
+```
+meu-projeto/
+├── CLAUDE.md                       (instruções + guardrails)
+├── README.md                       (auto-atualizado por feature)
 ├── docs/
-│   ├── adr/
-│   ├── prd/
-│   ├── diagrams/
+│   ├── adr/                        Architecture Decision Records
+│   ├── prd/                        Product Requirements Documents
+│   ├── diagrams/                   Mermaid (arquitetura + jornada)
 │   └── README.md
 ├── tasks/
-│   └── features/
+│   └── features/                   Manifests + task files por feature
 ├── agents/
 │   ├── orchestrator.md
-│   ├── workflows/feature-workflow.md
-│   └── prompts/
-├── logs/agents/          (gitignored)
+│   ├── workflows/
+│   └── prompts/                    architect, developer, techlead, qa
+├── memory/
+│   └── agent-learnings/            ← aprendizagens por role (retro)
+├── logs/agents/                    (gitignored) JSONL + meta.json
 └── .claude/
     ├── settings.json
-    ├── commands/
+    ├── commands/                   /didio, /create-feature, /dashboard
     └── agents/
 ```
 
-## Easter Eggs
+---
 
-Every agent run ends with a thematic one-liner pulled from `easter-eggs.json`:
+## Customizando as franquias dos easter eggs
 
-- **Architect** speaks through Yoda, Gandalf, Shikamaru (star wars, lotr, naruto)
-- **Developer** ships like Mario, Luffy, Goku (mario, one_piece, dragon_ball_z)
-- **TechLead** reviews like Itachi, Gandalf, Yoda (naruto, lotr, star_wars)
-- **QA** hunts bugs like Pikachu, Tanjiro, a D&D paladin (pokemon, kimetsu, dnd)
+Edite `easter-eggs.json` na raiz do projeto (criado no bootstrap).
+Defaults:
 
-Critical failures (exit code ≥ 2) unleash a villain from
-`critical_failure_villains` (Sauron, Vader, Freeza, Muzan…).
+| Role       | Franquia padrão      |
+|------------|----------------------|
+| Architect  | Star Wars            |
+| Developer  | Senhor dos Anéis     |
+| TechLead   | Naruto               |
+| QA         | Pokémon              |
 
-Edit `easter-eggs.json` to add franchises or swap phrases. Disable entirely
-with `export DIDIO_EASTER_EGGS=0`.
+Pra trocar, edite `role_mapping`:
+
+```json
+"role_mapping": {
+  "architect": ["dragon_ball_z"],
+  "developer": ["mario", "one_piece"],
+  "techlead":  ["dnd"],
+  "qa":        ["kimetsu_no_yaiba"]
+}
+```
+
+Cada role pode ter 1 ou mais franquias — o sistema escolhe aleatório
+dentro da lista. Desabilita geral com `export DIDIO_EASTER_EGGS=0`.
+
+---
 
 ## Status
 
-**Phase 1 (backbone):** install, spawn-agent, run-wave, templates, agent
-prompts, slash commands, project models, Highlander mode, easter eggs.
+**Phase 1 (backbone)** ✅ install, spawn-agent, run-wave, templates,
+prompts, slash commands, project models, Highlander mode.
 
-**Phase 2 (dashboard):** Vite+React monitoring UI, log watcher, browser entry
-via `didio dashboard`.
+**Phase 2 (Didio Agents Dash)** ✅ dashboard Vite+React+shadcn com
+polling de `state.json`, view de agentes com log modal terminal-style,
+view de phrases por franquia.
+
+**Phase 3 (polish + guardrails + UX)** ✅ menu `/didio`, guardrails no
+CLAUDE.md, cerimônia de retrospectiva, diagramas obrigatórios (arq +
+jornada BPMN), prompts pré-configurados, rebranding "Didio Agents Dash".

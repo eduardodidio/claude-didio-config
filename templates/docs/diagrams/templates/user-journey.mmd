@@ -1,0 +1,33 @@
+%% User journey (BPMN-style) template for a didio feature.
+%% Rename to <FXX>-journey.mmd when you copy it into docs/diagrams/.
+%% Show: the happy path the user walks through, decision points,
+%% and error/failure branches. Use subgraphs as swimlanes (User /
+%% System / External) to stay BPMN-ish.
+
+flowchart TD
+    subgraph UserLane["👤 User"]
+        U_START(["Start: user wants X"])
+        U_INPUT["Fills form / clicks action"]
+        U_END(["End: sees result"])
+    end
+
+    subgraph SystemLane["🖥️ System"]
+        S_VALIDATE{"Input valid?"}
+        S_PROCESS["Process request"]
+        S_PERSIST[("Persist state")]
+        S_RENDER["Render response"]
+        S_ERROR["Show error message"]
+    end
+
+    subgraph ExternalLane["🌐 External"]
+        E_API["Third-party API"]
+    end
+
+    U_START --> U_INPUT
+    U_INPUT --> S_VALIDATE
+    S_VALIDATE -->|no| S_ERROR --> U_END
+    S_VALIDATE -->|yes| S_PROCESS
+    S_PROCESS --> E_API
+    E_API --> S_PERSIST
+    S_PERSIST --> S_RENDER
+    S_RENDER --> U_END

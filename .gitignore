@@ -1,5 +1,14 @@
 .DS_Store
 node_modules/
+dashboard/node_modules/
 dashboard/dist/
 dashboard/.vite/
 *.log
+
+# dogfood bootstrap — not part of the framework itself
+/agents
+/CLAUDE.md
+/tasks/
+/logs/agents/*.jsonl
+/logs/agents/*.meta.json
+/logs/agents/state.json

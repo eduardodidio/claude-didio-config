@@ -26,7 +26,16 @@
         "🎣 Gyarados apareceu! Shiny! ✨ Raridade 1/8192",
         "🏆 Você derrotou a Elite dos 4! Hall da Fama unlocked!",
         "📿 Mewtwo foi capturado com uma Master Ball! 🟣",
-        "🔄 Seu código evoluiu! Charmander → Charmeleon → Charizard 🔥🐉"
+        "🔄 Seu código evoluiu! Charmander → Charmeleon → Charizard 🔥🐉",
+        "🎯 Acerto crítico! Foi super eficaz! Dano x2 no bug! 💥",
+        "🌟 Lucky! Você encontrou uma Rare Candy no meio do refactor! 🍬",
+        "💫 Snorlax acordou! O bloqueio no pipeline liberou! 😴➡️🏃",
+        "🥚 Um ovo chocou! Sua task virou um Pokémon nível 1 ✨🐣",
+        "🎪 'Gotta catch 'em all!' Todos os testes verdes, Pokédex completa ✅",
+        "🧪 Professor Oak: 'Esta PR não é o horário certo... ah, tudo certo!' 👨‍🔬",
+        "🌀 Dragon Dance! +ataque, +velocidade, +aprovação do review 🐉",
+        "🏅 Badge de Ginásio conquistada! Avançou pra próxima cidade 🏙️",
+        "🔵 Poké Ball jogada... 1... 2... 3... CLIQUE! Bug capturado! 🔴"
       ],
       "failure": [
         "💔 Seu Pokémon desmaiou... corra pro Centro Pokémon! 🏥",
@@ -44,7 +53,15 @@
         "🦊 Modo Kyuubi! Chakra infinito liberado! 🧡🔥",
         "🐸 Sábio dos Sapos! Modo Senju ativado! 🌿✨",
         "⚡ Rasengan! 🌀 PR finalizada com estilo!",
-        "🌪️ Edo Tensei cancelado! Feature ressuscitada! ✨"
+        "🌪️ Edo Tensei cancelado! Feature ressuscitada! ✨",
+        "🗡️ Chidori! ⚡ Mil pássaros atravessaram o bug!",
+        "🌀 Rasenshuriken! Corte dimensional no legacy code! 💠",
+        "🧘 Modo Sennin (Sábio) ativado! Chakra natural equilibrado 🌿",
+        "🎭 Henge no Jutsu! O code review se disfarçou de mentor 🥷",
+        "🦅 Byakugan! 360° de visão no codebase — zero blind spots 👁️",
+        "🍜 Ichiraku Ramen celebra! +1 tigela de sucesso pro time 🍥",
+        "🐉 Katon: Goukakyu no Jutsu! 🔥 Bolas de fogo incineraram os TODOs",
+        "⛩️ 'Quando uma pessoa tem algo importante que proteger, ela fica forte.' 💪 Merge!"
       ],
       "failure": [
         "😵 Tsukuyomi! Preso num genjutsu de 72 horas de debug... 🌙",
@@ -116,7 +133,14 @@
         "🛸 Death Star exhaust port atingida! 💥 'Great shot kid!'",
         "🟢 'Do or do not, there is no try.' — Yoda aprovou! 👴",
         "👨‍🚀 'I have a good feeling about this.' (pela primeira vez na saga) ✨",
-        "🎵 Imperial March tocando AO CONTRÁRIO! 🎺 Rebels win!"
+        "🎵 Imperial March tocando AO CONTRÁRIO! 🎺 Rebels win!",
+        "🌌 Hyperspace jump completo! Millennium Falcon chegou na doca! 🚀",
+        "🧙 'These aren't the bugs you're looking for.' — Obi-Wan mind trick 👋",
+        "💙 Kyber crystal sincronizado! Sabre de luz construído! ⚔️✨",
+        "🤖 R2-D2 bipou aprovando sua PR! BEEP BOOP ✅",
+        "🏜️ 'The Force is strong with this one.' — Vader observando seu code ⚫",
+        "🦍 Chewbacca rugiu em aprovação! RWAAARGH! 🌟",
+        "🎯 'Stay on target... stay on target...' — Gold Leader confirmou o hit 🟡"
       ],
       "failure": [
         "🖤 'I find your lack of tests disturbing.' — Vader 💀",
@@ -135,7 +159,15 @@
         "⚔️ 'For Frodo!' — Aragorn liderou a merge charge! 👑",
         "🧙 'You shall pass!' — Gandalf liberou sua PR! ⚪✨",
         "🌳 Os Ents acordaram! Isengard (legacy code) destruída! 🌲💥",
-        "🏔️ O Anel foi destruído em Mount Doom! 🌋 Bug erradicado!"
+        "🏔️ O Anel foi destruído em Mount Doom! 🌋 Bug erradicado!",
+        "🏹 Legolas: 'Mas ainda consigo contar os bugs.' — 0 encontrados 🎯",
+        "🪓 Gimli: 'And my axe!' 🪓 Mais um teste passando!",
+        "🧝 'Mellon.' — As portas de Moria se abriram pro seu deploy 🚪✨",
+        "🐴 Shadowfax galopando! 'Run, you fools!' — o commit voa pro main 💨",
+        "🎵 Concerning hobbits... sua feature é tão simples quanto um segundo café da manhã 🍳",
+        "💎 Arwen ofereceu sua luz élfica ao seu PR ✨👸",
+        "🏰 Minas Tirith acesa! Beacons chamaram o review — aprovado 🔥",
+        "📜 'Not all those who wander are lost.' — o refactor encontrou o caminho 🧭"
       ],
       "failure": [
         "👁️ O Olho de Sauron está sobre você... 🔴🗼 cuidado!",
@@ -167,10 +199,10 @@
     }
   },
   "role_mapping": {
-    "architect": ["star_wars", "naruto", "lord_of_the_rings"],
-    "developer": ["mario", "one_piece", "dragon_ball_z"],
-    "techlead": ["naruto", "lord_of_the_rings", "star_wars"],
-    "qa": ["pokemon", "kimetsu_no_yaiba", "dnd"]
+    "architect": ["star_wars"],
+    "developer": ["lord_of_the_rings"],
+    "techlead":  ["naruto"],
+    "qa":        ["pokemon"]
   },
   "critical_failure_villains": [
     {"name": "Freeza", "franchise": "dragon_ball_z", "severity": "high", "line": "👹 FREEZA apareceu! 'Esta não é nem minha forma final...' 💜"},

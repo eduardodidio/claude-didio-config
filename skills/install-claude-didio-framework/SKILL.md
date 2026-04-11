@@ -1,9 +1,28 @@
 ---
 name: install-claude-didio-framework
-description: Bootstrap a new project with the claude-didio-config framework (CLAUDE.md, ADRs, PRDs, diagrams, tasks/, agents/, .claude/). Use when the user runs /install-claude-didio-framework in an empty or newly-started project.
+description: Bootstrap a new project with the claude-didio-config framework (CLAUDE.md, guardrails, docs/, tasks/, agents/, memory/agent-learnings/, .claude/, diagram templates). Use whenever the user says anything like "Claude, install claude-didio-config", "Claude, instale o framework de github.com/eduardodidio/claude-didio-config", or runs /install-claude-didio-framework in an empty or newly-started project.
 ---
 
 # Install claude-didio-config into this project
+
+## Natural language triggers
+
+If the user says any of the following (or equivalents), you should
+invoke this skill:
+
+- "Claude, install claude-didio-config"
+- "Claude, instale o framework de github.com/eduardodidio/claude-didio-config"
+- "Claude, set up the didio framework in this project"
+- "/install-claude-didio-framework"
+
+If `DIDIO_HOME` is not set or the repo isn't cloned, run
+`install.sh` from GitHub first:
+
+```bash
+curl -sSL https://raw.githubusercontent.com/eduardodidio/claude-didio-config/main/install.sh | bash
+```
+
+Then proceed with the interactive bootstrap below.
 
 You are running the interactive bootstrap for the `claude-didio-config`
 framework. Your job is to materialize all templates from
@@ -83,6 +102,22 @@ and `sed` for substitution, or Write/Edit tools as appropriate.
    logs/agents/state.json
    ```
 
+6.1. **Create `memory/agent-learnings/`** with an empty
+   `.gitkeep` and one placeholder file per role so the prompts have
+   something to read:
+   ```
+   memory/agent-learnings/architect.md
+   memory/agent-learnings/developer.md
+   memory/agent-learnings/techlead.md
+   memory/agent-learnings/qa.md
+   ```
+   Each file starts with a single header:
+   ```markdown
+   # <Role> Learnings
+
+   (QA appends to this file at the end of every feature retrospective.)
+   ```
+
 7. **Verify**: run `ls -la ./CLAUDE.md ./agents/prompts/ ./tasks/features/
    ./.claude/commands/create-feature.md` and confirm everything is in
    place.
@@ -93,11 +128,24 @@ and `sed` for substitution, or Write/Edit tools as appropriate.
 
 ## Final report to the user
 
-Print:
+Print a short welcome with:
 
 - What was created (tree listing, 1 level deep)
 - Whether Highlander mode was enabled
-- The exact command to trigger the first feature:
-  `/create-feature F01 <your first feature description>`
-- A reminder that `didio` must be on `PATH` and that each agent runs in a
-  clean bash context (so logs live in `logs/agents/`).
+- The menu command: `/didio` (inside Claude Code) or `didio menu` (in
+  the terminal)
+- **Getting-started menu** — show these 4 suggestions prominently:
+  1. 🆕 **Criar minha primeira feature** —
+     `Claude, leia CLAUDE.md e crie a feature F01: <descrição>`
+  2. 🐛 **Corrigir um bug** —
+     `Claude, temos um bug: <desc>. Crie uma feature curta de 1 Wave`
+  3. 🖥️ **Abrir o Didio Agents Dash** — `didio dashboard`
+  4. 📚 **Explorar os prompts prontos** — `/didio` → opção 8
+- **Higiene de contexto** — lembre o usuário:
+  > ⚠️ Antes de iniciar cada nova feature, rode `/clear` pra limpar
+  > o contexto. Isso evita decisões ruins e queima de tokens.
+- A reminder that `didio` must be on `PATH` and that each agent runs
+  in a clean bash context (so logs live in `logs/agents/`).
+
+Close with: "Pra voltar a este menu a qualquer momento, rode `/didio`
+(dentro do Claude Code) ou `didio menu` (no terminal)."

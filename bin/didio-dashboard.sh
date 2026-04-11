@@ -13,6 +13,13 @@ DASHBOARD_DIST="$DIDIO_HOME/dashboard/dist"
 
 if [[ -d "$DASHBOARD_DIST" && -f "$DASHBOARD_DIST/index.html" ]]; then
   echo "[didio-dashboard] serving $DASHBOARD_DIST on http://localhost:$PORT"
+  mkdir -p "$LOG_DIR"
+  # Expose logs/agents/state.json inside the served dir (relative fetch)
+  ln -sfn "$LOG_DIR/state.json" "$DASHBOARD_DIST/state.json"
+  # Expose logs/agents/ so the modal can fetch <task>.jsonl via relative URL
+  ln -sfn "$LOG_DIR" "$DASHBOARD_DIST/logs"
+  # Seed state.json so the first fetch doesn't 404
+  [[ -f "$LOG_DIR/state.json" ]] || echo '{"generated_at":"","agents":[]}' > "$LOG_DIR/state.json"
   "$DIDIO_HOME/bin/didio-log-watcher.sh" &
   WATCHER_PID=$!
   trap "kill $WATCHER_PID 2>/dev/null || true" EXIT

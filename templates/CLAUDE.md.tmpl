@@ -68,9 +68,54 @@ See `agents/orchestrator.md` for the full pipeline and
 - **ADRs**: every significant architecture decision creates a new ADR under
   `docs/adr/`. Number them sequentially (`0001-*.md`, `0002-*.md`).
 - **PRDs**: every feature has a PRD under `docs/prd/` before Architect runs.
-- **Diagrams**: every feature that changes flow or architecture must update
-  the relevant Mermaid diagram under `docs/diagrams/`. Diagrams are living
-  documentation — keep them in sync with code.
-- **README.md**: update whenever APIs, commands, or architecture change.
+- **Diagrams**: every feature MUST produce (or update) at least two Mermaid
+  diagrams under `docs/diagrams/`:
+  1. **Architecture** (`<FXX>-architecture.mmd`) — component / data-flow
+  2. **User Journey** (`<FXX>-journey.mmd`) — BPMN-style user flow
+  Diagrams are living documentation — keep them in sync with code.
+- **README.md auto-update**: every feature that ships MUST update the
+  project `README.md` with a short note of what was delivered (new
+  endpoints, new views, new commands, changed behavior). This is not
+  optional — if the feature doesn't change the README, either the README
+  is stale or the feature shouldn't have shipped.
+
+## Agent Learnings (Retrospective)
+
+At the end of every feature, QA runs a retrospective ceremony and appends
+lessons per role to `memory/agent-learnings/<role>.md`. Each agent reads
+its own learnings file at the start of every run — the agents improve
+with every feature that ships. Do NOT edit these files manually unless
+you are clearly adding a durable lesson.
+
+## Guardrails de Segurança
+
+Regras que o Claude Code DEVE seguir neste projeto. Nenhuma exceção sem
+confirmação explícita do usuário.
+
+**Git**
+- NUNCA rodar `git rebase` em branches compartilhadas (`main`, `master`,
+  `develop`)
+- NUNCA rodar `git push --force` ou `--force-with-lease` sem pedir
+- NUNCA rodar `git reset --hard` sobre trabalho não commitado
+- NUNCA usar `--no-verify` para pular hooks (pre-commit, pre-push)
+- NUNCA usar `git add -A` ou `git add .` — stage arquivo por arquivo
+- NUNCA commitar arquivos com segredos (`.env`, `credentials.*`, chaves
+  privadas, tokens, `*.pem`, `*.key`)
+- NUNCA amendar commits já pushados a uma branch compartilhada
+
+**Código**
+- NUNCA desabilitar validação, auth ou testes "só pra fazer funcionar"
+- NUNCA hardcodear secrets — sempre variáveis de ambiente
+- Validar input nas fronteiras do sistema (user input, APIs externas)
+- Não introduzir dependências novas sem confirmação
+
+**Infra / operações destrutivas**
+- NUNCA modificar CI/CD sem confirmação explícita
+- NUNCA rodar `rm -rf`, `DROP TABLE`, `kill -9` sem confirmar
+- Mudanças em estado compartilhado (Slack, PRs, GitHub Issues,
+  infraestrutura) exigem confirmação explícita antes de cada ação
+
+**Quando em dúvida: pare e pergunte ao usuário.** O custo de uma pausa é
+baixo; o custo de uma ação destrutiva não autorizada é alto.
 
 {{EXTRA_PROJECT_NOTES}}

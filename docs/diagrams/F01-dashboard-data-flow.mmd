@@ -1,0 +1,9 @@
+```mermaid
+flowchart LR
+  FS[state.json on disk] -->|HTTP GET ./state.json| FE[fetchState]
+  FE --> RQ[React Query cache]
+  RQ -->|useDidioState| OV[Overview]
+  RQ --> FV[Features]
+  RQ --> AV[Agents]
+  RQ --> EE[EasterEggs]
+```

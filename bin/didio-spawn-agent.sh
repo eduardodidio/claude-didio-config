@@ -96,6 +96,7 @@ claude \
   -p "$FULL_PROMPT" \
   --output-format stream-json \
   --verbose \
+  --dangerously-skip-permissions \
   > "$LOG_FILE" 2>&1
 EXIT_CODE=$?
 set -e
@@ -104,28 +105,28 @@ set -e
 FINAL_STATUS="completed"
 [[ $EXIT_CODE -ne 0 ]] && FINAL_STATUS="failed"
 
-# Pick a thematic easter egg for this role+outcome (may be empty if disabled)
-EASTER=""
+# Pick a thematic phrase for this role+outcome (may be empty if disabled)
+PHRASE=""
 if [[ -x "${DIDIO_HOME:-$HOME/.claude-didio-config}/bin/didio-easter-egg.sh" ]]; then
-  EASTER="$("${DIDIO_HOME:-$HOME/.claude-didio-config}/bin/didio-easter-egg.sh" "$ROLE" "$EXIT_CODE" || true)"
+  PHRASE="$("${DIDIO_HOME:-$HOME/.claude-didio-config}/bin/didio-easter-egg.sh" "$ROLE" "$EXIT_CODE" || true)"
 fi
 
-# Rewrite meta atomically with final status, timestamp, and easter egg
-python3 - "$META_FILE" "$FINAL_STATUS" "$EXIT_CODE" "$EASTER" <<'PY' || true
+# Rewrite meta atomically with final status, timestamp, and phrase
+python3 - "$META_FILE" "$FINAL_STATUS" "$EXIT_CODE" "$PHRASE" <<'PY' || true
 import json, sys
 from datetime import datetime, timezone
-path, status, code, egg = sys.argv[1], sys.argv[2], int(sys.argv[3]), sys.argv[4]
+path, status, code, phrase = sys.argv[1], sys.argv[2], int(sys.argv[3]), sys.argv[4]
 with open(path) as f:
     m = json.load(f)
 m["status"] = status
 m["exit_code"] = code
 m["finished_at"] = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-if egg:
-    m["easter_egg"] = egg
+if phrase:
+    m["phrase"] = phrase
 with open(path, "w") as f:
     json.dump(m, f, indent=2)
 PY
 
-[[ -n "$EASTER" ]] && echo "$EASTER" >&2
+[[ -n "$PHRASE" ]] && echo "$PHRASE" >&2
 echo "[didio-spawn-agent] $ROLE/$TASK_ID -> $FINAL_STATUS (exit=$EXIT_CODE)" >&2
 exit $EXIT_CODE

@@ -1,0 +1,14 @@
+flowchart TB
+  App --> Router
+  Router --> MainLayout
+  MainLayout --> AppSidebar
+  MainLayout --> Outlet
+  MainLayout --> ConnectionFooter
+  Outlet --> Overview
+  Outlet --> Features
+  Outlet --> Agents
+  Outlet --> EasterEggs
+  Overview --> useDidioState
+  Features --> useDidioState
+  Agents --> useDidioState
+  EasterEggs --> easter-eggs.json

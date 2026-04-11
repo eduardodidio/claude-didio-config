@@ -13,12 +13,16 @@ case "$SUBCMD" in
   dashboard)     exec "$DIDIO_HOME/bin/didio-dashboard.sh" "$@" ;;
   log-watcher)   exec "$DIDIO_HOME/bin/didio-log-watcher.sh" "$@" ;;
   easter-egg)    exec "$DIDIO_HOME/bin/didio-easter-egg.sh" "$@" ;;
+  menu|"")       exec "$DIDIO_HOME/bin/didio-menu.sh" "$@" ;;
   version)       echo "didio $(cat "$DIDIO_HOME/VERSION" 2>/dev/null || echo dev)" ;;
-  ""|help|-h|--help)
+  help|-h|--help)
     cat <<EOF
 didio — claude-didio-config framework
 
 Usage:
+  didio                        (no args) open the interactive menu
+  didio menu                   same as above
+
   didio spawn-agent <role> <feature-id> <task-file> [extra-prompt]
       Launch a single agent in a clean bash context via 'claude -p'.
       Roles: architect | developer | techlead | qa
