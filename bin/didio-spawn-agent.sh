@@ -106,13 +106,14 @@ FINAL_STATUS="completed"
 
 # Rewrite meta atomically (keep fields, add finished_at + exit)
 python3 - "$META_FILE" "$FINAL_STATUS" "$EXIT_CODE" <<'PY' || true
-import json, sys, datetime
+import json, sys
+from datetime import datetime, timezone
 path, status, code = sys.argv[1], sys.argv[2], int(sys.argv[3])
 with open(path) as f:
     m = json.load(f)
 m["status"] = status
 m["exit_code"] = code
-m["finished_at"] = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+m["finished_at"] = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 with open(path, "w") as f:
     json.dump(m, f, indent=2)
 PY

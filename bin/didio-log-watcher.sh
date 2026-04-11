@@ -12,7 +12,8 @@ mkdir -p "$LOG_DIR"
 
 while true; do
   python3 - "$LOG_DIR" "$STATE_FILE" <<'PY' 2>/dev/null || true
-import json, os, sys, glob, datetime
+import json, os, sys, glob
+from datetime import datetime, timezone
 log_dir, state_file = sys.argv[1], sys.argv[2]
 agents = []
 for meta_path in sorted(glob.glob(os.path.join(log_dir, "*.meta.json"))):
@@ -22,7 +23,7 @@ for meta_path in sorted(glob.glob(os.path.join(log_dir, "*.meta.json"))):
     except Exception:
         continue
 state = {
-    "generated_at": datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
+    "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
     "agents": agents,
 }
 tmp = state_file + ".tmp"
