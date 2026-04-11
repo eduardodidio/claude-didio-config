@@ -1,0 +1,32 @@
+id: python-fastapi
+label: Python FastAPI
+description: Python 3.12 + FastAPI backend with optional frontend.
+
+stack:
+  - Python 3.12
+  - FastAPI
+  - Pydantic v2
+  - pytest
+  - uv or poetry for dependency management
+
+commands:
+  build: "python -m compileall src"
+  test:  "pytest"
+  run:   "uvicorn src.main:app --reload"
+
+test_paths:
+  - "tests/**/*.py"
+  - "src/**/test_*.py"
+
+architecture_notes: |
+  Suggested layout:
+    - src/domain       — pure Python entities and ports
+    - src/application  — use cases
+    - src/infrastructure — adapters (db, http clients)
+    - src/api          — FastAPI routers
+
+  Domain is pure Python, no FastAPI/SQLAlchemy imports.
+
+gates:
+  testing: "pytest must pass with 0 failures"
+  architecture: "domain has no framework imports"

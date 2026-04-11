@@ -1,0 +1,31 @@
+id: node-react
+label: Node + React (TypeScript fullstack)
+description: Full-stack TypeScript — Node/Express (or Fastify) backend + React + Vite frontend.
+
+stack:
+  - Node 20+
+  - TypeScript
+  - Express or Fastify
+  - React 18 + Vite
+  - Vitest
+
+commands:
+  build: "npm run build"
+  test:  "npm run test"
+  run:   "npm run dev"
+
+test_paths:
+  - "src/**/*.test.ts"
+  - "src/**/*.test.tsx"
+
+architecture_notes: |
+  Suggested layout:
+    - apps/backend  — server entry, routes, services
+    - apps/frontend — React app
+    - packages/shared — shared types/contracts
+
+  Keep business logic out of routes; services own it.
+
+gates:
+  testing: "npm run test must pass"
+  architecture: "shared types live in packages/shared, not duplicated"

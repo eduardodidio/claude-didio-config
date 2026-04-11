@@ -1,0 +1,20 @@
+id: blank
+label: Blank / custom
+description: No predefined stack — user configures commands and gates manually.
+
+stack: []
+
+commands:
+  build: "echo 'configure build command in CLAUDE.md'"
+  test:  "echo 'configure test command in CLAUDE.md'"
+  run:   "echo 'configure run command in CLAUDE.md'"
+
+test_paths: []
+
+architecture_notes: |
+  No stack assumptions. Edit CLAUDE.md and agents/prompts/*.md to match
+  your project conventions.
+
+gates:
+  testing: "user-defined"
+  architecture: "user-defined"

@@ -1,0 +1,37 @@
+id: java-spring-react
+label: Java Spring Boot + React
+description: Clean Architecture backend (Java 21 + Spring Boot) with a React 18 + TypeScript + Vite frontend.
+
+stack:
+  - Java 21
+  - Spring Boot 3.4.x
+  - Clean Architecture (Hexagonal)
+  - React 18 + TypeScript + Vite
+  - Tailwind + shadcn/ui
+
+commands:
+  build: "mvn clean compile && (cd frontend && npm run build)"
+  test:  "mvn test && (cd frontend && npm run test)"
+  run:   "mvn spring-boot:run"
+
+test_paths:
+  - "backend/src/test/**/*Test.java"
+  - "frontend/src/**/*.test.ts"
+  - "frontend/src/**/*.test.tsx"
+
+architecture_notes: |
+  Backend layers (domain must not depend on frameworks):
+    - domain      — entities, value objects, ports
+    - application — use cases (inbound port impls)
+    - infrastructure — adapters (repos, external services)
+    - api         — REST/WebSocket controllers
+
+  Frontend:
+    - engines/  — audio, input, haptic, etc.
+    - lib/api.ts for all HTTP
+    - thin client: no game/business logic
+
+gates:
+  testing: "mvn test + npm run test must pass"
+  architecture: "domain layer has zero framework imports"
+  accessibility: optional

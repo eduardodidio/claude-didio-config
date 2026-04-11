@@ -1,0 +1,76 @@
+# CLAUDE.md
+
+Project: **{{PROJECT_NAME}}**
+Stack: **{{STACK}}**
+Framework: [claude-didio-config](https://github.com/eduardodidio/claude-didio-config)
+
+## Mission
+
+{{PROJECT_MISSION}}
+
+## Architecture
+
+{{STACK_ARCHITECTURE}}
+
+## Commands
+
+- **Build:** `{{BUILD_CMD}}`
+- **Test:** `{{TEST_CMD}}`
+- **Run:** `{{RUN_CMD}}`
+
+## Agent Workflow
+
+This project uses the **4-agent Waves workflow** from claude-didio-config:
+
+1. **Architect** — plans minimal tasks grouped in parallel Waves.
+   Wave 0 front-loads permissions/setup.
+2. **Developer** — implements each task in a clean bash context.
+3. **Tech Lead** — reviews architecture, tests, diagrams.
+4. **QA** — validates end-to-end and fills test gaps.
+
+All agents run via `didio spawn-agent <role>` in isolated bash processes.
+Logs: `logs/agents/*.jsonl`. Dashboard: `didio dashboard` (phase 2).
+
+### Trigger a feature
+
+```
+/create-feature F01 <short description of the feature>
+```
+
+See `agents/orchestrator.md` for the full pipeline and
+`agents/workflows/feature-workflow.md` for the quality gates.
+
+## Project Layout
+
+```
+.
+├── CLAUDE.md                    (this file)
+├── docs/
+│   ├── adr/                     Architecture Decision Records
+│   ├── prd/                     Product Requirements Documents
+│   ├── diagrams/                Mermaid flowcharts (live docs)
+│   └── README.md                Docs index
+├── tasks/
+│   └── features/                Per-feature task manifests + task files
+├── agents/
+│   ├── orchestrator.md
+│   ├── workflows/feature-workflow.md
+│   └── prompts/                 Role prompts (architect, developer, techlead, qa)
+├── logs/agents/                 Agent run logs (gitignored)
+└── .claude/
+    ├── settings.json            Claude Code settings
+    ├── commands/                Slash commands (/create-feature, /dashboard, ...)
+    └── agents/                  Subagent definitions
+```
+
+## Documentation Maintenance Rules
+
+- **ADRs**: every significant architecture decision creates a new ADR under
+  `docs/adr/`. Number them sequentially (`0001-*.md`, `0002-*.md`).
+- **PRDs**: every feature has a PRD under `docs/prd/` before Architect runs.
+- **Diagrams**: every feature that changes flow or architecture must update
+  the relevant Mermaid diagram under `docs/diagrams/`. Diagrams are living
+  documentation — keep them in sync with code.
+- **README.md**: update whenever APIs, commands, or architecture change.
+
+{{EXTRA_PROJECT_NOTES}}

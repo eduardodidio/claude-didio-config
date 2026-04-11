@@ -1,0 +1,47 @@
+#!/usr/bin/env bash
+# didio — entry point for claude-didio-config framework
+# Usage: didio <subcommand> [args...]
+set -euo pipefail
+
+DIDIO_HOME="${DIDIO_HOME:-$HOME/.claude-didio-config}"
+SUBCMD="${1:-}"
+shift || true
+
+case "$SUBCMD" in
+  spawn-agent)   exec "$DIDIO_HOME/bin/didio-spawn-agent.sh" "$@" ;;
+  run-wave)      exec "$DIDIO_HOME/bin/didio-run-wave.sh" "$@" ;;
+  dashboard)     exec "$DIDIO_HOME/bin/didio-dashboard.sh" "$@" ;;
+  log-watcher)   exec "$DIDIO_HOME/bin/didio-log-watcher.sh" "$@" ;;
+  version)       echo "didio $(cat "$DIDIO_HOME/VERSION" 2>/dev/null || echo dev)" ;;
+  ""|help|-h|--help)
+    cat <<EOF
+didio — claude-didio-config framework
+
+Usage:
+  didio spawn-agent <role> <feature-id> <task-file> [extra-prompt]
+      Launch a single agent in a clean bash context via 'claude -p'.
+      Roles: architect | developer | techlead | qa
+      Logs streamed to logs/agents/<feature>-<role>-<taskid>-<ts>.jsonl
+
+  didio run-wave <feature-id> <wave-number>
+      Run all tasks of a given Wave in parallel (one spawn-agent per task).
+      Reads tasks/features/<feature>/<feature>-README.md for Wave manifest.
+
+  didio dashboard [port]
+      Start monitoring dashboard (default port 7777) and open in browser.
+
+  didio log-watcher
+      Aggregate logs/agents/*.jsonl into logs/agents/state.json for the dashboard.
+
+  didio version
+      Print framework version.
+
+Environment:
+  DIDIO_HOME   Framework install directory (default: ~/.claude-didio-config)
+EOF
+    ;;
+  *)
+    echo "didio: unknown subcommand '$SUBCMD'. Try 'didio help'." >&2
+    exit 1
+    ;;
+esac
