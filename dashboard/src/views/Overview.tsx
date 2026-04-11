@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useDidioState } from '@/hooks/useDidioState';
 import {
@@ -9,6 +10,7 @@ import {
 } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { computeOverviewStats, latestPhrase } from '@/lib/selectors';
+import { AgentRunDialog } from '@/components/AgentRunDialog';
 import type { AgentRun, AgentStatus, DidioState } from '@/lib/types';
 
 const STATUS_COLOR: Record<AgentStatus, string> = {
@@ -76,6 +78,7 @@ function OverviewSkeleton() {
 
 export function Overview() {
   const query = useDidioState();
+  const [selectedRun, setSelectedRun] = useState<AgentRun | null>(null);
 
   if (query.isLoading) return <OverviewSkeleton />;
 
@@ -138,17 +141,19 @@ export function Overview() {
             className="flex flex-wrap gap-2"
           >
             {timelineRuns.map((run, idx) => (
-              <motion.div
+              <motion.button
+                type="button"
                 key={`${run.task}-${run.started_at}`}
                 initial={{ opacity: 0, y: 6 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: idx * 0.02, duration: 0.2 }}
-                className={`didio-glow rounded-full px-3 py-1 text-xs font-medium ${STATUS_COLOR[run.status]}`}
-                title={`${run.task} · ${run.role} · ${run.status}`}
+                onClick={() => setSelectedRun(run)}
+                className={`didio-glow rounded-full px-3 py-1 text-xs font-medium cursor-pointer hover:scale-105 transition-transform ${STATUS_COLOR[run.status]}`}
+                title={`${run.feature}/${run.role}/${run.task} · ${run.status} — click to open log`}
                 data-testid="timeline-pill"
               >
                 {run.task}
-              </motion.div>
+              </motion.button>
             ))}
             {timelineRuns.length === 0 && (
               <span className="text-sm text-muted-foreground">
@@ -159,7 +164,11 @@ export function Overview() {
         </CardContent>
       </Card>
 
-      <Card data-testid="latest-phrase-card" className="didio-glow">
+      <Card
+        data-testid="latest-phrase-card"
+        className={`didio-glow ${phraseRun ? 'cursor-pointer hover:bg-accent/30 transition-colors' : ''}`}
+        onClick={() => phraseRun && setSelectedRun(phraseRun)}
+      >
         <CardHeader>
           <CardDescription>Latest phrase</CardDescription>
           <CardTitle className="text-xl leading-snug">
@@ -173,6 +182,14 @@ export function Overview() {
           </CardContent>
         )}
       </Card>
+
+      <AgentRunDialog
+        run={selectedRun}
+        open={selectedRun !== null}
+        onOpenChange={(o) => {
+          if (!o) setSelectedRun(null);
+        }}
+      />
     </div>
   );
 }

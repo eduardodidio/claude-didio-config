@@ -33,7 +33,7 @@ function parseJsonl(text: string): LogEntry[] {
 }
 
 export function useAgentLog(
-  task: string | null,
+  logFile: string | null,
   isRunning: boolean,
 ): UseAgentLogResult {
   const [entries, setEntries] = useState<LogEntry[]>([]);
@@ -42,7 +42,7 @@ export function useAgentLog(
   const cancelledRef = useRef(false);
 
   useEffect(() => {
-    if (!task) {
+    if (!logFile) {
       setEntries([]);
       setError(null);
       setLoading(false);
@@ -53,7 +53,7 @@ export function useAgentLog(
     setLoading(true);
     setError(null);
 
-    const url = `./logs/agents/${encodeURIComponent(task)}.jsonl`;
+    const url = `./logs/${encodeURIComponent(logFile)}`;
 
     const fetchOnce = async () => {
       try {
@@ -84,7 +84,7 @@ export function useAgentLog(
       cancelledRef.current = true;
       if (intervalId) clearInterval(intervalId);
     };
-  }, [task, isRunning]);
+  }, [logFile, isRunning]);
 
   return { entries, error, loading };
 }

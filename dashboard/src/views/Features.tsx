@@ -4,6 +4,7 @@ import { ChevronDown } from 'lucide-react';
 import { useDidioState } from '@/hooks/useDidioState';
 import { groupByFeature } from '@/lib/selectors';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { AgentRunDialog } from '@/components/AgentRunDialog';
 import type { AgentRun, FeatureGroup } from '@/lib/types';
 
 function aggregateStatusColor(runs: AgentRun[]): string {
@@ -36,6 +37,7 @@ function formatDuration(run: AgentRun): string {
 export function Features() {
   const { data, isLoading, error } = useDidioState();
   const [open, setOpen] = useState<Record<string, boolean>>({});
+  const [selectedRun, setSelectedRun] = useState<AgentRun | null>(null);
 
   if (error) {
     return (
@@ -66,6 +68,9 @@ export function Features() {
       <div className="space-y-3">
         {groups.map((group) => {
           const isOpen = !!open[group.feature];
+          const sortedRuns = [...group.runs].sort((a, b) =>
+            a.started_at.localeCompare(b.started_at),
+          );
           return (
             <Card key={group.feature} data-testid={`feature-card-${group.feature}`}>
               <CardHeader className="p-4">
@@ -114,29 +119,39 @@ export function Features() {
                     className="overflow-hidden"
                   >
                     <CardContent className="p-4 pt-0">
-                      <ul className="space-y-1.5" data-testid={`feature-runs-${group.feature}`}>
-                        {group.runs.map((run) => (
-                          <li
-                            key={`${run.task}-${run.started_at}-${run.pid}`}
-                            className="flex items-center gap-3 text-sm font-mono"
-                          >
-                            <span
-                              className={`inline-block w-2 h-2 rounded-full ${runStatusColor(
-                                run.status,
-                              )}`}
-                              aria-label={run.status}
-                            />
-                            <span className="text-primary">{run.role}</span>
-                            <span className="text-muted-foreground">·</span>
-                            <span>{run.task}</span>
-                            <span className="text-muted-foreground">·</span>
-                            <span className="text-xs text-muted-foreground">
-                              {run.status}
-                            </span>
-                            <span className="text-muted-foreground">·</span>
-                            <span className="text-xs text-muted-foreground">
-                              {formatDuration(run)}
-                            </span>
+                      <ul className="space-y-1" data-testid={`feature-runs-${group.feature}`}>
+                        {sortedRuns.map((run) => (
+                          <li key={`${run.task}-${run.started_at}-${run.pid}`}>
+                            <button
+                              type="button"
+                              onClick={() => setSelectedRun(run)}
+                              data-testid="feature-run-row"
+                              className="flex w-full items-center gap-3 rounded-md px-2 py-1.5 text-left text-sm font-mono hover:bg-accent/50 cursor-pointer"
+                              title={run.phrase ?? `${run.role} · ${run.task}`}
+                            >
+                              <span
+                                className={`inline-block w-2 h-2 rounded-full ${runStatusColor(
+                                  run.status,
+                                )}`}
+                                aria-label={run.status}
+                              />
+                              <span className="text-primary">{run.role}</span>
+                              <span className="text-muted-foreground">·</span>
+                              <span className="truncate">{run.task}</span>
+                              <span className="text-muted-foreground">·</span>
+                              <span className="text-xs text-muted-foreground">
+                                {run.status}
+                              </span>
+                              <span className="text-muted-foreground">·</span>
+                              <span className="text-xs text-muted-foreground">
+                                {formatDuration(run)}
+                              </span>
+                              {run.phrase && (
+                                <span className="ml-auto truncate text-xs italic text-muted-foreground/80">
+                                  "{run.phrase}"
+                                </span>
+                              )}
+                            </button>
                           </li>
                         ))}
                       </ul>
@@ -148,6 +163,14 @@ export function Features() {
           );
         })}
       </div>
+
+      <AgentRunDialog
+        run={selectedRun}
+        open={selectedRun !== null}
+        onOpenChange={(o) => {
+          if (!o) setSelectedRun(null);
+        }}
+      />
     </div>
   );
 }

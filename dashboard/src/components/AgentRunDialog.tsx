@@ -54,8 +54,9 @@ function formatLine(entry: LogEntry): string {
 
 export function AgentRunDialog({ run, open, onOpenChange }: AgentRunDialogProps) {
   const isRunning = run?.status === 'running';
+  const logBasename = run?.log ? run.log.split('/').pop() ?? null : null;
   const { entries, error, loading } = useAgentLog(
-    open && run ? run.task : null,
+    open && run ? logBasename : null,
     !!isRunning,
   );
   const preRef = useRef<HTMLPreElement>(null);
