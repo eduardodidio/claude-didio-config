@@ -34,6 +34,33 @@ cd meu-projeto && claude
 
 ---
 
+## Rodando o dashboard localmente
+
+O dashboard é servido por `didio dashboard` a partir de `dashboard/dist/`,
+com um symlink `state.json → logs/agents/state.json` gerado pelo watcher.
+Essa é a forma correta — `npm run dev` (Vite) **não funciona direto**
+porque o fallback SPA do Vite devolve `index.html` pra `./state.json`,
+quebrando o parse e travando o carregamento.
+
+```bash
+# build único (quando os arquivos do dashboard mudarem)
+cd dashboard && npm install && npm run build && cd ..
+
+# subir o dashboard (porta default 7777)
+./bin/didio dashboard
+# ou noutra porta:
+./bin/didio dashboard 8080
+```
+
+Abra http://localhost:7777/. O watcher regenera `logs/agents/state.json`
+a cada 1s a partir dos JSONL — a UI faz polling e atualiza sozinha.
+
+Se a porta já estiver ocupada (`Address already in use`), provavelmente
+já tem um `didio dashboard` rodando. Use `lsof -iTCP:7777 -sTCP:LISTEN`
+pra confirmar antes de matar o processo.
+
+---
+
 ## Primeiros passos — menu `/didio`
 
 Depois de instalado, dentro do Claude Code:
