@@ -84,10 +84,25 @@ my-project/
     └── agents/
 ```
 
+## Easter Eggs
+
+Every agent run ends with a thematic one-liner pulled from `easter-eggs.json`:
+
+- **Architect** speaks through Yoda, Gandalf, Shikamaru (star wars, lotr, naruto)
+- **Developer** ships like Mario, Luffy, Goku (mario, one_piece, dragon_ball_z)
+- **TechLead** reviews like Itachi, Gandalf, Yoda (naruto, lotr, star_wars)
+- **QA** hunts bugs like Pikachu, Tanjiro, a D&D paladin (pokemon, kimetsu, dnd)
+
+Critical failures (exit code ≥ 2) unleash a villain from
+`critical_failure_villains` (Sauron, Vader, Freeza, Muzan…).
+
+Edit `easter-eggs.json` to add franchises or swap phrases. Disable entirely
+with `export DIDIO_EASTER_EGGS=0`.
+
 ## Status
 
 **Phase 1 (backbone):** install, spawn-agent, run-wave, templates, agent
-prompts, slash commands, project models, Highlander mode.
+prompts, slash commands, project models, Highlander mode, easter eggs.
 
 **Phase 2 (dashboard):** Vite+React monitoring UI, log watcher, browser entry
 via `didio dashboard`.

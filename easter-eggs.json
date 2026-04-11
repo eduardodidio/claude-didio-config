@@ -1,0 +1,185 @@
+{
+  "version": 1,
+  "description": "Coleção de frases easter egg para feedback de agentes em conclusão de features",
+  "franchises": {
+    "mario": {
+      "emoji": "🍄",
+      "tags": ["deployer", "level-up", "feature-complete"],
+      "success": [
+        "🍄 >>> 🏃 >>> 🚩 LEVEL COMPLETE! +1UP",
+        "⭐ Super Star! Invencível por 10 segundos! ✨",
+        "🏰 Thank you Mario! Feature resgatada deste castelo! ✅",
+        "🪙🪙🪙 +100 COINS! 1-UP! 🎵 ta-da-da-DAAA",
+        "🔥 Fire Flower obtida! Deploy flamejante! 🌸"
+      ],
+      "failure": [
+        "👻 Boo! Um Goomba derrotou sua build... 💀 GAME OVER",
+        "🕳️ Mario caiu no buraco! Press START to continue... 😵",
+        "🐢 Bowser roubou sua PR! 🏰 Resgate necessário"
+      ]
+    },
+    "pokemon": {
+      "emoji": "⚡",
+      "tags": ["bug-hunter", "capture", "collector"],
+      "success": [
+        "⚡ Pikachu usou Trovão! É super eficaz! 🔴 FEATURE CAPTURADA!",
+        "🎣 Gyarados apareceu! Shiny! ✨ Raridade 1/8192",
+        "🏆 Você derrotou a Elite dos 4! Hall da Fama unlocked!",
+        "📿 Mewtwo foi capturado com uma Master Ball! 🟣",
+        "🔄 Seu código evoluiu! Charmander → Charmeleon → Charizard 🔥🐉"
+      ],
+      "failure": [
+        "💔 Seu Pokémon desmaiou... corra pro Centro Pokémon! 🏥",
+        "🪨 Foi super ineficaz... tente outro tipo de fix 😔",
+        "🎣 A Pokébola quebrou! O bug fugiu! 💨",
+        "☠️ Team Rocket sabotou sua feature: 'Preparando para encrencar!' 🚀"
+      ]
+    },
+    "naruto": {
+      "emoji": "🍥",
+      "tags": ["code-reviewer", "ninja-speed", "clone-tasks"],
+      "success": [
+        "🍥 Kage Bunshin no Jutsu! 💨💨💨 ✅ DATTEBAYO!",
+        "👁️ Sharingan ativado! Bug copiado e neutralizado! 🔴",
+        "🦊 Modo Kyuubi! Chakra infinito liberado! 🧡🔥",
+        "🐸 Sábio dos Sapos! Modo Senju ativado! 🌿✨",
+        "⚡ Rasengan! 🌀 PR finalizada com estilo!",
+        "🌪️ Edo Tensei cancelado! Feature ressuscitada! ✨"
+      ],
+      "failure": [
+        "😵 Tsukuyomi! Preso num genjutsu de 72 horas de debug... 🌙",
+        "🕳️ Kamui! Seu código foi sugado pra outra dimensão 👁️",
+        "💀 Pain usou Shinra Tensei! Repositório destruído! 💥",
+        "🐍 Orochimaru injetou código malicioso! 🧪"
+      ]
+    },
+    "one_piece": {
+      "emoji": "🏴‍☠️",
+      "tags": ["nakama", "adventure", "freedom"],
+      "success": [
+        "👊 Gomu Gomu no RED HAWK! 🔥 NAKAMA UNLOCKED! ⭐",
+        "⚔️ Santoryu! Oni Giri! 🗡️🗡️🗡️ Três cortes perfeitos!",
+        "🌊 Mera Mera no Mi! Ace aprovou sua feature! 🔥",
+        "👑 Gear 5! Joy Boy despertou! 🥁 Liberdade total!",
+        "🗺️ One Piece encontrado! O tesouro era o código que fizemos no caminho 💎",
+        "🎵 Bink's Sake tocando! Festa no Sunny! 🍺"
+      ],
+      "failure": [
+        "🌊 Calm Belt! Sem vento, sem progresso... 🚢💤",
+        "🦈 Arlong invadiu sua vila de código! 🏘️💔",
+        "❄️ Aokiji congelou sua branch! 🧊 Ice Age",
+        "🎭 Blackbeard roubou sua Akuma no Mi! Zehahaha! 😈"
+      ]
+    },
+    "dragon_ball_z": {
+      "emoji": "🐉",
+      "tags": ["deployer", "power-up", "epic-finish"],
+      "success": [
+        "🔵 KA...ME...HA...ME...HAAAAAA! 💥✨ Feature vaporizada com sucesso!",
+        "⚡ Super Saiyajin 3! 💛 Cabelo dourado, código dourado!",
+        "🌀 Genki Dama carregada com a energia de toda a equipe! 🌍✨",
+        "🔷 Ultra Instinct ativado! Bugs esquivados automaticamente! ⚪",
+        "💫 Fusion! Ha! 🕺💃 Gotenks aprova este merge!",
+        "🐉 Shenlong invocado! Seu desejo foi concedido! 🟢"
+      ],
+      "failure": [
+        "👹 FREEZA apareceu! 'Esta não é nem minha forma final...' 💜 NOOO!",
+        "🧬 CELL absorveu sua feature! Forma Perfeita alcançada... pelo bug 😈",
+        "👶 Majin Buu transformou seu código em chocolate! 🍫💥",
+        "🌙 Broly enlouqueceu! KAKAROOOOT! 💚 Destruição total!",
+        "🔴 Radditz: 'Seu nível de poder... é menos de 1000!' 📉",
+        "☄️ Beerus destruiu seu universo por um pudim mal testado 🍮"
+      ]
+    },
+    "kimetsu_no_yaiba": {
+      "emoji": "⚔️",
+      "tags": ["precision", "breath-techniques", "demon-slayer"],
+      "success": [
+        "💧 Respiração da Água, Décima Forma: Dragão de Água! 🐉✨",
+        "🔥 Hinokami Kagura! Dança do Deus do Fogo! ☀️⚔️",
+        "⚡ Respiração do Trovão, Primeira Forma: Clivagem! ⚡",
+        "🐗 GANBARE GANBARE! Inosuke selvagem venceu! 🐗⚔️",
+        "🌸 Respiração da Flor, Sétima Forma! Kanao decidiu por você! 🪙"
+      ],
+      "failure": [
+        "🌙 Muzan apareceu! Todos os caçadores em alerta! 🩸",
+        "🕷️ Rui tecendo fios no seu código... 🕸️ cuidado!",
+        "💀 Kokushibou, Lua Superior 1, apareceu. Fuja. 🌑⚔️",
+        "🌅 Amanheceu e seu demônio-feature virou cinzas ☀️💨"
+      ]
+    },
+    "star_wars": {
+      "emoji": "⚔️",
+      "tags": ["force", "epic", "rebellion"],
+      "success": [
+        "⚔️ Que a Força esteja com seu deploy! ✨ Sabre azul ativado!",
+        "🛸 Death Star exhaust port atingida! 💥 'Great shot kid!'",
+        "🟢 'Do or do not, there is no try.' — Yoda aprovou! 👴",
+        "👨‍🚀 'I have a good feeling about this.' (pela primeira vez na saga) ✨",
+        "🎵 Imperial March tocando AO CONTRÁRIO! 🎺 Rebels win!"
+      ],
+      "failure": [
+        "🖤 'I find your lack of tests disturbing.' — Vader 💀",
+        "⚡ Emperor Palpatine: 'UNLIMITED BUGS!' ⚡⚡⚡",
+        "🔥 'You were the chosen one!' — código no lava de Mustafar 🌋",
+        "💥 'It's a trap!' — Almirante Ackbar avisou sobre essa PR 🐟",
+        "🌀 Order 66 executada. Sua branch foi... eliminada. 🔴"
+      ]
+    },
+    "lord_of_the_rings": {
+      "emoji": "💍",
+      "tags": ["epic-quest", "fellowship", "wizard"],
+      "success": [
+        "💍 'One commit to rule them all!' 🔥 Forjado em Mordor!",
+        "🦅 Águias chegaram! Deploy salvo no último minuto! ✨",
+        "⚔️ 'For Frodo!' — Aragorn liderou a merge charge! 👑",
+        "🧙 'You shall pass!' — Gandalf liberou sua PR! ⚪✨",
+        "🌳 Os Ents acordaram! Isengard (legacy code) destruída! 🌲💥",
+        "🏔️ O Anel foi destruído em Mount Doom! 🌋 Bug erradicado!"
+      ],
+      "failure": [
+        "👁️ O Olho de Sauron está sobre você... 🔴🗼 cuidado!",
+        "🧙 'You shall NOT pass!' — testes bloquearam seu merge ⚪❌",
+        "🕷️ Shelob envolveu seu código em teia! 🕸️",
+        "💀 Nazgûl detectaram sua branch! Fuja! 🐎👻",
+        "🗣️ 'My precious...' — Gollum roubou seu commit 💍"
+      ]
+    },
+    "dnd": {
+      "emoji": "🎲",
+      "tags": ["rng", "tabletop", "critical"],
+      "success": [
+        "🎲 NAT 20! 🔥 Acerto crítico! Dano massivo no bug!",
+        "✨ Magic Missile! 🎯🎯🎯 Três bugs atingidos automaticamente!",
+        "🛡️ Saving throw bem-sucedido! +5 de resistência a regressões!",
+        "⚔️ +3 Vorpal Sword! Cabeça do bug decepada! 🗡️",
+        "🧙 Wish spell usada com sabedoria! Feature manifestada! ✨",
+        "🐉 Você derrotou o Ancient Red Dragon (legacy code)! 🏆 +5000 XP"
+      ],
+      "failure": [
+        "🎲 NAT 1! 💀 Falha crítica! Você tropeçou na própria espada!",
+        "☠️ TPK! Total Party Kill! Toda a squad foi derrotada pelo deploy 💀",
+        "👁️ Beholder apareceu! Anti-magic field desativou seus testes 🔮",
+        "🧟 Mimic! Aquele 'baú de features' era na verdade um bug! 😱",
+        "🃏 Deck of Many Things: você tirou 'The Void'. 🕳️ RIP",
+        "📜 Scroll of Rollback consumido em emergência! 📉"
+      ]
+    }
+  },
+  "role_mapping": {
+    "architect": ["star_wars", "naruto", "lord_of_the_rings"],
+    "developer": ["mario", "one_piece", "dragon_ball_z"],
+    "techlead": ["naruto", "lord_of_the_rings", "star_wars"],
+    "qa": ["pokemon", "kimetsu_no_yaiba", "dnd"]
+  },
+  "critical_failure_villains": [
+    {"name": "Freeza", "franchise": "dragon_ball_z", "severity": "high", "line": "👹 FREEZA apareceu! 'Esta não é nem minha forma final...' 💜"},
+    {"name": "Sauron", "franchise": "lord_of_the_rings", "severity": "critical", "line": "👁️ O Olho de Sauron fixou seu repositório. 🔴🗼"},
+    {"name": "Darth Vader", "franchise": "star_wars", "severity": "high", "line": "🖤 Vader: 'I find your lack of tests disturbing.' 💀"},
+    {"name": "Muzan", "franchise": "kimetsu_no_yaiba", "severity": "critical", "line": "🌙 Muzan despertou. Todos os caçadores em alerta. 🩸"},
+    {"name": "Pain", "franchise": "naruto", "severity": "high", "line": "💀 Pain usou Shinra Tensei! Repositório destruído! 💥"},
+    {"name": "Blackbeard", "franchise": "one_piece", "severity": "high", "line": "🎭 Blackbeard roubou sua Akuma no Mi! Zehahaha! 😈"},
+    {"name": "Bowser", "franchise": "mario", "severity": "low", "line": "🐢 Bowser roubou sua PR! 🏰"},
+    {"name": "Team Rocket", "franchise": "pokemon", "severity": "low", "line": "☠️ Team Rocket sabotou sua feature: 'Preparando para encrencar!' 🚀"}
+  ]
+}

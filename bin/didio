@@ -12,6 +12,7 @@ case "$SUBCMD" in
   run-wave)      exec "$DIDIO_HOME/bin/didio-run-wave.sh" "$@" ;;
   dashboard)     exec "$DIDIO_HOME/bin/didio-dashboard.sh" "$@" ;;
   log-watcher)   exec "$DIDIO_HOME/bin/didio-log-watcher.sh" "$@" ;;
+  easter-egg)    exec "$DIDIO_HOME/bin/didio-easter-egg.sh" "$@" ;;
   version)       echo "didio $(cat "$DIDIO_HOME/VERSION" 2>/dev/null || echo dev)" ;;
   ""|help|-h|--help)
     cat <<EOF
@@ -32,6 +33,10 @@ Usage:
 
   didio log-watcher
       Aggregate logs/agents/*.jsonl into logs/agents/state.json for the dashboard.
+
+  didio easter-egg <role> <exit_code>
+      Print a thematic one-liner for the given role+outcome.
+      Honors DIDIO_EASTER_EGGS=0 to disable.
 
   didio version
       Print framework version.
