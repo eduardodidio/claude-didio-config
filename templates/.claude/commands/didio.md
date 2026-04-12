@@ -13,18 +13,47 @@ disponível) e execute a ação escolhida.
 
 1. **🆕 Criar nova feature**
    Pergunte: id da feature (F0X) e descrição curta.
-   Execute: `/create-feature F0X <descrição>` ou o equivalente
-   `didio spawn-agent architect F0X <brief>` com o workflow
-   Architect → Waves → TechLead → QA.
+
+   **OBRIGATÓRIO — execute as 4 fases sequencialmente, sem pular nenhuma:**
+
+   **Fase 1 — Architect:** Analise o pedido, explore o código existente,
+   produza um plano técnico com tarefas, testes e critérios de aceitação.
+   Confirme o plano com o usuário antes de prosseguir.
+
+   **Fase 2 — Developer:** Implemente todas as tarefas do plano.
+   Rode type-check e testes ao final.
+
+   **Fase 3 — TechLead (Review):** Após implementar, revise TODO o código
+   produzido seguindo `agents/prompts/review-tasks.md`. Classifique cada
+   achado como BLOCKING / IMPORTANT / MINOR. Se houver BLOCKING, corrija
+   antes de avançar. Apresente o resultado ao usuário.
+
+   **Fase 4 — QA (Validação):** Após o review, valide seguindo
+   `agents/prompts/qa-validate.md`. Rode testes (frontend e backend se
+   aplicável). Reporte resultado final ao usuário.
+
+   **A feature SÓ está concluída quando as 4 fases passarem.**
+   Não pergunte ao usuário se deve rodar TechLead/QA — rode automaticamente.
 
 2. **🐛 Corrigir um bug**
    Pergunte: descrição do bug + passos pra reproduzir.
-   Execute: crie uma feature curta de 1 Wave, rode Developer,
-   TechLead e QA.
+
+   **OBRIGATÓRIO — execute 3 fases sequencialmente:**
+
+   **Fase 1 — Developer:** Investigue a causa raiz, implemente a correção.
+   Rode type-check e testes.
+
+   **Fase 2 — TechLead (Review):** Revise o código da correção seguindo
+   `agents/prompts/review-tasks.md`. Corrija achados BLOCKING.
+
+   **Fase 3 — QA (Validação):** Valide seguindo `agents/prompts/qa-validate.md`.
+   Rode testes. Reporte resultado final.
 
 3. **🔍 Revisar código desta branch (só TechLead)**
-   Rode `didio spawn-agent techlead` sobre um brief que descreva os
-   commits atuais da branch. Peça verdict BLOCKING / IMPORTANT / MINOR.
+   Leia os commits recentes da branch (`git log --oneline -10` e `git diff main...HEAD`).
+   Revise o código seguindo `agents/prompts/review-tasks.md`.
+   Classifique cada achado como BLOCKING / IMPORTANT / MINOR.
+   Apresente o resultado ao usuário.
 
 4. **📊 Status da execução atual**
    Leia `logs/agents/state.json` (se existir) e mostre:
