@@ -44,6 +44,11 @@ TASK_ID="$(basename "$TASK_FILE" .md)"
 LOG_FILE="$LOG_DIR/${FEATURE}-${ROLE}-${TASK_ID}-${TS}.jsonl"
 META_FILE="${LOG_FILE%.jsonl}.meta.json"
 
+# Resolve model for this role from didio.config.json
+source "${DIDIO_HOME:-$HOME/.claude-didio-config}/bin/didio-config-lib.sh"
+AGENT_MODEL=$(didio_model_for_role "$ROLE")
+AGENT_FALLBACK=$(didio_fallback_for_role "$ROLE")
+
 # Meta header for dashboard consumption
 cat > "$META_FILE" <<EOF
 {
@@ -54,7 +59,9 @@ cat > "$META_FILE" <<EOF
   "started_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
   "log": "$LOG_FILE",
   "status": "running",
-  "pid": $$
+  "pid": $$,
+  "model": "${AGENT_MODEL:-default}",
+  "fallback_model": "${AGENT_FALLBACK:-none}"
 }
 EOF
 
@@ -86,7 +93,7 @@ Constraints:
 PROMPT
 )
 
-echo "[didio-spawn-agent] role=$ROLE feature=$FEATURE task=$TASK_ID log=$LOG_FILE" >&2
+echo "[didio-spawn-agent] role=$ROLE feature=$FEATURE task=$TASK_ID model=$AGENT_MODEL log=$LOG_FILE" >&2
 
 # Launch claude in headless streaming mode, new process, clean env. We
 # inherit PATH so the user's claude CLI is findable, but we deliberately do
@@ -96,6 +103,8 @@ claude \
   -p "$FULL_PROMPT" \
   --output-format stream-json \
   --verbose \
+  ${AGENT_MODEL:+--model "$AGENT_MODEL"} \
+  ${AGENT_FALLBACK:+--fallback-model "$AGENT_FALLBACK"} \
   --dangerously-skip-permissions \
   > "$LOG_FILE" 2>&1
 EXIT_CODE=$?

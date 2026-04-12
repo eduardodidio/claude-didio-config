@@ -15,6 +15,9 @@ VERSION="$(cat "$DIDIO_HOME/VERSION" 2>/dev/null || echo dev)"
 PROJECT_ROOT="$(pwd)"
 
 print_header() {
+  # Load config lib for mode badges
+  source "${DIDIO_HOME}/bin/didio-config-lib.sh"
+
   cat <<EOF
 
   ╔══════════════════════════════════════════════════════════╗
@@ -25,13 +28,24 @@ print_header() {
   Projeto atual: $PROJECT_ROOT
 
 EOF
+  didio_config_summary
+  echo
 }
 
 print_menu() {
-  cat <<'EOF'
+  # Show turbo/economy state in toggle labels
+  local turbo_label="OFF" economy_label="OFF" highlander_label="OFF"
+  local max_p
+  max_p=$(didio_read_config max_parallel)
+  [[ "$(didio_is_turbo)" == "true" ]] && turbo_label="ON"
+  [[ "$(didio_is_economy)" == "true" ]] && economy_label="ON"
+  [[ "$(didio_is_highlander)" == "true" ]] && highlander_label="ON"
+  [[ -z "$max_p" || "$max_p" == "0" ]] && max_p="ilimitado"
+
+  cat <<EOF
   O que você quer fazer?
 
-    1) 🆕 Criar nova feature         (Architect → Waves → TechLead → QA)
+    1) 🆕 Criar nova feature         (Architect -> Waves -> TechLead -> QA)
     2) 🐛 Corrigir um bug            (feature curta, 1 Wave)
     3) 🔍 Revisar código             (só TechLead sobre a branch atual)
     4) 📊 Status da execução         (lê logs/agents/state.json)
@@ -39,6 +53,12 @@ print_menu() {
     6) 📚 Ver docs                   (docs/ ADRs / PRDs / diagramas)
     7) 🎓 Retrospectiva manual       (consolida learnings por role)
     8) ❓ Prompts prontos            (mostra o README cheat-sheet)
+   ──────────────────────────────────────────────────────────
+    9) ⚡ Turbo Mode                  [$turbo_label]
+   10) 💰 Economy Mode               [$economy_label]
+   11) 🔀 Max paralelismo            [$max_p]
+   12) 🤖 Configurar modelos         (modelo por agente)
+   13) 🛡️  Highlander Mode            [$highlander_label]
     0) Sair
 
   Dica: antes de começar uma nova feature, rode /clear no Claude Code
@@ -170,6 +190,164 @@ action_retro() {
 EOF
 }
 
+action_turbo() {
+  local current
+  current="$(didio_is_turbo)"
+  if [[ "$current" == "true" ]]; then
+    didio_write_config turbo false
+    echo
+    echo "  Turbo Mode DESATIVADO."
+    echo
+  else
+    echo
+    echo "  ⚠️  Turbo Mode ativa paralelismo maximo (sem limite de agentes"
+    echo "  simultaneos). Combinado com Highlander, auto-aprova todas as"
+    echo "  permissoes. Use apenas em projetos sandbox sem segredos."
+    echo
+    read -r -p "  Ativar Turbo Mode? [y/N]: " confirm
+    if [[ "$confirm" == "y" || "$confirm" == "Y" ]]; then
+      didio_write_config turbo true
+      echo "  Turbo Mode ATIVADO."
+    else
+      echo "  Cancelado."
+    fi
+    echo
+  fi
+}
+
+action_economy() {
+  local current
+  current="$(didio_is_economy)"
+  if [[ "$current" == "true" ]]; then
+    didio_write_config economy false
+    echo
+    echo "  Economy Mode DESATIVADO. Modelos voltaram ao padrao:"
+    echo "    Architect = Opus | Developer/TechLead/QA = Sonnet"
+    echo
+  else
+    echo
+    echo "  Economy Mode troca os modelos para versoes mais baratas:"
+    echo "    Architect = Sonnet (em vez de Opus)"
+    echo "    Developer/TechLead/QA = Haiku (em vez de Sonnet)"
+    echo
+    echo "  Menor qualidade, custo significativamente menor."
+    echo
+    read -r -p "  Ativar Economy Mode? [y/N]: " confirm
+    if [[ "$confirm" == "y" || "$confirm" == "Y" ]]; then
+      didio_write_config economy true
+      echo "  Economy Mode ATIVADO."
+    else
+      echo "  Cancelado."
+    fi
+    echo
+  fi
+}
+
+action_max_parallel() {
+  local current architect_model
+  current=$(didio_read_config max_parallel)
+  [[ -z "$current" || "$current" == "0" ]] && current="0 (ilimitado)"
+
+  # Get architect model to determine recommendation tier
+  architect_model=$(didio_model_for_role architect)
+
+  echo
+  echo "  Paralelismo maximo atual: $current"
+  echo
+  echo "  Recomendacoes por modelo (baseado no Architect: $architect_model):"
+  echo "    Opus:   $(didio_recommend_parallel opus)"
+  echo "    Sonnet: $(didio_recommend_parallel sonnet)"
+  echo "    Haiku:  $(didio_recommend_parallel haiku)"
+  echo
+  echo "  Use 0 para ilimitado (todas as tasks da Wave em paralelo)."
+  echo
+  read -r -p "  Novo valor [0-20]: " new_val
+  if [[ "$new_val" =~ ^[0-9]+$ ]] && [[ "$new_val" -le 20 ]]; then
+    didio_write_config max_parallel "$new_val"
+    [[ "$new_val" == "0" ]] && new_val="ilimitado"
+    echo "  Max paralelismo atualizado para: $new_val"
+  else
+    echo "  Valor invalido. Cancelado."
+  fi
+  echo
+}
+
+action_models() {
+  echo
+  echo "  Configuracao atual de modelos:"
+  didio_config_summary
+  echo
+  echo "  Opcoes:"
+  echo "    1) Padrao      (Architect=Opus, demais=Sonnet)"
+  echo "    2) Economy     (Architect=Sonnet, demais=Haiku)"
+  echo "    3) Tudo Opus   (todos os agentes usam Opus)"
+  echo "    4) Tudo Sonnet (todos os agentes usam Sonnet)"
+  echo "    5) Cancelar"
+  echo
+  read -r -p "  Escolha [1-5]: " choice
+  case "$choice" in
+    1)
+      didio_write_config economy false
+      echo "  Modelos definidos para padrao (Opus/Sonnet)."
+      ;;
+    2)
+      didio_write_config economy true
+      echo "  Modelos definidos para economy (Sonnet/Haiku)."
+      ;;
+    3)
+      local config="$PROJECT_ROOT/didio.config.json"
+      python3 -c "
+import json
+with open('$config') as f: c = json.load(f)
+for role in ['architect','developer','techlead','qa']:
+    c['models'][role] = {'model': 'opus', 'fallback': 'sonnet'}
+c['economy'] = False
+with open('$config', 'w') as f: json.dump(c, f, indent=2); f.write('\n')
+" 2>/dev/null
+      echo "  Todos os agentes usando Opus (fallback: Sonnet)."
+      ;;
+    4)
+      local config="$PROJECT_ROOT/didio.config.json"
+      python3 -c "
+import json
+with open('$config') as f: c = json.load(f)
+for role in ['architect','developer','techlead','qa']:
+    c['models'][role] = {'model': 'sonnet', 'fallback': 'haiku'}
+c['economy'] = False
+with open('$config', 'w') as f: json.dump(c, f, indent=2); f.write('\n')
+" 2>/dev/null
+      echo "  Todos os agentes usando Sonnet (fallback: Haiku)."
+      ;;
+    *) echo "  Cancelado." ;;
+  esac
+  echo
+}
+
+action_highlander() {
+  local current
+  current="$(didio_is_highlander)"
+  if [[ "$current" == "true" ]]; then
+    didio_write_config highlander false
+    echo
+    echo "  Highlander Mode DESATIVADO."
+    echo
+  else
+    echo
+    echo "  ⚠️  Highlander Mode pre-aprova todas as permissoes de Bash,"
+    echo "  leitura e escrita de arquivos. Use APENAS em projetos sandbox"
+    echo "  sem segredos ou credenciais."
+    echo
+    read -r -p "  Ativar Highlander Mode? [y/N]: " confirm
+    if [[ "$confirm" == "y" || "$confirm" == "Y" ]]; then
+      didio_write_config highlander true
+      echo "  Highlander Mode ATIVADO."
+    else
+      echo "  Cancelado."
+    fi
+    echo
+  fi
+}
+
 action_prompts() {
   cat <<'EOF'
 
@@ -214,6 +392,11 @@ main() {
       6) action_docs ;;
       7) action_retro ;;
       8) action_prompts ;;
+      9) action_turbo ;;
+      10) action_economy ;;
+      11) action_max_parallel ;;
+      12) action_models ;;
+      13) action_highlander ;;
       0|q|Q|exit|quit) echo; echo "  Bye 👋"; exit 0 ;;
       *) echo "  Opção inválida: $choice" ;;
     esac

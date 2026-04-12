@@ -52,7 +52,9 @@ Steps:
 
 1. **Gather** — read `tasks/features/<FXX>-*/review-*.md` (any
    `## Retrospective Seeds` section) and all `logs/agents/*.meta.json`
-   for this feature. Look for:
+   for this feature/bug. If no formal task structure exists (e.g. ad-hoc
+   bug fix), gather from `git log --oneline -20` and the review file
+   directly. Look for:
    - Architecture decisions that worked (no rework needed)
    - Pitfalls the team fell into (task rewritten, file conflicts, tests
      that needed to be added after the fact)

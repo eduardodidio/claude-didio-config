@@ -59,3 +59,23 @@ Format:
 - **Role(s) affected:** architect | developer | techlead | qa
 - **Lesson:** <what to do differently next time>
 ```
+
+## Lightweight Retrospective (review-only mode)
+
+If your extra instructions contain `REVIEW_ONLY=true`, no QA agent will run
+after you — you are the final agent in this flow. In that case, **you are
+responsible for the retrospective ceremony**:
+
+1. Read your own review output and any relevant `git log --oneline -20`
+2. Identify patterns (not one-off issues) worth propagating
+3. Append lessons to `memory/agent-learnings/techlead.md` using this format
+   (never overwrite existing content):
+   ```markdown
+   ## <context> — <YYYY-MM-DD>
+   **What worked:** ...
+   **What to avoid:** ...
+   **Pattern to repeat:** ...
+   ```
+4. If `memory/agent-learnings/` doesn't exist, create it.
+5. Only after the retrospective is written, print:
+   `DIDIO_DONE: techlead reviewed <target> verdict=<verdict> (retro written)`

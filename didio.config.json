@@ -1,0 +1,47 @@
+{
+  "turbo": false,
+  "economy": false,
+  "highlander": false,
+  "max_parallel": 0,
+  "models": {
+    "architect": {
+      "model": "opus",
+      "fallback": "sonnet"
+    },
+    "developer": {
+      "model": "sonnet",
+      "fallback": "haiku"
+    },
+    "techlead": {
+      "model": "sonnet",
+      "fallback": "haiku"
+    },
+    "qa": {
+      "model": "sonnet",
+      "fallback": "haiku"
+    }
+  },
+  "models_economy": {
+    "architect": {
+      "model": "sonnet",
+      "fallback": "haiku"
+    },
+    "developer": {
+      "model": "haiku",
+      "fallback": "haiku"
+    },
+    "techlead": {
+      "model": "haiku",
+      "fallback": "haiku"
+    },
+    "qa": {
+      "model": "haiku",
+      "fallback": "haiku"
+    }
+  },
+  "retrospective": {
+    "feature": true,
+    "bugfix": true,
+    "review": true
+  }
+}

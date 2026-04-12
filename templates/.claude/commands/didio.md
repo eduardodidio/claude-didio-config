@@ -49,11 +49,21 @@ disponível) e execute a ação escolhida.
    **Fase 3 — QA (Validação):** Valide seguindo `agents/prompts/qa-validate.md`.
    Rode testes. Reporte resultado final.
 
+   **Retrospectiva:** Se o QA passar (verdict=PASSED), a cerimônia de
+   retrospectiva roda automaticamente (já está no prompt do QA). Mesmo
+   para bugs ad-hoc sem estrutura formal de tasks, o QA consegue extrair
+   aprendizados de `git log` e do review.
+
 3. **🔍 Revisar código desta branch (só TechLead)**
    Leia os commits recentes da branch (`git log --oneline -10` e `git diff main...HEAD`).
    Revise o código seguindo `agents/prompts/review-tasks.md`.
    Classifique cada achado como BLOCKING / IMPORTANT / MINOR.
    Apresente o resultado ao usuário.
+
+   **Retrospectiva:** Ao final da revisão, como não há QA neste fluxo,
+   o TechLead é responsável pela retrospectiva. Passe a instrução extra:
+   `REVIEW_ONLY=true — você é o agente final neste fluxo. Execute a
+   lightweight retrospective antes de terminar.`
 
 4. **📊 Status da execução atual**
    Leia `logs/agents/state.json` (se existir) e mostre:
@@ -77,6 +87,28 @@ disponível) e execute a ação escolhida.
 8. **❓ Ajuda / prompts prontos**
    Mostre os prompts pré-configurados do README (criar feature,
    bug fix, revisão, plan mode, retro) pra o usuário copiar.
+
+9. **⚡ Turbo Mode** (toggle)
+   Ativa paralelismo maximo (ignora max_parallel). Combinado com
+   Highlander, auto-aprova todas as permissoes.
+   Toggle: `didio_write_config turbo true/false`
+
+10. **💰 Economy Mode** (toggle)
+    Troca modelos para versoes mais baratas:
+    Architect = Sonnet, Developer/TechLead/QA = Haiku.
+    Toggle: `didio_write_config economy true/false`
+
+11. **🔀 Max paralelismo**
+    Configura quantos agentes rodam simultaneamente por Wave.
+    Recomendacoes: Opus 3-4, Sonnet 5-8, Haiku 8-12. Use 0 para ilimitado.
+
+12. **🤖 Configurar modelos**
+    Mostra e permite alterar o modelo de cada agente.
+    Presets: Padrao, Economy, Tudo Opus, Tudo Sonnet.
+
+13. **🛡️ Highlander Mode** (toggle)
+    Pre-aprova todas as permissoes para Waves rodarem sem interrupcao.
+    Usar apenas em projetos sandbox sem segredos.
 
 ## Dica de higiene de contexto
 
