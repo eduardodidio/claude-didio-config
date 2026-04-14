@@ -88,6 +88,28 @@ disponível) e execute a ação escolhida.
    Mostre os prompts pré-configurados do README (criar feature,
    bug fix, revisão, plan mode, retro) pra o usuário copiar.
 
+14. **🗓️ Planejar feature (BMad, sem executar)**
+    Pergunte: id da feature (F0X) e descrição.
+
+    **Rode APENAS o Architect em modo PLAN_ONLY:**
+
+    ```bash
+    DIDIO_PLAN_ONLY=true didio spawn-agent architect <FXX> tasks/features/<FXX>-_tmp-brief.md
+    ```
+
+    O resultado são tasks em padrão BMad (User Story, Dev Notes, Testing)
+    com `Status: planned`. **Não rode Developer, TechLead ou QA.** Ao final,
+    informe o caminho dos arquivos e diga que o usuário pode rodar
+    `/create-feature <FXX>` (ou opção 1) para executar depois.
+
+    Equivale ao slash command `/plan-feature <FXX> <descrição>`.
+
+15. **📋 Listar features planejadas**
+    Varra `tasks/features/*/` procurando READMEs com `**Status:** planned`.
+    Para cada feature encontrada, extraia ID, título e conte os arquivos
+    `<FXX>-T*.md`. Apresente uma tabela: ID, #tasks, Título, Path.
+    Se nenhuma feature planejada existir, sugira a opção 14.
+
 9. **⚡ Turbo Mode** (toggle)
    Ativa paralelismo maximo (ignora max_parallel). Combinado com
    Highlander, auto-aprova todas as permissoes.

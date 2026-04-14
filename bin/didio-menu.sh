@@ -53,6 +53,8 @@ print_menu() {
     6) 📚 Ver docs                   (docs/ ADRs / PRDs / diagramas)
     7) 🎓 Retrospectiva manual       (consolida learnings por role)
     8) ❓ Prompts prontos            (mostra o README cheat-sheet)
+   14) 🗓️  Planejar feature           (Architect only, tasks BMad)
+   15) 📋 Listar features planejadas (Status=planned)
    ──────────────────────────────────────────────────────────
     9) ⚡ Turbo Mode                  [$turbo_label]
    10) 💰 Economy Mode               [$economy_label]
@@ -348,6 +350,84 @@ action_highlander() {
   fi
 }
 
+action_plan_feature() {
+  cat <<'EOF'
+
+  Pra planejar uma nova feature (sem executar), cole um dos prompts:
+
+    /plan-feature F0X <descrição curta da feature>
+
+  OU (linguagem natural):
+
+    Claude, leia CLAUDE.md e PLANEJE a feature F0X: <descrição>.
+    Rode apenas o Architect em modo PLAN_ONLY. Quero tasks em padrão
+    BMad (User Story, Dev Notes, Testing) com Status=planned.
+    Não execute Waves, TechLead ou QA.
+
+  Depois de revisar o plano, use a opção 1 ou /create-feature F0X
+  pra executar.
+
+EOF
+}
+
+action_list_planned() {
+  local features_dir="$PROJECT_ROOT/tasks/features"
+  if [[ ! -d "$features_dir" ]]; then
+    echo
+    echo "  Nenhum diretório tasks/features/ encontrado em $PROJECT_ROOT."
+    echo
+    return
+  fi
+  python3 - "$features_dir" <<'PY' 2>/dev/null || echo "  [didio-menu] erro ao listar features"
+import os, re, sys, glob
+features_dir = sys.argv[1]
+rows = []
+for d in sorted(glob.glob(os.path.join(features_dir, "*/"))):
+    name = os.path.basename(d.rstrip("/"))
+    if name.startswith("FXX") or name.startswith("_"):
+        continue
+    readmes = glob.glob(os.path.join(d, "*-README.md"))
+    if not readmes:
+        continue
+    readme = readmes[0]
+    try:
+        with open(readme) as f:
+            content = f.read()
+    except Exception:
+        continue
+    status_match = re.search(r"\*\*Status:\*\*\s*([^\s|]+)", content)
+    status = status_match.group(1).strip() if status_match else "?"
+    if status != "planned":
+        continue
+    title_match = re.search(r"^#\s+(.+)$", content, re.MULTILINE)
+    title = title_match.group(1).strip() if title_match else os.path.basename(d.rstrip("/"))
+    fid_match = re.match(r"(F\d+)", os.path.basename(d.rstrip("/")))
+    fid = fid_match.group(1) if fid_match else "?"
+    task_files = glob.glob(os.path.join(d, f"{fid}-T*.md"))
+    rel = os.path.relpath(d.rstrip("/"), os.path.dirname(features_dir))
+    rows.append((fid, title, len(task_files), rel))
+
+print()
+if not rows:
+    print("  Nenhuma feature com Status=planned encontrada.")
+    print("  Use a opção 14 (Planejar feature) pra criar uma.")
+    print()
+    sys.exit(0)
+
+print(f"  Features planejadas ({len(rows)}):")
+print()
+print(f"    {'ID':<6} {'#tasks':<7} {'Título':<45} Path")
+print(f"    {'-'*6} {'-'*7} {'-'*45} {'-'*30}")
+for fid, title, ntasks, rel in rows:
+    t = title[:43] + ".." if len(title) > 45 else title
+    print(f"    {fid:<6} {ntasks:<7} {t:<45} {rel}")
+print()
+print("  Pra executar uma feature planejada, use /create-feature <FXX>")
+print("  ou a opção 1 do menu.")
+print()
+PY
+}
+
 action_prompts() {
   cat <<'EOF'
 
@@ -397,6 +477,8 @@ main() {
       11) action_max_parallel ;;
       12) action_models ;;
       13) action_highlander ;;
+      14) action_plan_feature ;;
+      15) action_list_planned ;;
       0|q|Q|exit|quit) echo; echo "  Bye 👋"; exit 0 ;;
       *) echo "  Opção inválida: $choice" ;;
     esac

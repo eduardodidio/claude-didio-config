@@ -6,9 +6,29 @@
 **Depends on:** (none)
 **Status:** planned | in-progress | done
 
+## User Story
+
+As a <role>, I want <goal>, so that <benefit>.
+
 ## Objective
 
 1–2 lines describing what this task accomplishes.
+
+## Dev Notes
+
+Self-contained context so a Developer agent can execute without re-exploring:
+
+- Relevant files: `path/to/file.ext`
+- Project conventions to follow (from `CLAUDE.md`):
+- Patterns/snippets to mirror:
+- Gotchas / constraints:
+
+## Testing
+
+- Framework: (e.g., Vitest / pytest / go test)
+- Command: `npm run test -- <scope>`
+- Test file location: `path/to/test.ext`
+- Fixtures/mocks convention:
 
 ## Implementation details
 

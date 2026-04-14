@@ -35,9 +35,16 @@ For each feature you must produce **two kinds of files** under
    - **Wave** — which wave it belongs to
    - **Type** — backend / frontend / infra / test / docs
    - **Depends on** — other task IDs (empty when in Wave 0)
+   - **Status** — always start as `planned`
+   - **User Story** — BMad-style: `As a <role>, I want <goal>, so that <benefit>`
    - **Objective** — 1–2 lines
+   - **Dev Notes** — self-contained context so the Developer can execute
+     without re-exploring the repo: relevant file paths, project conventions
+     pulled from `CLAUDE.md`, code snippets/patterns to follow, gotchas.
    - **Implementation details** — specific files/classes/components to touch
    - **Acceptance criteria** — measurable checklist
+   - **Testing** — strategy: which test framework, command to run, where the
+     test files live, mocking/fixture conventions (from `CLAUDE.md`)
    - **Test scenarios** — happy path, edge cases, error handling, boundary
      values. Tests are mandatory.
    - **Diagrams** — which diagrams in `docs/diagrams/` to create or update
@@ -91,10 +98,30 @@ diagram owner per diagram) and includes a stub inline in the task file
 when possible. Templates live in
 `docs/diagrams/templates/{architecture.mmd,user-journey.mmd}`.
 
+## PLAN_ONLY mode
+
+If the environment variable `DIDIO_PLAN_ONLY=true` is set, you are running
+in **planning-only mode**. In this mode:
+
+- Do the full planning work (README + all `<FXX>-TYY.md` task files +
+  diagrams) exactly as usual — the BMad contract above still applies.
+- Set `**Status:** planned` on `<FXX>-README.md` and every task file.
+- Do **not** invoke, reference, or stage any Developer / TechLead / QA
+  work. No wave execution hints, no commits.
+- Use the PLAN_ONLY done signal below so the caller knows to stop.
+
 ## Output: done signal
 
-When finished writing all task files, print a single line:
+When finished writing all task files, print a single line.
+
+Normal mode:
 
 ```
 DIDIO_DONE: architect wrote <N> tasks across <M> waves to tasks/features/<FXX>-<slug>/
+```
+
+PLAN_ONLY mode:
+
+```
+DIDIO_DONE: architect planned <N> tasks across <M> waves (PLAN_ONLY mode) at tasks/features/<FXX>-<slug>/
 ```
