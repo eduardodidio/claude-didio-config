@@ -1,23 +1,17 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
 import { useDidioState } from '@/hooks/useDidioState';
 import { groupByFeature } from '@/lib/selectors';
+import { getAggregateDot, getStatusDot, getTrailChipClasses, getTrailGlyph } from '@/lib/statusStyles';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
 import { AgentRunDialog } from '@/components/AgentRunDialog';
 import type { AgentRun, FeatureGroup } from '@/lib/types';
 
-function aggregateStatusColor(runs: AgentRun[]): string {
-  if (runs.some((r) => r.status === 'failed')) return 'bg-red-500';
-  if (runs.some((r) => r.status === 'running')) return 'bg-amber-500';
-  return 'bg-emerald-500';
-}
-
-function runStatusColor(status: AgentRun['status']): string {
-  if (status === 'failed') return 'bg-red-500';
-  if (status === 'running') return 'bg-amber-500';
-  if (status === 'blocked') return 'bg-orange-500';
-  return 'bg-emerald-500';
+function shortTask(task: string): string {
+  const parts = task.split('-');
+  return parts[parts.length - 1] ?? task;
 }
 
 function formatDuration(run: AgentRun): string {
@@ -39,6 +33,18 @@ export function Features() {
   const [open, setOpen] = useState<Record<string, boolean>>({});
   const [selectedRun, setSelectedRun] = useState<AgentRun | null>(null);
 
+  const groups: FeatureGroup[] = useMemo(
+    () => (data ? groupByFeature(data).filter((g) => g.runs.length > 0) : []),
+    [data],
+  );
+
+  const features = useMemo(() => data?.features ?? [], [data]);
+
+  const featureMap = useMemo(
+    () => new Map(features.map((f) => [f.feature, f])),
+    [features],
+  );
+
   if (error) {
     return (
       <div role="alert" className="p-6 text-sm text-red-500">
@@ -49,10 +55,6 @@ export function Features() {
   if (isLoading || !data) {
     return <div className="p-6 text-sm text-muted-foreground">Loading…</div>;
   }
-
-  const groups: FeatureGroup[] = groupByFeature(data).filter(
-    (g) => g.runs.length > 0,
-  );
 
   if (groups.length === 0) {
     return (
@@ -68,12 +70,14 @@ export function Features() {
       <div className="space-y-3">
         {groups.map((group) => {
           const isOpen = !!open[group.feature];
-          const sortedRuns = [...group.runs].sort((a, b) =>
-            a.started_at.localeCompare(b.started_at),
-          );
+          const progress = featureMap.get(group.feature);
+          const percent = progress?.percent ?? 0;
+          const fraction = progress
+            ? `${progress.completed}/${progress.total}`
+            : `${group.runs.length} task${group.runs.length === 1 ? '' : 's'}`;
           return (
             <Card key={group.feature} data-testid={`feature-card-${group.feature}`}>
-              <CardHeader className="p-4">
+              <CardHeader className="p-4 space-y-3">
                 <button
                   type="button"
                   aria-expanded={isOpen}
@@ -86,9 +90,9 @@ export function Features() {
                   }
                   className="flex items-center justify-between w-full text-left"
                 >
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-3 flex-wrap">
                     <span
-                      className={`inline-block w-2.5 h-2.5 rounded-full ${aggregateStatusColor(
+                      className={`inline-block w-2.5 h-2.5 rounded-full ${getAggregateDot(
                         group.runs,
                       )}`}
                       aria-label="aggregate status"
@@ -97,8 +101,14 @@ export function Features() {
                       {group.feature}
                     </span>
                     <span className="text-xs text-muted-foreground">
-                      {group.runs.length} task{group.runs.length === 1 ? '' : 's'}
+                      {fraction} · {percent}%
                     </span>
+                    {progress?.current_task && (
+                      <span className="text-xs font-mono rounded-md border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 text-amber-500">
+                        ▶ {progress.current_task}
+                        {progress.current_wave !== null && ` · Wave ${progress.current_wave}`}
+                      </span>
+                    )}
                   </div>
                   <ChevronDown
                     className={`w-4 h-4 text-muted-foreground transition-transform ${
@@ -106,6 +116,24 @@ export function Features() {
                     }`}
                   />
                 </button>
+                <Progress value={percent} aria-label={`${group.feature} progress`} />
+                {progress && progress.trail.length > 0 && (
+                  <div
+                    className="flex flex-wrap gap-1"
+                    data-testid={`feature-trail-${group.feature}`}
+                  >
+                    {progress.trail.map((item) => (
+                      <span
+                        key={item.task}
+                        title={`${item.task}${item.wave !== null ? ` · Wave ${item.wave}` : ''} · ${item.status}`}
+                        className={`inline-flex items-center gap-1 rounded border px-1.5 py-0.5 text-[10px] font-mono ${getTrailChipClasses(item.status)}`}
+                      >
+                        <span>{getTrailGlyph(item.status)}</span>
+                        <span>{shortTask(item.task)}</span>
+                      </span>
+                    ))}
+                  </div>
+                )}
               </CardHeader>
               <AnimatePresence initial={false}>
                 {isOpen && (
@@ -120,7 +148,7 @@ export function Features() {
                   >
                     <CardContent className="p-4 pt-0">
                       <ul className="space-y-1" data-testid={`feature-runs-${group.feature}`}>
-                        {sortedRuns.map((run) => (
+                        {group.runs.map((run) => (
                           <li key={`${run.task}-${run.started_at}-${run.pid}`}>
                             <button
                               type="button"
@@ -130,7 +158,7 @@ export function Features() {
                               title={run.phrase ?? `${run.role} · ${run.task}`}
                             >
                               <span
-                                className={`inline-block w-2 h-2 rounded-full ${runStatusColor(
+                                className={`inline-block w-2 h-2 rounded-full ${getStatusDot(
                                   run.status,
                                 )}`}
                                 aria-label={run.status}

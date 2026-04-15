@@ -138,4 +138,12 @@ PY
 
 [[ -n "$PHRASE" ]] && echo "$PHRASE" >&2
 echo "[didio-spawn-agent] $ROLE/$TASK_ID -> $FINAL_STATUS (exit=$EXIT_CODE)" >&2
+
+PROGRESS_LIB="${DIDIO_HOME:-$HOME/.claude-didio-config}/bin/didio-progress-lib.sh"
+if [[ -f "$PROGRESS_LIB" ]]; then
+  # shellcheck disable=SC1090
+  source "$PROGRESS_LIB"
+  didio_feature_progress "$FEATURE" >&2 || true
+fi
+
 exit $EXIT_CODE

@@ -9,9 +9,17 @@ const mockState = vi.hoisted(() => ({
   error: null as Error | null,
 }));
 
+const mockGroupByFeature = vi.hoisted(() => vi.fn());
+
 vi.mock('@/hooks/useDidioState', () => ({
   useDidioState: () => mockState,
 }));
+
+vi.mock('@/lib/selectors', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/lib/selectors')>();
+  mockGroupByFeature.mockImplementation(actual.groupByFeature);
+  return { ...actual, groupByFeature: mockGroupByFeature };
+});
 
 import { Features } from './Features';
 
@@ -110,5 +118,22 @@ describe('Features view', () => {
     setState({ isLoading: true });
     render(<Features />);
     expect(screen.getByText(/loading/i)).toBeInTheDocument();
+  });
+
+  it('memo: useMemo is stable — groupByFeature not re-called on re-render with same data reference', () => {
+    const stableData: DidioState = {
+      generated_at: '2026-04-11T10:00:10Z',
+      agents: [makeRun({ feature: 'F01', pid: 1 })],
+    };
+    mockGroupByFeature.mockClear();
+    setState({ data: stableData });
+
+    const { rerender } = render(<Features />);
+    const callsAfterMount = mockGroupByFeature.mock.calls.length;
+    expect(callsAfterMount).toBeGreaterThan(0);
+
+    // Re-render with same data reference — memo dep unchanged, should not re-call
+    rerender(<Features />);
+    expect(mockGroupByFeature.mock.calls.length).toBe(callsAfterMount);
   });
 });

@@ -1,0 +1,12 @@
+%% User journey / lifecycle template
+%% Replace placeholders with actual states and transitions.
+flowchart LR
+    START([Start]) --> STEP1[Step 1]
+    STEP1 --> DECISION{Decision?}
+    DECISION -->|yes| STEP2A[Step 2A]
+    DECISION -->|no| STEP2B[Step 2B]
+    STEP2A --> MERGE[Merge point]
+    STEP2B --> MERGE
+    MERGE --> CHECK{Check condition}
+    CHECK -->|pass| SUCCESS([Done])
+    CHECK -->|fail| SKIP([Skip / No-op])

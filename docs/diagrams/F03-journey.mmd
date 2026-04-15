@@ -1,0 +1,16 @@
+flowchart LR
+    START([tick]) --> LOAD_AGENTS[Load .meta.json files]
+    LOAD_AGENTS --> ENUM[Enumerate features]
+    ENUM --> FOR_EACH{For each feature}
+    FOR_EACH --> MTIME{README mtime\nchanged?}
+    MTIME -->|yes| PARSE[Parse README]
+    MTIME -->|no| USE_CACHE[Use cached tasks]
+    PARSE --> COMPUTE[compute_feature]
+    USE_CACHE --> COMPUTE
+    COMPUTE --> FOR_EACH
+    FOR_EACH -->|done| SERIALIZE[Serialize JSON]
+    SERIALIZE --> HASH{String ==\nprevious?}
+    HASH -->|yes| SKIP_WRITE([Skip write])
+    HASH -->|no| WRITE_STATE[Write state.json]
+    WRITE_STATE --> DONE([Sleep 1s])
+    SKIP_WRITE --> DONE

@@ -1,0 +1,23 @@
+flowchart TB
+    subgraph Watcher["didio-log-watcher-loop.py (1Hz loop, via .sh launcher)"]
+        LOAD["load_agents()"]
+        CACHE{"README cache\n(mtime check)"}
+        COMPUTE["compute_feature()"]
+        GUARD{"no-op guard\n(string compare)"}
+        WRITE["os.replace → state.json"]
+        SKIP["skip write"]
+    end
+    subgraph Files
+        META["logs/agents/*.meta.json"]
+        README["tasks/features/FXX-*/README.md"]
+        STATE["logs/agents/state.json"]
+    end
+    META --> LOAD
+    LOAD --> CACHE
+    README --> CACHE
+    CACHE -->|miss| COMPUTE
+    CACHE -->|hit| COMPUTE
+    COMPUTE --> GUARD
+    GUARD -->|changed| WRITE
+    GUARD -->|same| SKIP
+    WRITE --> STATE

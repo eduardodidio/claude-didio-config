@@ -1,0 +1,26 @@
+flowchart LR
+  subgraph "User"
+    A[Open Features page]
+    B[See feature cards]
+    C[Read progress bar]
+    D[Read status chips]
+    E[Click to expand]
+    F[View run details]
+  end
+
+  subgraph "System"
+    G[useDidioState polls]
+    H[useMemo derives groups]
+    I[statusStyles resolves colors]
+    J["Progress renders bar"]
+    K[Trail chips rendered]
+  end
+
+  A --> G
+  G --> H
+  H --> B
+  B --> I
+  I --> D
+  B --> J
+  J --> C
+  E --> F

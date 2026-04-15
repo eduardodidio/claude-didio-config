@@ -23,9 +23,30 @@ export interface AgentRun {
   phrase: string | null;
 }
 
+export type TrailStatus = 'completed' | 'running' | 'failed' | 'planned';
+
+export interface TrailItem {
+  task: string;
+  wave: number | null;
+  status: TrailStatus;
+}
+
+export interface FeatureProgress {
+  feature: string;
+  total: number;
+  completed: number;
+  running: number;
+  failed: number;
+  percent: number;
+  current_wave: number | null;
+  current_task: string | null;
+  trail: TrailItem[];
+}
+
 export interface DidioState {
   generated_at: string;
   agents: AgentRun[];
+  features?: FeatureProgress[];
 }
 
 export interface EasterEggFranchise {

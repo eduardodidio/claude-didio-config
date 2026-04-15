@@ -20,12 +20,14 @@ WAVE="${2:?wave-number required (e.g. 1)}"
 ROLE="${3:-developer}"
 
 PROJECT_ROOT="$(pwd)"
-FEATURE_DIR=$(find "$PROJECT_ROOT/tasks/features" -maxdepth 1 -type d -name "${FEATURE}-*" | head -n1)
 
-if [[ -z "$FEATURE_DIR" ]]; then
+# Load config lib early so didio_find_feature_dir is available
+source "${DIDIO_HOME:-$HOME/.claude-didio-config}/bin/didio-config-lib.sh"
+
+FEATURE_DIR=$(didio_find_feature_dir "$FEATURE") || {
   echo "[didio-run-wave] feature directory not found: tasks/features/${FEATURE}-*" >&2
   exit 2
-fi
+}
 
 README="$FEATURE_DIR/${FEATURE}-README.md"
 if [[ ! -f "$README" ]]; then
@@ -50,8 +52,7 @@ if [[ -z "$TASK_IDS" ]]; then
   exit 2
 fi
 
-# Load config lib for parallelism and turbo/highlander settings
-source "${DIDIO_HOME:-$HOME/.claude-didio-config}/bin/didio-config-lib.sh"
+# Load config lib for parallelism and turbo/highlander settings (already sourced above)
 MAX_PARALLEL=$(didio_max_parallel)
 MAX_PARALLEL_LABEL=$([[ "$MAX_PARALLEL" -eq 0 ]] && echo "ilimitado" || echo "$MAX_PARALLEL")
 
@@ -66,6 +67,11 @@ if [[ "$(didio_is_turbo)" == "true" && "$(didio_is_highlander)" == "true" ]]; th
 fi
 
 echo "[didio-run-wave] feature=$FEATURE wave=$WAVE role=$ROLE max_parallel=$MAX_PARALLEL_LABEL tasks=$(echo $TASK_IDS | tr '\n' ' ')" >&2
+
+if [[ -f "$DIDIO_HOME/bin/didio-progress-lib.sh" ]]; then
+  source "$DIDIO_HOME/bin/didio-progress-lib.sh"
+  didio_feature_progress "$FEATURE" >&2 || true
+fi
 
 PIDS=()
 FAILED=()
@@ -105,3 +111,6 @@ if [[ ${#FAILED[@]} -gt 0 ]]; then
 fi
 
 echo "[didio-run-wave] Wave $WAVE completed: $(echo $TASK_IDS | wc -w | tr -d ' ') tasks" >&2
+if declare -f didio_feature_progress >/dev/null 2>&1; then
+  didio_feature_progress "$FEATURE" >&2 || true
+fi

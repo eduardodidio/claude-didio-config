@@ -178,6 +178,20 @@ for role in ['architect', 'developer', 'techlead', 'qa']:
 " 2>/dev/null || echo "  [erro lendo config]"
 }
 
+# Resolve the feature directory for a given feature ID.
+# Prints the path to stdout; returns 1 if not found.
+didio_find_feature_dir() {
+  local feature="${1:?feature-id required (e.g. F01)}"
+  local project="${PROJECT_ROOT:-$(pwd)}"
+  local match
+  match=$(find "$project/tasks/features" -maxdepth 1 -type d -name "${feature}-*" 2>/dev/null | head -n1)
+  if [[ -n "$match" ]]; then
+    echo "$match"
+    return 0
+  fi
+  return 1
+}
+
 # Recommended parallelism for a model tier.
 didio_recommend_parallel() {
   local model="${1:-sonnet}"

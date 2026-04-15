@@ -2,34 +2,22 @@
 # didio-log-watcher.sh — aggregate logs/agents/*.meta.json into a single
 # logs/agents/state.json file, regenerated every 1s. The dashboard fetches
 # state.json directly (no backend needed).
+#
+# Delegates to a persistent Python process so that the no-op guard
+# (skip write when payload unchanged) and README mtime cache survive
+# across ticks without touching the filesystem for bookkeeping.
 
 set -euo pipefail
 PROJECT_ROOT="$(pwd)"
 LOG_DIR="$PROJECT_ROOT/logs/agents"
 STATE_FILE="$LOG_DIR/state.json"
 
+# Resolve bin dir relative to this script (works regardless of DIDIO_HOME).
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 mkdir -p "$LOG_DIR"
 
-while true; do
-  python3 - "$LOG_DIR" "$STATE_FILE" <<'PY' 2>/dev/null || true
-import json, os, sys, glob
-from datetime import datetime, timezone
-log_dir, state_file = sys.argv[1], sys.argv[2]
-agents = []
-for meta_path in sorted(glob.glob(os.path.join(log_dir, "*.meta.json"))):
-    try:
-        with open(meta_path) as f:
-            agents.append(json.load(f))
-    except Exception:
-        continue
-state = {
-    "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
-    "agents": agents,
-}
-tmp = state_file + ".tmp"
-with open(tmp, "w") as f:
-    json.dump(state, f, indent=2)
-os.replace(tmp, state_file)
-PY
-  sleep 1
-done
+exec python3 "$SCRIPT_DIR/didio-log-watcher-loop.py" \
+    "$STATE_FILE" \
+    "$PROJECT_ROOT" \
+    "$SCRIPT_DIR/didio-progress.py"

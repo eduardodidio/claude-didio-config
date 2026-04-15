@@ -1,0 +1,31 @@
+flowchart TB
+  subgraph "dashboard/src"
+    subgraph "views"
+      FV[Features.tsx]
+    end
+    subgraph "lib"
+      SS[statusStyles.ts]
+      TY[types.ts]
+      SEL[selectors.ts]
+    end
+    subgraph "components/ui"
+      PG[Progress]
+    end
+    subgraph "hooks"
+      UDS[useDidioState]
+    end
+  end
+
+  subgraph "External"
+    RP["@radix-ui/react-progress"]
+    FM[framer-motion]
+  end
+
+  FV --> SS
+  FV --> PG
+  FV --> SEL
+  FV --> UDS
+  SS --> TY
+  PG --> RP
+  PG --> FM
+  UDS -->|"useMemo in FV"| FV

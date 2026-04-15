@@ -1,0 +1,17 @@
+%% Architecture diagram template
+%% Replace placeholders with actual component names and relationships.
+flowchart TB
+    subgraph Layer1["Layer / Service Name"]
+        A["Component A"]
+        B["Component B"]
+        C{"Decision / Gate"}
+    end
+    subgraph Layer2["Data / Storage"]
+        D["Data Source"]
+        E["Output / Sink"]
+    end
+    D --> A
+    A --> C
+    C -->|path 1| B
+    C -->|path 2| E
+    B --> E
