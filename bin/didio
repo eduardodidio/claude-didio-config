@@ -13,6 +13,8 @@ case "$SUBCMD" in
   dashboard)     exec "$DIDIO_HOME/bin/didio-dashboard.sh" "$@" ;;
   log-watcher)   exec "$DIDIO_HOME/bin/didio-log-watcher.sh" "$@" ;;
   easter-egg)    exec "$DIDIO_HOME/bin/didio-easter-egg.sh" "$@" ;;
+  sync-project)  exec "$DIDIO_HOME/bin/didio-sync-project.sh" "$@" ;;
+  sync-all)      exec "$DIDIO_HOME/bin/didio-sync-all.sh" "$@" ;;
   menu|"")       exec "$DIDIO_HOME/bin/didio-menu.sh" "$@" ;;
   version)       echo "didio $(cat "$DIDIO_HOME/VERSION" 2>/dev/null || echo dev)" ;;
   help|-h|--help)
@@ -41,6 +43,16 @@ Usage:
   didio easter-egg <role> <exit_code>
       Print a thematic one-liner for the given role+outcome.
       Honors DIDIO_EASTER_EGGS=0 to disable.
+
+  didio sync-project <target-project-path>
+      Idempotent sync of framework templates into a downstream project.
+      Creates a rollback git tag, copies missing files, merges settings.json
+      allow arrays, and appends missing CLAUDE.md sections. Safe: never
+      deletes files, never overwrites content beyond the template placeholder.
+
+  didio sync-all [target-projects.json]
+      Run sync-project for every project listed in target-projects.json.
+      Default config: tasks/features/F04-sync-downstream/target-projects.json
 
   didio version
       Print framework version.

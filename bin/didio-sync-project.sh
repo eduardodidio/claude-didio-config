@@ -1,0 +1,414 @@
+#!/usr/bin/env bash
+# didio-sync-project.sh — idempotent framework sync for a downstream project
+# Usage: didio-sync-project.sh <target-project-path>
+#
+# Syncs templates from DIDIO_HOME/templates/ into the target project.
+# Safe: never deletes files, never overwrites files with real content.
+#
+# Operations (in order):
+#   1.  Validate target is a git repo
+#   2.  Create rollback git tag pre-didio-sync-YYYYMMDD
+#   3.  Sync .claude/agents/
+#   4.  Sync .claude/commands/
+#   5.  Merge .claude/settings.json allow arrays
+#   6.  Sync root agents/
+#   7.  Sync docs/adr/
+#   8.  Sync docs/diagrams/templates/
+#   9.  Sync docs/prd/template.md
+#   10. Sync memory/agent-learnings/ (preserve real content)
+#   11. Create logs/agents/.gitkeep
+#   12. Sync tasks/features/FXX-template/
+#   13. Append .gitignore entries
+#   14. Section-level CLAUDE.md sync
+#   15. Print colored summary
+
+set -euo pipefail
+
+# ---------------------------------------------------------------------------
+# Colors
+# ---------------------------------------------------------------------------
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+CYAN='\033[0;36m'
+BOLD='\033[1m'
+RESET='\033[0m'
+
+# ---------------------------------------------------------------------------
+# Config
+# ---------------------------------------------------------------------------
+DIDIO_HOME="${DIDIO_HOME:-/Users/eduardodidio/claude-didio-config}"
+TEMPLATES="$DIDIO_HOME/templates"
+TARGET="${1:-}"
+
+# ---------------------------------------------------------------------------
+# Counters and action log
+# ---------------------------------------------------------------------------
+COUNT_ADDED=0
+COUNT_MERGED=0
+COUNT_APPENDED=0
+COUNT_SKIPPED=0
+COUNT_NOCHANGE=0
+declare -a SUMMARY_LINES=()
+
+log_action() {
+  local label="$1"
+  local detail="$2"
+  SUMMARY_LINES+=("$label|$detail")
+  case "$label" in
+    ADDED)     COUNT_ADDED=$((COUNT_ADDED + 1)) ;;
+    MERGED)    COUNT_MERGED=$((COUNT_MERGED + 1)) ;;
+    APPENDED)  COUNT_APPENDED=$((COUNT_APPENDED + 1)) ;;
+    SKIPPED)   COUNT_SKIPPED=$((COUNT_SKIPPED + 1)) ;;
+    NO_CHANGE) COUNT_NOCHANGE=$((COUNT_NOCHANGE + 1)) ;;
+  esac
+}
+
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+
+# copy_if_missing <src> <dst> [display-label]
+copy_if_missing() {
+  local src="$1"
+  local dst="$2"
+  local label="${3:-${dst#$TARGET/}}"
+
+  if [[ ! -f "$src" ]]; then
+    echo -e "${YELLOW}[WARN]${RESET} Template source missing: $src — skipping" >&2
+    return 0
+  fi
+
+  if [[ -f "$dst" ]]; then
+    log_action "NO_CHANGE" "$label (already exists)"
+  else
+    mkdir -p "$(dirname "$dst")"
+    cp "$src" "$dst"
+    log_action "ADDED" "$label"
+  fi
+}
+
+# sync_dir <src_dir> <dst_dir> — copy-if-missing for every file in src_dir
+sync_dir() {
+  local src_dir="$1"
+  local dst_dir="$2"
+
+  if [[ ! -d "$src_dir" ]]; then
+    echo -e "${YELLOW}[WARN]${RESET} Template dir missing: $src_dir — skipping" >&2
+    return 0
+  fi
+
+  mkdir -p "$dst_dir"
+  while IFS= read -r -d '' src_file; do
+    local rel="${src_file#$src_dir/}"
+    local dst_file="$dst_dir/$rel"
+    copy_if_missing "$src_file" "$dst_file" "${dst_file#$TARGET/}"
+  done < <(find "$src_dir" -type f -print0 | sort -z)
+}
+
+# extract_section <header> <template_file>
+# Prints from the header line to the next ## header (exclusive) or EOF.
+extract_section() {
+  local header="$1"
+  local template="$2"
+  awk -v h="$header" '
+    found && /^## / { exit }
+    $0 == h { found=1 }
+    found { print }
+  ' "$template"
+}
+
+# ---------------------------------------------------------------------------
+# 1. Validate target
+# ---------------------------------------------------------------------------
+if [[ -z "$TARGET" ]]; then
+  echo -e "${RED}ERROR:${RESET} Usage: didio-sync-project.sh <target-project-path>" >&2
+  exit 1
+fi
+
+if [[ ! -d "$TARGET" ]]; then
+  echo -e "${RED}ERROR:${RESET} $TARGET is not a directory. Aborting." >&2
+  exit 1
+fi
+
+if ! git -C "$TARGET" rev-parse --git-dir &>/dev/null; then
+  echo -e "${RED}ERROR:${RESET} $TARGET is not a git repository. Aborting." >&2
+  exit 1
+fi
+
+TARGET="$(cd "$TARGET" && pwd)"  # resolve absolute path
+PROJECT_NAME="$(basename "$TARGET")"
+
+echo -e "${BOLD}=== didio-sync-project: $PROJECT_NAME ===${RESET}"
+echo -e "Source : $TEMPLATES"
+echo -e "Target : $TARGET"
+echo
+
+# ---------------------------------------------------------------------------
+# 2. Create rollback git tag
+# ---------------------------------------------------------------------------
+TAG="pre-didio-sync-$(date +%Y%m%d)"
+if git -C "$TARGET" tag "$TAG" 2>/dev/null; then
+  echo -e "${GREEN}[TAG]${RESET} Created rollback tag: $TAG"
+else
+  echo -e "${CYAN}[TAG]${RESET} Rollback tag already exists (preserved): $TAG"
+fi
+
+# ---------------------------------------------------------------------------
+# 3. Sync .claude/agents/
+# ---------------------------------------------------------------------------
+sync_dir "$TEMPLATES/.claude/agents" "$TARGET/.claude/agents"
+
+# ---------------------------------------------------------------------------
+# 4. Sync .claude/commands/
+# ---------------------------------------------------------------------------
+sync_dir "$TEMPLATES/.claude/commands" "$TARGET/.claude/commands"
+
+# ---------------------------------------------------------------------------
+# 5. Sync .claude/settings.json
+# ---------------------------------------------------------------------------
+SRC_SETTINGS="$TEMPLATES/.claude/settings.json"
+DST_SETTINGS="$TARGET/.claude/settings.json"
+
+if [[ ! -f "$SRC_SETTINGS" ]]; then
+  echo -e "${YELLOW}[WARN]${RESET} Template settings.json missing — skipping" >&2
+elif [[ ! -f "$DST_SETTINGS" ]]; then
+  mkdir -p "$TARGET/.claude"
+  cp "$SRC_SETTINGS" "$DST_SETTINGS"
+  log_action "ADDED" ".claude/settings.json"
+else
+  # Merge permissions.allow arrays (union, no duplicates) using python3
+  if command -v python3 &>/dev/null; then
+    MERGE_RESULT=$(python3 - "$SRC_SETTINGS" "$DST_SETTINGS" <<'PY'
+import json, sys
+
+src_path, dst_path = sys.argv[1], sys.argv[2]
+with open(src_path) as f:
+    src = json.load(f)
+with open(dst_path) as f:
+    dst = json.load(f)
+
+src_allow = src.get("permissions", {}).get("allow", [])
+dst_allow = dst.get("permissions", {}).get("allow", [])
+
+new_entries = [e for e in src_allow if e not in dst_allow]
+if not new_entries:
+    print("NO_CHANGE")
+    sys.exit(0)
+
+if "permissions" not in dst:
+    dst["permissions"] = {}
+if "allow" not in dst["permissions"]:
+    dst["permissions"]["allow"] = []
+dst["permissions"]["allow"].extend(new_entries)
+
+with open(dst_path, "w") as f:
+    json.dump(dst, f, indent=2)
+    f.write("\n")
+
+print(f"MERGED:{len(new_entries)}")
+PY
+    )
+    if [[ "$MERGE_RESULT" == "NO_CHANGE" ]]; then
+      log_action "NO_CHANGE" ".claude/settings.json"
+    elif [[ "$MERGE_RESULT" == MERGED:* ]]; then
+      N="${MERGE_RESULT#MERGED:}"
+      log_action "MERGED" ".claude/settings.json ($N permissions added)"
+    fi
+  else
+    echo -e "${YELLOW}[WARN]${RESET} python3 not available — skipping settings.json merge" >&2
+    log_action "SKIPPED" ".claude/settings.json (python3 not available for merge)"
+  fi
+fi
+
+# ---------------------------------------------------------------------------
+# 6. Sync root agents/
+# ---------------------------------------------------------------------------
+copy_if_missing "$TEMPLATES/agents/orchestrator.md" "$TARGET/agents/orchestrator.md"
+sync_dir "$TEMPLATES/agents/prompts"    "$TARGET/agents/prompts"
+sync_dir "$TEMPLATES/agents/workflows"  "$TARGET/agents/workflows"
+
+# ---------------------------------------------------------------------------
+# 7. Sync docs/adr/
+# ---------------------------------------------------------------------------
+# If docs/ADR/ (uppercase) exists, skip to avoid confusion — leave as-is.
+# Use ls + grep -x for a case-sensitive check (macOS FS is case-insensitive
+# but case-preserving, so this matches the actual stored directory name).
+if [[ -d "$TARGET/docs" ]] && ls "$TARGET/docs/" 2>/dev/null | grep -qx "ADR"; then
+  echo -e "${CYAN}[INFO]${RESET} docs/ADR/ (uppercase) exists — skipping docs/adr/ creation"
+  log_action "SKIPPED" "docs/adr/ (docs/ADR/ already exists)"
+else
+  copy_if_missing "$TEMPLATES/docs/adr/0000-template.md" \
+    "$TARGET/docs/adr/0000-template.md"
+  copy_if_missing "$TEMPLATES/docs/adr/0001-adopt-claude-didio-framework.md" \
+    "$TARGET/docs/adr/0001-adopt-claude-didio-framework.md"
+fi
+
+# ---------------------------------------------------------------------------
+# 8. Sync docs/diagrams/templates/
+# ---------------------------------------------------------------------------
+sync_dir "$TEMPLATES/docs/diagrams/templates" "$TARGET/docs/diagrams/templates"
+
+# ---------------------------------------------------------------------------
+# 9. Sync docs/prd/template.md
+# ---------------------------------------------------------------------------
+copy_if_missing "$TEMPLATES/docs/prd/template.md" "$TARGET/docs/prd/template.md"
+
+# ---------------------------------------------------------------------------
+# 10. Sync memory/agent-learnings/ (preserve files with real content)
+# ---------------------------------------------------------------------------
+TEMPLATE_LEARNINGS="$TEMPLATES/memory/agent-learnings"
+TARGET_LEARNINGS="$TARGET/memory/agent-learnings"
+mkdir -p "$TARGET_LEARNINGS"
+
+for role in architect developer techlead qa; do
+  src="$TEMPLATE_LEARNINGS/$role.md"
+  dst="$TARGET_LEARNINGS/$role.md"
+
+  if [[ ! -f "$src" ]]; then
+    echo -e "${YELLOW}[WARN]${RESET} Template missing: $src" >&2
+    continue
+  fi
+
+  if [[ ! -f "$dst" ]]; then
+    cp "$src" "$dst"
+    log_action "ADDED" "memory/agent-learnings/$role.md"
+  else
+    # Placeholder detection: file has ≤ 5 non-empty lines
+    lines=$(grep -c '\S' "$dst" 2>/dev/null || true)
+    if [[ "$lines" -le 5 ]]; then
+      if cmp -s "$src" "$dst"; then
+        log_action "NO_CHANGE" "memory/agent-learnings/$role.md (placeholder, up to date)"
+      else
+        cp "$src" "$dst"
+        log_action "ADDED" "memory/agent-learnings/$role.md (placeholder replaced)"
+      fi
+    else
+      log_action "SKIPPED" "memory/agent-learnings/$role.md (has content)"
+    fi
+  fi
+done
+
+# ---------------------------------------------------------------------------
+# 11. Sync logs/agents/.gitkeep
+# ---------------------------------------------------------------------------
+# Guard: if logs/ exists as a plain file (not a directory), skip silently.
+if [[ -e "$TARGET/logs" && ! -d "$TARGET/logs" ]]; then
+  echo -e "${YELLOW}[WARN]${RESET} $TARGET/logs exists as a file, not a directory — skipping logs/agents/.gitkeep" >&2
+  log_action "SKIPPED" "logs/agents/.gitkeep (logs is a file)"
+else
+  mkdir -p "$TARGET/logs/agents"
+  if [[ ! -f "$TARGET/logs/agents/.gitkeep" ]]; then
+    touch "$TARGET/logs/agents/.gitkeep"
+    log_action "ADDED" "logs/agents/.gitkeep"
+  else
+    log_action "NO_CHANGE" "logs/agents/.gitkeep (already exists)"
+  fi
+fi
+
+# ---------------------------------------------------------------------------
+# 12. Sync tasks/features/FXX-template/
+# ---------------------------------------------------------------------------
+SRC_TASK_TPL="$TEMPLATES/tasks/features/FXX-template"
+DST_TASK_TPL="$TARGET/tasks/features/FXX-template"
+mkdir -p "$TARGET/tasks/features"
+
+if [[ ! -d "$DST_TASK_TPL" ]]; then
+  if [[ -d "$SRC_TASK_TPL" ]]; then
+    cp -r "$SRC_TASK_TPL" "$DST_TASK_TPL"
+    log_action "ADDED" "tasks/features/FXX-template/"
+  else
+    echo -e "${YELLOW}[WARN]${RESET} Template tasks/features/FXX-template/ missing — skipping" >&2
+  fi
+else
+  log_action "NO_CHANGE" "tasks/features/FXX-template/ (already exists)"
+fi
+
+# ---------------------------------------------------------------------------
+# 13. Append .gitignore entries
+# ---------------------------------------------------------------------------
+GITIGNORE="$TARGET/.gitignore"
+GITIGNORE_ENTRIES=(
+  "logs/agents/*.jsonl"
+  "logs/agents/*.meta.json"
+  "logs/agents/state.json"
+)
+APPENDED_GITIGNORE=0
+
+[[ ! -f "$GITIGNORE" ]] && touch "$GITIGNORE"
+
+for entry in "${GITIGNORE_ENTRIES[@]}"; do
+  if ! grep -qF "$entry" "$GITIGNORE"; then
+    echo "$entry" >> "$GITIGNORE"
+    APPENDED_GITIGNORE=$((APPENDED_GITIGNORE + 1))
+  fi
+done
+
+if [[ $APPENDED_GITIGNORE -gt 0 ]]; then
+  log_action "APPENDED" ".gitignore ($APPENDED_GITIGNORE entries added)"
+else
+  log_action "NO_CHANGE" ".gitignore"
+fi
+
+# ---------------------------------------------------------------------------
+# 14. CLAUDE.md — section-level sync
+# ---------------------------------------------------------------------------
+TARGET_CLAUDE="$TARGET/CLAUDE.md"
+TEMPLATE_CLAUDE="$TEMPLATES/CLAUDE.md.tmpl"
+
+if [[ ! -f "$TEMPLATE_CLAUDE" ]]; then
+  echo -e "${YELLOW}[WARN]${RESET} CLAUDE.md.tmpl missing — skipping CLAUDE.md sync" >&2
+elif [[ ! -f "$TARGET_CLAUDE" ]]; then
+  cp "$TEMPLATE_CLAUDE" "$TARGET_CLAUDE"
+  log_action "ADDED" "CLAUDE.md (full template)"
+else
+  SECTIONS=(
+    "## Agent Workflow"
+    "## Project Layout"
+    "## Documentation Maintenance Rules"
+    "## Agent Learnings (Retrospective)"
+    "## Guardrails de Segurança"
+  )
+
+  for section_header in "${SECTIONS[@]}"; do
+    if ! grep -qF "$section_header" "$TARGET_CLAUDE"; then
+      {
+        echo ""
+        extract_section "$section_header" "$TEMPLATE_CLAUDE"
+      } >> "$TARGET_CLAUDE"
+      log_action "APPENDED" "CLAUDE.md (section: $section_header)"
+    else
+      log_action "NO_CHANGE" "CLAUDE.md (section: $section_header already present)"
+    fi
+  done
+fi
+
+# ---------------------------------------------------------------------------
+# 15. Print colored summary
+# ---------------------------------------------------------------------------
+echo
+echo -e "${BOLD}=== didio-sync-project summary for $PROJECT_NAME ===${RESET}"
+
+for entry in "${SUMMARY_LINES[@]}"; do
+  label="${entry%%|*}"
+  detail="${entry#*|}"
+  case "$label" in
+    ADDED)
+      echo -e "  ${GREEN}[ADDED]${RESET}     $detail" ;;
+    MERGED)
+      echo -e "  ${CYAN}[MERGED]${RESET}    $detail" ;;
+    APPENDED)
+      echo -e "  ${CYAN}[APPENDED]${RESET}  $detail" ;;
+    SKIPPED)
+      echo -e "  ${YELLOW}[SKIPPED]${RESET}   $detail" ;;
+    NO_CHANGE)
+      echo -e "  [NO CHANGE] $detail" ;;
+    *)
+      echo -e "  [$label] $detail" ;;
+  esac
+done
+
+echo
+echo -e "Total: ${GREEN}$COUNT_ADDED added${RESET}, ${CYAN}$COUNT_MERGED merged${RESET}," \
+  "${CYAN}$COUNT_APPENDED appended${RESET}, ${YELLOW}$COUNT_SKIPPED skipped${RESET}," \
+  "$COUNT_NOCHANGE no-change"

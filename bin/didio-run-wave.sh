@@ -68,8 +68,10 @@ fi
 
 echo "[didio-run-wave] feature=$FEATURE wave=$WAVE role=$ROLE max_parallel=$MAX_PARALLEL_LABEL tasks=$(echo $TASK_IDS | tr '\n' ' ')" >&2
 
-if [[ -f "$DIDIO_HOME/bin/didio-progress-lib.sh" ]]; then
-  source "$DIDIO_HOME/bin/didio-progress-lib.sh"
+PROGRESS_LIB="${DIDIO_HOME:-$HOME/.claude-didio-config}/bin/didio-progress-lib.sh"
+if [[ -f "$PROGRESS_LIB" ]]; then
+  # shellcheck disable=SC1090
+  source "$PROGRESS_LIB"
   didio_feature_progress "$FEATURE" >&2 || true
 fi
 

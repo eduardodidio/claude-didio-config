@@ -145,7 +145,13 @@ def known_features(root: str, agents: list[dict]) -> list[str]:
     return seen
 
 
-def format_line(p: dict) -> str:
+def _bar(percent: int, width: int = 20) -> str:
+    filled = int(round(percent / 100 * width))
+    filled = max(0, min(width, filled))
+    return "█" * filled + "░" * (width - filled)
+
+
+def format_line(p: dict, color: bool | None = None) -> str:
     def short(tid: str) -> str:
         return tid.split("-")[-1] if "-" in tid else tid
 
@@ -154,11 +160,19 @@ def format_line(p: dict) -> str:
         chips = chips[:12] + ["…"]
     wave = f"Wave {p['current_wave']}" if p["current_wave"] is not None else "—"
     cur = f"{p['current_task']} ▶" if p["current_task"] else "done"
-    return (
-        f"[{p['feature']}] {wave} · {cur} · "
-        f"{p['completed']}/{p['total']} done ({p['percent']}%) · "
+    bar = _bar(p["percent"])
+    body = (
+        f"📊 [{p['feature']}] {wave} · {cur} · "
+        f"[{bar}] {p['completed']}/{p['total']} ({p['percent']}%) · "
         + " ".join(chips)
     )
+
+    if color is None:
+        color = sys.stdout.isatty()
+    if color:
+        # didio purple-ish (256-color 141); bold
+        return f"\033[1;38;5;141m{body}\033[0m"
+    return body
 
 
 def main() -> int:

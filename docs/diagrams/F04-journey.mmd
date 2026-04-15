@@ -1,0 +1,35 @@
+%% F04 — Operator Journey: syncing a downstream project
+flowchart LR
+    START([Operator invokes\ndidio sync-all]) --> LOAD[Load\ntarget-projects.json]
+    LOAD --> LOOP{Next project?}
+
+    LOOP -->|yes| GITCHECK{Is git repo?}
+    LOOP -->|no more| REPORT([Print\ncompliance report])
+
+    GITCHECK -->|no| ERROR([Log error,\ncontinue to next])
+    ERROR --> LOOP
+
+    GITCHECK -->|yes| ROLLBACK[Create git tag\npre-didio-sync]
+
+    ROLLBACK --> AGENTS[Copy missing\n.claude/agents/]
+    AGENTS --> CMDS[Copy missing\n.claude/commands/]
+    CMDS --> SETTINGS{settings.json\nexists?}
+
+    SETTINGS -->|no| COPYSETTINGS[Copy from\ntemplate]
+    SETTINGS -->|yes| MERGESETTINGS[Merge allow\narrays via jq]
+
+    COPYSETTINGS --> ROOTAGENTS
+    MERGESETTINGS --> ROOTAGENTS
+
+    ROOTAGENTS[Copy missing\nroot agents/] --> DOCS[Create docs/adr/\nif missing]
+    DOCS --> MEMORY{agent-learnings\nhas content?}
+
+    MEMORY -->|placeholder| SKIP_MEM[Leave as-is]
+    MEMORY -->|real content| PRESERVE[Preserve,\ndon't overwrite]
+
+    SKIP_MEM --> GITIGNORE
+    PRESERVE --> GITIGNORE
+
+    GITIGNORE[Append .gitignore\nentries if missing] --> CLAUDEMD[Section-sync\nCLAUDE.md]
+    CLAUDEMD --> SUMMARY[Print per-project\nsummary]
+    SUMMARY --> LOOP

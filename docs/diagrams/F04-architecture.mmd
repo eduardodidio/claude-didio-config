@@ -1,0 +1,48 @@
+%% F04 — Sync Architecture: data flow from source of truth to downstream projects
+flowchart TB
+    subgraph Source["claude-didio-config (Source of Truth)"]
+        TMPL["templates/"]
+        SKILL["SKILL.md\n(materialization contract)"]
+        ADR["docs/adr/0002\n(canonical layout)"]
+    end
+
+    subgraph SyncEngine["bin/didio-sync-project.sh"]
+        VALIDATE["Validate target\nis git repo"]
+        TAG["Create rollback\ngit tag"]
+        DIFF["Diff canonical\nvs actual layout"]
+        COPY["Copy missing\nframework files"]
+        MERGE["Merge settings.json\n(union allow arrays)"]
+        SECTION["Section-sync\nCLAUDE.md"]
+        SKIP["Skip user-owned\nfiles"]
+    end
+
+    subgraph Targets["Downstream Projects"]
+        P1["mellon-magic-maker\n(~compliant)"]
+        P2["access-play-create\n(missing agents)"]
+        P3["mellon-bot\n(partial + extras)"]
+        P4["escudo-do-mestre-v1\n(real learnings)"]
+        P5["blind-warrior\n(no .gitignore)"]
+    end
+
+    subgraph Protected["Never Touched"]
+        DC["didio.config.json"]
+        SL["settings.local.json"]
+        CUSTOM["Custom docs/\ntasks/features/"]
+        LEARN["Populated\nagent-learnings/"]
+    end
+
+    TMPL --> DIFF
+    SKILL --> DIFF
+    ADR --> DIFF
+
+    VALIDATE --> TAG --> DIFF
+    DIFF --> COPY
+    DIFF --> MERGE
+    DIFF --> SECTION
+    DIFF --> SKIP
+
+    COPY --> P1 & P2 & P3 & P4 & P5
+    MERGE --> P1 & P2 & P3 & P4 & P5
+    SECTION --> P1 & P2 & P3 & P4 & P5
+
+    SKIP -.->|preserves| Protected
