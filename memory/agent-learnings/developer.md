@@ -8,6 +8,14 @@
 
 **Pattern to repeat:** Pre-compute a `Map<key, value>` in `useMemo` to replace O(n) `array.find()` calls inside JSX maps. When using `asChild` with Framer Motion inside a Radix primitive, animate `width` instead of `transform` to avoid conflicts with Radix's internal transform injection — add a brief comment explaining why.
 
+## F05 — 2026-04-14
+
+**What worked:** Evidence-based validation for infra/operational tasks with no automated suite. Per-project summary table (tag / sync result / protected files) made idempotence and correctness scannable. Improving a diagram beyond the spec (adding `S_OK` per-project decision node) is better than a faithful-but-wrong copy.
+
+**What to avoid:** Leaving diagram files and template improvements in an unstaged working tree when marking a task `done` — run `git status` as a mandatory closing step. Failing to update `docs/diagrams/INDEX.md` when creating diagrams — this recurred in F03, F04, and F05 and now warrants a permanent checklist entry on any task that creates diagrams. Writing ambiguous "fresh tag" AC for idempotent sync tasks — the same-day tag preserved from a prior run IS correct behavior; the AC must spell out the idempotent case.
+
+**Pattern to repeat:** Document bash version constraints as an operational note in the evidence (macOS ships bash 3.2, scripts require 4+). Always explicitly exercise and document the already-synced scenario for idempotent sync features — confirms correct no-op behavior even when no files change.
+
 ## F03 — 2026-04-14
 
 **What worked:** Choosing Option A (persistent Python process) for the no-op guard compounds with the README cache — both optimisations survive across ticks in the same process. Module-level cache dict + `_clear_cache()` helper is the right Python pattern for process-lifetime caching that is also test-friendly.

@@ -1,0 +1,34 @@
+%% F05 — Operator journey for downstream sync propagation
+%% Happy path + failure/rollback branch.
+
+flowchart TD
+    subgraph UserLane["Operator"]
+        U_START(["Start: propagate framework updates"])
+        U_RUN["Run didio sync-all"]
+        U_CHECK["Review sync evidence"]
+        U_DONE(["End: all 5 projects synced"])
+        U_ROLLBACK["Rollback failed project<br/>git reset --hard pre-didio-sync-*"]
+    end
+
+    subgraph SystemLane["Sync Scripts"]
+        S_READ["Read target-projects.json<br/>(5 project paths)"]
+        S_LOOP{"Next project?"}
+        S_TAG["Create rollback tag<br/>pre-didio-sync-YYYYMMDD"]
+        S_COPY["Copy templates<br/>(skip protected files)"]
+        S_OK{"Project sync ok?"}
+        S_RESULT{"All 5 ok?"}
+        S_REPORT["Print summary<br/>5 ok, 0 failed"]
+        S_FAIL["Report failure count"]
+    end
+
+    U_START --> U_RUN
+    U_RUN --> S_READ
+    S_READ --> S_LOOP
+    S_LOOP -->|yes| S_TAG
+    S_TAG --> S_COPY
+    S_COPY --> S_OK
+    S_OK -->|yes| S_LOOP
+    S_OK -->|no| S_LOOP
+    S_LOOP -->|no more| S_RESULT
+    S_RESULT -->|yes| S_REPORT --> U_CHECK --> U_DONE
+    S_RESULT -->|no| S_FAIL --> U_ROLLBACK --> U_DONE

@@ -23,3 +23,17 @@ All diagrams are [Mermaid](https://mermaid.js.org/) `.mmd` files.
 |---|---|---|
 | [F03-architecture.mmd](F03-architecture.mmd) | F03-T01 | Component/data-flow: `didio-log-watcher.sh` internals — load agents, README mtime cache, compute_feature, no-op guard, atomic write to `state.json` |
 | [F03-journey.mmd](F03-journey.mmd) | F03-T01 | Watcher tick lifecycle — from tick start through feature enumeration, README parsing, JSON hash check, and conditional state write |
+
+## F04 — Bootstrap sync to downstream projects
+
+| File | Owner task | What it shows |
+|---|---|---|
+| [F04-architecture.mmd](F04-architecture.mmd) | F04-T01 | Data-flow: `templates/` + `SKILL.md` → `didio-sync-project.sh` (validate, tag, diff, copy, merge, section-sync, skip) → downstream projects |
+| [F04-journey.mmd](F04-journey.mmd) | F04-T01 | Operator journey: invoke sync-all → load project list → per-project tag + copy loop → protected file checks |
+
+## F05 — Sync downstream propagation
+
+| File | Owner task | What it shows |
+|---|---|---|
+| [F05-architecture.mmd](F05-architecture.mmd) | F05-T01 | Data-flow: framework `templates/` → `didio-sync-all.sh` → `didio-sync-project.sh` → 5 downstream projects (with rollback tag creation) |
+| [F05-journey.mmd](F05-journey.mmd) | F05-T01 | Operator journey: trigger sync-all, per-project tag + copy loop, all-ok check, evidence review; failure branch shows rollback with `git reset --hard` |

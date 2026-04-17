@@ -31,3 +31,19 @@
 - Integration test scripts that cover the "error" case (watcher on non-existent directory) survive and don't crash — using the `except Exception` guard correctly for the *test* case, even if bare silence is wrong for production.
 - Benchmark results document the acceptance criterion threshold explicitly (ratios < 0.50) and print PASS/FAIL — making the criterion machine-checkable, not just human-readable.
 - Global acceptance criteria that span multiple toolchains (e.g., `npm run test` inside a Python/bash feature) must be run and documented explicitly in T06/benchmark results. Do not assume they pass by inference.
+
+## F05 Sync Downstream Propagation — 2026-04-14
+
+**What worked:**
+- Evidence-based validation for infra/operational tasks (no automated test suite) works well when the AC checkboxes are fully checked with clear justification. Evidence is structured per-project with git diff stats and protected-file analysis.
+- Documenting idempotence explicitly (all 5 projects already at latest — 0 new changes, sync-all still exits 5 ok) is a clean and correct way to close the loop.
+- Improving diagrams beyond the spec (adding per-project `S_OK` decision node in journey diagram) — flagged positively; accurate deviations from spec are preferable to faithful-but-wrong copies.
+
+**What to avoid:**
+- Leaving diagram files and template improvements in an unstaged working tree when marking a task `done`. Always run `git status` as a closing step before changing task status.
+- Missing INDEX.md updates when diagrams are created — this recurred from F03 through F05. This is now a firm reviewer expectation: treat a missing INDEX.md entry the same as an unchecked AC.
+- Ambiguous "fresh tag" AC wording for idempotent sync tasks. The same-day tag being preserved rather than re-created is correct behavior, but the AC should spell it out so reviewers don't have to infer.
+
+**Pattern to repeat:**
+- Bash version constraints affecting script compatibility (macOS bash 3.2 vs required 4+) should be documented as an operational note in the evidence — this kind of infra footgun is easy to miss and worth recording clearly.
+- For sync-type features with a single Wave-0 task, a summary table at the end of the evidence document (one row per project, columns: tag / sync result / protected files) makes idempotence and correctness immediately scannable.

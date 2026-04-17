@@ -1,0 +1,28 @@
+%% F05 — Sync propagation architecture
+%% Shows how didio-sync-all orchestrates template propagation
+%% from the framework to 5 downstream projects.
+
+flowchart LR
+    subgraph Framework["claude-didio-config (source)"]
+        TPL["templates/<br/>(prompts, workflows,<br/>commands, diagrams,<br/>didio.config.json)"]
+        SA["bin/didio-sync-all.sh"]
+        SP["bin/didio-sync-project.sh"]
+        TGT["target-projects.json"]
+    end
+
+    subgraph Downstream["Downstream Projects (×5)"]
+        D1["mellon-magic-maker"]
+        D2["access-play-create"]
+        D3["mellon-bot"]
+        D4["escudo-do-mestre-v1"]
+        D5["blind-warrior"]
+    end
+
+    SA -->|"reads project list"| TGT
+    SA -->|"calls per project"| SP
+    SP -->|"copies from"| TPL
+    SP -->|"tag + sync"| D1
+    SP -->|"tag + sync"| D2
+    SP -->|"tag + sync"| D3
+    SP -->|"tag + sync"| D4
+    SP -->|"tag + sync"| D5
