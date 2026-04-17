@@ -1,7 +1,6 @@
 {
   "turbo": false,
   "economy": false,
-  "highlander": false,
   "max_parallel": 0,
   "models": {
     "architect":  { "model": "opus",   "fallback": "sonnet" },

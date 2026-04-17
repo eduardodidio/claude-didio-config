@@ -52,19 +52,9 @@ if [[ -z "$TASK_IDS" ]]; then
   exit 2
 fi
 
-# Load config lib for parallelism and turbo/highlander settings (already sourced above)
+# Load config lib for parallelism settings (already sourced above)
 MAX_PARALLEL=$(didio_max_parallel)
 MAX_PARALLEL_LABEL=$([[ "$MAX_PARALLEL" -eq 0 ]] && echo "ilimitado" || echo "$MAX_PARALLEL")
-
-# Turbo + Highlander: activate liberal auto-approve for unattended Waves
-if [[ "$(didio_is_turbo)" == "true" && "$(didio_is_highlander)" == "true" ]]; then
-  HIGHLANDER_SRC="$PROJECT_ROOT/.claude/settings.highlander.json"
-  SETTINGS_DST="$PROJECT_ROOT/.claude/settings.json"
-  if [[ -f "$HIGHLANDER_SRC" ]]; then
-    cp "$HIGHLANDER_SRC" "$SETTINGS_DST"
-    echo "[didio-run-wave] TURBO+HIGHLANDER: activated liberal auto-approve" >&2
-  fi
-fi
 
 echo "[didio-run-wave] feature=$FEATURE wave=$WAVE role=$ROLE max_parallel=$MAX_PARALLEL_LABEL tasks=$(echo $TASK_IDS | tr '\n' ' ')" >&2
 

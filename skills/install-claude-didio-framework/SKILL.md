@@ -50,11 +50,7 @@ Use the **AskUserQuestion** tool with these questions (one batch is fine):
    - `node-react` (Node + React TypeScript fullstack)
    - `python-fastapi` (Python FastAPI)
    - `blank` (no predefined stack)
-3. **Highlander mode** — single select: `no` (default) / `yes`
-   - Explain: "Highlander mode pre-approves a liberal set of permissions so
-     Waves run without prompting. Only use it in sandboxed projects without
-     secrets."
-4. **Create ADR-0001** documenting framework adoption? — `yes` (default) / `no`
+3. **Create ADR-0001** documenting framework adoption? — `yes` (default) / `no`
 
 ## Materialization steps
 
@@ -86,23 +82,18 @@ and `sed` for substitution, or Write/Edit tools as appropriate.
    - `{{PROJECT_OWNER}}` → the current git user.name (fallback to "TBD")
    - `{{EXTRA_PROJECT_NOTES}}` → empty
 
-4. **Highlander mode**: if the user said yes, overwrite
-   `./.claude/settings.json` with the contents of
-   `./.claude/settings.highlander.json`. Leave both files in place so the
-   choice is reversible.
-
-5. **ADR-0001**: if the user said no, delete
+4. **ADR-0001**: if the user said no, delete
    `./docs/adr/0001-adopt-claude-didio-framework.md`. Otherwise fill in
    `{{DATE}}`, `{{PROJECT_OWNER}}`, `{{PROJECT_NAME}}`.
 
-6. **`.gitignore`**: append these lines if not already present:
+5. **`.gitignore`**: append these lines if not already present:
    ```
    logs/agents/*.jsonl
    logs/agents/*.meta.json
    logs/agents/state.json
    ```
 
-6.1. **Create `memory/agent-learnings/`** with an empty
+5.1. **Create `memory/agent-learnings/`** with an empty
    `.gitkeep` and one placeholder file per role so the prompts have
    something to read:
    ```
@@ -118,11 +109,11 @@ and `sed` for substitution, or Write/Edit tools as appropriate.
    (QA appends to this file at the end of every feature retrospective.)
    ```
 
-7. **Verify**: run `ls -la ./CLAUDE.md ./agents/prompts/ ./tasks/features/
+6. **Verify**: run `ls -la ./CLAUDE.md ./agents/prompts/ ./tasks/features/
    ./.claude/commands/create-feature.md` and confirm everything is in
    place.
 
-8. **Install the user-level slash commands** (optional, ask the user):
+7. **Install the user-level slash commands** (optional, ask the user):
    symlink `./.claude/commands/create-feature.md` and `dashboard.md` from
    the project so the user can invoke `/create-feature` and `/dashboard`.
 
@@ -131,7 +122,6 @@ and `sed` for substitution, or Write/Edit tools as appropriate.
 Print a short welcome with:
 
 - What was created (tree listing, 1 level deep)
-- Whether Highlander mode was enabled
 - The menu command: `/didio` (inside Claude Code) or `didio menu` (in
   the terminal)
 - **Getting-started menu** — show these 4 suggestions prominently:
