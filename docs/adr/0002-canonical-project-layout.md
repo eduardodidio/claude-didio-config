@@ -46,6 +46,7 @@ contain the following directory tree. Files are annotated as:
 │   │   ├── didio.md                    [framework]
 │   │   └── plan-feature.md             [framework]
 │   ├── settings.json                   [merge]   ← additive, never shrink
+│   ├── settings.highlander.json        [framework]
 │   └── settings.local.json             [user]    ← NEVER synced
 │
 ├── agents/                             # Orchestrator, prompts, and workflows

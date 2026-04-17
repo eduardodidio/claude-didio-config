@@ -34,11 +34,12 @@ EOF
 
 print_menu() {
   # Show turbo/economy state in toggle labels
-  local turbo_label="OFF" economy_label="OFF"
+  local turbo_label="OFF" economy_label="OFF" highlander_label="OFF"
   local max_p
   max_p=$(didio_read_config max_parallel)
   [[ "$(didio_is_turbo)" == "true" ]] && turbo_label="ON"
   [[ "$(didio_is_economy)" == "true" ]] && economy_label="ON"
+  [[ "$(didio_is_highlander)" == "true" ]] && highlander_label="ON"
   [[ -z "$max_p" || "$max_p" == "0" ]] && max_p="ilimitado"
 
   cat <<EOF
@@ -59,6 +60,7 @@ print_menu() {
    10) 💰 Economy Mode               [$economy_label]
    11) 🔀 Max paralelismo            [$max_p]
    12) 🤖 Configurar modelos         (modelo por agente)
+   13) 🛡️  Highlander Mode            [$highlander_label]
     0) Sair
 
   Dica: antes de começar uma nova feature, rode /clear no Claude Code
@@ -201,7 +203,8 @@ action_turbo() {
   else
     echo
     echo "  ⚠️  Turbo Mode ativa paralelismo maximo (sem limite de agentes"
-    echo "  simultaneos). Use com cuidado em projetos grandes."
+    echo "  simultaneos). Combinado com Highlander, auto-aprova todas as"
+    echo "  permissoes. Use apenas em projetos sandbox sem segredos."
     echo
     read -r -p "  Ativar Turbo Mode? [y/N]: " confirm
     if [[ "$confirm" == "y" || "$confirm" == "Y" ]]; then
@@ -320,6 +323,31 @@ with open('$config', 'w') as f: json.dump(c, f, indent=2); f.write('\n')
     *) echo "  Cancelado." ;;
   esac
   echo
+}
+
+action_highlander() {
+  local current
+  current="$(didio_is_highlander)"
+  if [[ "$current" == "true" ]]; then
+    didio_write_config highlander false
+    echo
+    echo "  Highlander Mode DESATIVADO."
+    echo
+  else
+    echo
+    echo "  ⚠️  Highlander Mode pre-aprova todas as permissoes de Bash,"
+    echo "  leitura e escrita de arquivos. Use APENAS em projetos sandbox"
+    echo "  sem segredos ou credenciais."
+    echo
+    read -r -p "  Ativar Highlander Mode? [y/N]: " confirm
+    if [[ "$confirm" == "y" || "$confirm" == "Y" ]]; then
+      didio_write_config highlander true
+      echo "  Highlander Mode ATIVADO."
+    else
+      echo "  Cancelado."
+    fi
+    echo
+  fi
 }
 
 action_plan_feature() {
@@ -448,6 +476,7 @@ main() {
       10) action_economy ;;
       11) action_max_parallel ;;
       12) action_models ;;
+      13) action_highlander ;;
       14) action_plan_feature ;;
       15) action_list_planned ;;
       0|q|Q|exit|quit) echo; echo "  Bye 👋"; exit 0 ;;

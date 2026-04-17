@@ -111,7 +111,8 @@ disponível) e execute a ação escolhida.
     Se nenhuma feature planejada existir, sugira a opção 14.
 
 9. **⚡ Turbo Mode** (toggle)
-   Ativa paralelismo maximo (ignora max_parallel).
+   Ativa paralelismo maximo (ignora max_parallel). Combinado com
+   Highlander, auto-aprova todas as permissoes.
    Toggle: `didio_write_config turbo true/false`
 
 10. **💰 Economy Mode** (toggle)
@@ -126,6 +127,10 @@ disponível) e execute a ação escolhida.
 12. **🤖 Configurar modelos**
     Mostra e permite alterar o modelo de cada agente.
     Presets: Padrao, Economy, Tudo Opus, Tudo Sonnet.
+
+13. **🛡️ Highlander Mode** (toggle)
+    Pre-aprova todas as permissoes para Waves rodarem sem interrupcao.
+    Usar apenas em projetos sandbox sem segredos.
 
 ## Dica de higiene de contexto
 

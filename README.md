@@ -177,6 +177,10 @@ o estado atual do código. Inclua arquitetura e jornada do usuário (BPMN).
   Developer = Senhor dos Anéis, TechLead = Naruto, QA = Pokémon.
   Totalmente customizável em `easter-eggs.json`.
 
+- **Highlander mode (opt-in)**
+  `.claude/settings.json` com `permissions.allow` liberal. Waves rodam
+  sem prompts. Só use em projetos sandboxed.
+
 ---
 
 ## Layout do projeto depois do bootstrap
@@ -238,7 +242,7 @@ dentro da lista. Desabilita geral com `export DIDIO_EASTER_EGGS=0`.
 ## Status
 
 **Phase 1 (backbone)** ✅ install, spawn-agent, run-wave, templates,
-prompts, slash commands, project models.
+prompts, slash commands, project models, Highlander mode.
 
 **Phase 2 (Didio Agents Dash)** ✅ dashboard Vite+React+shadcn com
 polling de `state.json`, view de agentes com log modal terminal-style,

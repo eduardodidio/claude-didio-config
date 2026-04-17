@@ -137,6 +137,13 @@ didio_is_economy() {
   echo "${val:-false}"
 }
 
+# Returns "true" or "false".
+didio_is_highlander() {
+  local val
+  val="$(didio_read_config highlander)"
+  echo "${val:-false}"
+}
+
 # Print a summary of current config (for menu display).
 didio_config_summary() {
   local config
@@ -153,6 +160,7 @@ with open('$config') as f:
 badges = []
 if c.get('turbo', False): badges.append('TURBO')
 if c.get('economy', False): badges.append('ECONOMY')
+if c.get('highlander', False): badges.append('HIGHLANDER')
 
 economy = c.get('economy', False)
 key = 'models_economy' if economy else 'models'
