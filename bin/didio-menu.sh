@@ -203,8 +203,8 @@ action_turbo() {
   else
     echo
     echo "  ⚠️  Turbo Mode ativa paralelismo maximo (sem limite de agentes"
-    echo "  simultaneos). Combinado com Highlander, auto-aprova todas as"
-    echo "  permissoes. Use apenas em projetos sandbox sem segredos."
+    echo "  simultaneos). Combinado com Highlander, aciona Auto Mode do"
+    echo "  Claude Code. Use apenas em projetos sandbox sem segredos."
     echo
     read -r -p "  Ativar Turbo Mode? [y/N]: " confirm
     if [[ "$confirm" == "y" || "$confirm" == "Y" ]]; then
@@ -335,14 +335,15 @@ action_highlander() {
     echo
   else
     echo
-    echo "  ⚠️  Highlander Mode pre-aprova todas as permissoes de Bash,"
-    echo "  leitura e escrita de arquivos. Use APENAS em projetos sandbox"
-    echo "  sem segredos ou credenciais."
+    echo "  ⚠️  Highlander Mode ativa o Auto Mode do Claude Code"
+    echo "  (permissions.defaultMode = \"auto\") e mantém um allow-list"
+    echo "  liberal como fallback. Waves rodam sem prompts."
+    echo "  Use APENAS em projetos sandbox sem segredos ou credenciais."
     echo
     read -r -p "  Ativar Highlander Mode? [y/N]: " confirm
     if [[ "$confirm" == "y" || "$confirm" == "Y" ]]; then
       didio_write_config highlander true
-      echo "  Highlander Mode ATIVADO."
+      echo "  Highlander Mode ATIVADO (equivalente a Auto Mode on)."
     else
       echo "  Cancelado."
     fi

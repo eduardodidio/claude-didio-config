@@ -51,9 +51,11 @@ Use the **AskUserQuestion** tool with these questions (one batch is fine):
    - `python-fastapi` (Python FastAPI)
    - `blank` (no predefined stack)
 3. **Highlander mode** — single select: `no` (default) / `yes`
-   - Explain: "Highlander mode pre-approves a liberal set of permissions so
-     Waves run without prompting. Only use it in sandboxed projects without
-     secrets."
+   - Explain: "Highlander mode activates Claude Code Auto Mode
+     (`permissions.defaultMode: \"auto\"`) and pre-approves a liberal
+     allow-list as fallback so Waves run without prompting. It is the
+     equivalent of turning Auto Mode on. Only use it in sandboxed
+     projects without secrets."
 4. **Create ADR-0001** documenting framework adoption? — `yes` (default) / `no`
 
 ## Materialization steps

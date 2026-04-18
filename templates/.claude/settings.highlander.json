@@ -1,7 +1,8 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
-  "_comment": "HIGHLANDER MODE — liberal auto-approve for Waves. Use only in sandboxed projects without secrets. Copy this over settings.json to activate.",
+  "_comment": "HIGHLANDER MODE — activates Claude Code Auto Mode on startup so Waves run autonomously without permission prompts. Liberal allow-list is kept as a fallback for sessions where auto mode is unavailable. Use only in sandboxed projects without secrets. Copy this over settings.json to activate.",
   "permissions": {
+    "defaultMode": "auto",
     "allow": [
       "Bash(didio:*)",
       "Bash(didio-*)",
@@ -27,5 +28,6 @@
       "Write(./**)",
       "Edit(./**)"
     ]
-  }
+  },
+  "useAutoModeDuringPlan": true
 }

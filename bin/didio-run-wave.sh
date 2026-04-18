@@ -56,13 +56,13 @@ fi
 MAX_PARALLEL=$(didio_max_parallel)
 MAX_PARALLEL_LABEL=$([[ "$MAX_PARALLEL" -eq 0 ]] && echo "ilimitado" || echo "$MAX_PARALLEL")
 
-# Turbo + Highlander: activate liberal auto-approve for unattended Waves
+# Turbo + Highlander: activate Claude Code Auto Mode for unattended Waves
 if [[ "$(didio_is_turbo)" == "true" && "$(didio_is_highlander)" == "true" ]]; then
   HIGHLANDER_SRC="$PROJECT_ROOT/.claude/settings.highlander.json"
   SETTINGS_DST="$PROJECT_ROOT/.claude/settings.json"
   if [[ -f "$HIGHLANDER_SRC" ]]; then
     cp "$HIGHLANDER_SRC" "$SETTINGS_DST"
-    echo "[didio-run-wave] TURBO+HIGHLANDER: activated liberal auto-approve" >&2
+    echo "[didio-run-wave] TURBO+HIGHLANDER: Auto Mode activated via defaultMode=auto" >&2
   fi
 fi
 

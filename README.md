@@ -177,9 +177,10 @@ o estado atual do código. Inclua arquitetura e jornada do usuário (BPMN).
   Developer = Senhor dos Anéis, TechLead = Naruto, QA = Pokémon.
   Totalmente customizável em `easter-eggs.json`.
 
-- **Highlander mode (opt-in)**
-  `.claude/settings.json` com `permissions.allow` liberal. Waves rodam
-  sem prompts. Só use em projetos sandboxed.
+- **Highlander mode (opt-in)** — _equivalente a Auto Mode on_
+  Ativa o Auto Mode nativo do Claude Code via
+  `permissions.defaultMode: "auto"` e mantém um allow-list liberal como
+  fallback. Waves rodam sem prompts. Só use em projetos sandboxed.
 
 ---
 
