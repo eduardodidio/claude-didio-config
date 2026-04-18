@@ -23,3 +23,11 @@
 **What to avoid:** Bare `except Exception: pass` in any persistent/daemon-style loop — a watcher that silently fails is indistinguishable from a healthy idle watcher; always log to stderr. Leaving `[ ]` checkboxes unchecked in task files (recurred from F02). Diagram labels that describe the spec design rather than the actual implementation — when you choose a simpler approach (string compare instead of MD5 hash), update the diagrams.
 
 **Pattern to repeat:** Persistent-process refactor (bash thin-launcher `exec python3 …`): separates stateless bash setup from stateful Python loop cleanly, and eliminates the need for external `.prev_hash` temp files. ADR "reject" documents with explicit, enumerated reasoning are as valuable as "accept" ADRs. Always include cross-stack acceptance criteria (`npm run test`) explicitly in the integration test script or benchmark results — do not assume they pass by inference.
+
+## F06 — 2026-04-18
+
+**What worked:** Single sentinel `{{USE_SECOND_BRAIN}}` substituted via bash `${VAR//pattern/replacement}` parameter expansion in `didio-spawn-agent.sh` — no python3 spawn per prompt, fully portable, one source of truth for the on/off branch. Conservative-default config helpers (`enabled` defaults `false`, `fallback_to_local` defaults `true`) make the feature opt-in even when the JSON block is absent.
+
+**What to avoid:** `(( PASS++ ))` in bash test harnesses — the post-increment expression evaluates to `0` on the 0→1 transition, which trips `set -e` and falsely registers a failed test inside subshells. Always use `PASS=$((PASS+1))`. Also: writing a new shell script and executing it in the same session can trip sandbox "unverified-script" denials on first run — for one-off measurements, prefer inline `python3 <<'PY'` in a Bash call; ship the dedicated `.sh` for repeat runs.
+
+**Pattern to repeat:** When a feature evolves `bin/didio-config-lib.sh`, also flip `didio-spawn-agent.sh` to source project-local lib first (`PROJECT_ROOT/bin/didio-config-lib.sh`) before falling back to `${DIDIO_HOME}`. Compounds across all future features that touch the lib — they ship without waiting for global install to update.

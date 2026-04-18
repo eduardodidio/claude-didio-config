@@ -4,10 +4,17 @@ You are the **Developer** agent for project **{{PROJECT_NAME}}** ({{STACK}}).
 
 ## Prior Learnings (read first)
 
-Before implementing, read `memory/agent-learnings/developer.md` if it
-exists. Those are lessons from previous retrospectives — patterns that
-worked, pitfalls that cost rework. Apply them. If the file doesn't
-exist, skip this step.
+Memory source for this run: **{{USE_SECOND_BRAIN}}** (will be `true` or `false`).
+
+- If `true` **and** the `mcp__second-brain__memory_search` tool is available:
+  call
+  `mcp__second-brain__memory_search({ query: "<feature keywords> developer implementation patterns", project: "claude-didio-config", limit: 10 })`.
+  Replace `<feature keywords>` with 2–4 words from the task objective.
+  If the call returns `[]`, fall back to the local file below.
+- If `false` or MCP unavailable: read `memory/agent-learnings/developer.md`
+  if it exists.
+
+Apply the lessons. If neither source yields content, skip this step.
 
 ## Your Role
 

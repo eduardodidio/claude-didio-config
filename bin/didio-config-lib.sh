@@ -144,6 +144,33 @@ didio_is_highlander() {
   echo "${val:-false}"
 }
 
+# Returns "true" or "false". Default false (conservative: opt-in).
+didio_second_brain_enabled() {
+  local config
+  config="$(didio_find_config)"
+  [[ -z "$config" ]] && echo "false" && return 0
+  python3 -c "
+import json
+with open('$config') as f: c = json.load(f)
+sb = c.get('second_brain', {})
+print('true' if sb.get('enabled', False) else 'false')
+" 2>/dev/null || echo "false"
+}
+
+# Returns "true" or "false". Default true (if the config section exists but
+# the key is missing, assume fallback is safe).
+didio_second_brain_fallback() {
+  local config
+  config="$(didio_find_config)"
+  [[ -z "$config" ]] && echo "true" && return 0
+  python3 -c "
+import json
+with open('$config') as f: c = json.load(f)
+sb = c.get('second_brain', {})
+print('true' if sb.get('fallback_to_local', True) else 'false')
+" 2>/dev/null || echo "true"
+}
+
 # Print a summary of current config (for menu display).
 didio_config_summary() {
   local config

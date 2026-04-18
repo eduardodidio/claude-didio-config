@@ -19,5 +19,9 @@
     "feature": true,
     "bugfix": true,
     "review": true
+  },
+  "second_brain": {
+    "enabled": true,
+    "fallback_to_local": true
   }
 }

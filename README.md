@@ -252,3 +252,88 @@ view de phrases por franquia.
 **Phase 3 (polish + guardrails + UX)** ✅ menu `/didio`, guardrails no
 CLAUDE.md, cerimônia de retrospectiva, diagramas obrigatórios (arq +
 jornada BPMN), prompts pré-configurados, rebranding "Didio Agents Dash".
+
+---
+
+## Memória dos agentes (learnings entre features)
+
+A cada feature, o QA roda a cerimônia de retrospectiva e consolida
+aprendizagens por role em `memory/agent-learnings/<role>.md`. No próximo
+spawn, cada agente lê o próprio arquivo antes de começar — é assim que os
+agentes melhoram a cada feature.
+
+Há **dois modos** de memória, e o framework decide automaticamente
+baseado no que está disponível:
+
+### Modo padrão (sem MCP) — funciona out-of-the-box
+
+Esse é o modo que você ganha ao rodar `/install-claude-didio-framework`.
+Nenhum setup extra. O `didio.config.json` criado pelo bootstrap **não tem**
+o bloco `second_brain` — os helpers default pra `enabled=false`,
+`fallback_to_local=true`, e os prompts leem direto o arquivo local.
+
+- ✅ Zero dependências externas
+- ✅ Histórico inspecionável via `git log memory/agent-learnings/`
+- ⚠️ O agente carrega o arquivo inteiro a cada spawn (cresce com o tempo;
+  na prática só vira problema depois de dezenas de features)
+- ⚠️ Cross-project sharing é manual via `bin/didio-sync-project.sh`
+
+**Nada mais a fazer.** Pula a próxima seção.
+
+### Modo second-brain (opt-in, avançado)
+
+A partir da F06, o framework pode integrar com o MCP server do projeto
+irmão
+[`didio-second-brain-claude`](https://github.com/eduardodidio/didio-second-brain-claude)
+pra substituir a leitura do arquivo inteiro por uma busca segmentada:
+cada spawn só carrega os ~10 snippets relevantes à feature atual.
+**Medição (F06-benchmark)**: ~82 % de redução média no footprint de
+"Prior Learnings" por spawn (developer 79 %, techlead 87 %, qa 77 %).
+Ver `tests/F06-benchmark-results.md`.
+
+**Pré-requisitos:**
+
+1. Instalar e configurar o MCP server seguindo o README do
+   [`didio-second-brain-claude`](https://github.com/eduardodidio/didio-second-brain-claude).
+2. Confirmar que `claude mcp list` mostra `second-brain` ativo.
+
+**Adicione o bloco no `didio.config.json` do projeto:**
+
+```json
+"second_brain": {
+  "enabled": true,
+  "fallback_to_local": true
+}
+```
+
+- `enabled=true` + MCP online → agentes chamam
+  `mcp__second-brain__memory_search` antes de começar.
+- `enabled=false` **ou** MCP offline + `fallback_to_local=true` → agentes
+  voltam a ler `memory/agent-learnings/<role>.md` localmente.
+- `fallback_to_local=false` + MCP offline → `didio-second-brain-smoke.sh`
+  aborta o wave com exit 2 (preflight rígido).
+
+**Migração one-shot** (ingere learnings locais já existentes):
+
+```bash
+DIDIO_MIGRATE_DRY=1 bin/didio-migrate-learnings.sh   # inspecionar
+bin/didio-migrate-learnings.sh                        # rodar de verdade
+```
+
+**Retrospectiva**: na cerimônia do QA (`templates/agents/prompts/qa.md`,
+passo 3b), cada lesson é **espelhada** pro second-brain via `memory_add`
+— mantendo arquivo local + memória MCP em sync. A ADR
+`docs/adr/F06-memory-location.md` documenta a decisão.
+
+**Smoke / testes:**
+
+- `bin/didio-second-brain-smoke.sh` — preflight chamado por `run-wave`
+- `tests/F06-integration-test.sh` — 19 cenários cobrindo config, smoke,
+  sentinel substitution e dry-run da migração
+- `tests/F06-token-benchmark.sh` — medição de delta de tokens
+
+> ℹ️ **Nota sobre o `didio.config.json` deste repo**: o arquivo commitado
+> na raiz tem `"enabled": true` porque o mantenedor dogfooda o framework
+> com second-brain ligado. **Novos installs** recebem um config sem o
+> bloco (via `templates/didio.config.json`) e caem no modo padrão
+> automaticamente.

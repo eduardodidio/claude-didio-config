@@ -1,0 +1,30 @@
+flowchart LR
+    subgraph operator["Framework operator"]
+        O1[didio run-wave FXX] --> S1
+    end
+
+    subgraph spawn["Spawn"]
+        S1[didio-second-brain-smoke.sh preflight] --> S2{smoke exit code}
+        S2 -->|0 proceed| S3[didio-spawn-agent.sh per task]
+        S2 -->|2 abort| FAIL[Wave aborts, log error]
+        S3 --> S4[substitute sentinel]
+        S4 --> S5[launch claude -p]
+    end
+
+    subgraph agent["Agent at runtime"]
+        S5 --> A1[read Prior Learnings block]
+        A1 --> A2{Memory source = true?}
+        A2 -->|yes| A3[memory_search query keywords]
+        A2 -->|no| A4[Read memory/agent-learnings/role.md]
+        A3 --> A5[apply snippets]
+        A4 --> A5
+        A5 --> A6[do task work]
+        A6 --> A7[DIDIO_DONE line]
+    end
+
+    subgraph retro["QA at feature close"]
+        A7 -->|last agent is QA PASSED| R1[gather review + meta]
+        R1 --> R2[append memory/agent-learnings/role.md]
+        R2 --> R3[memory_add to second-brain]
+        R3 --> R4[next feature picks this up via memory_search]
+    end

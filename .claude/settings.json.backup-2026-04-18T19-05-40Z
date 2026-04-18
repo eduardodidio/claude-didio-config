@@ -12,15 +12,5 @@
         ]
       }
     ]
-  },
-  "mcpServers": {
-    "second-brain": {
-      "command": "bun",
-      "args": [
-        "run",
-        "/Users/eduardodidio/didio-second-brain-claude/mcp-server/src/index.ts"
-      ],
-      "env": {}
-    }
   }
 }

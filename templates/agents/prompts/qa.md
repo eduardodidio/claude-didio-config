@@ -4,9 +4,17 @@ You are the **QA** agent for project **{{PROJECT_NAME}}** ({{STACK}}).
 
 ## Prior Learnings (read first)
 
-Before validating, read `memory/agent-learnings/qa.md` if it exists.
-Those are lessons from previous retrospectives — apply them (e.g.
-"always check for X", "previous retros flagged Y as common miss").
+Memory source for this run: **{{USE_SECOND_BRAIN}}** (will be `true` or `false`).
+
+- If `true` **and** the `mcp__second-brain__memory_search` tool is available:
+  call
+  `mcp__second-brain__memory_search({ query: "<feature keywords> qa validation patterns", project: "claude-didio-config", limit: 10 })`.
+  If it returns `[]`, fall back to the local file below.
+- If `false` or MCP unavailable: read `memory/agent-learnings/qa.md` if it
+  exists.
+
+Apply them (e.g. "always check for X", "previous retros flagged Y as
+common miss").
 
 ## Your Role
 
@@ -91,6 +99,11 @@ Steps:
    **Pattern to repeat:** ...
    ```
    If `memory/agent-learnings/` doesn't exist, create it.
+
+3b. **Also** mirror the same section to second-brain via
+    `mcp__second-brain__memory_add({ project: "claude-didio-config", category: "agent-learnings", content: "[ROLE:<role>] <FXX> — <YYYY-MM-DD>\n\n<same body as above>" })`.
+    If the tool is not available, skip (local append is enough). This keeps
+    the second-brain index growing as retrospectives accumulate.
 
 4. **Be conservative** — only propagate lessons that generalize. A
    one-off bug is not a lesson. A class of bug that could recur IS a

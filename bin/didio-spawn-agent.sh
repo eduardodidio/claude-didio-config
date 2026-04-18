@@ -44,8 +44,15 @@ TASK_ID="$(basename "$TASK_FILE" .md)"
 LOG_FILE="$LOG_DIR/${FEATURE}-${ROLE}-${TASK_ID}-${TS}.jsonl"
 META_FILE="${LOG_FILE%.jsonl}.meta.json"
 
-# Resolve model for this role from didio.config.json
-source "${DIDIO_HOME:-$HOME/.claude-didio-config}/bin/didio-config-lib.sh"
+# Resolve model for this role from didio.config.json.
+# Prefer project-local lib (newer helpers) over the global install fallback.
+if [[ -f "$PROJECT_ROOT/bin/didio-config-lib.sh" ]]; then
+  # shellcheck disable=SC1090
+  source "$PROJECT_ROOT/bin/didio-config-lib.sh"
+else
+  # shellcheck disable=SC1090
+  source "${DIDIO_HOME:-$HOME/.claude-didio-config}/bin/didio-config-lib.sh"
+fi
 AGENT_MODEL=$(didio_model_for_role "$ROLE")
 AGENT_FALLBACK=$(didio_fallback_for_role "$ROLE")
 
@@ -68,6 +75,15 @@ EOF
 # Compose the prompt: role instructions + task body + optional extra
 ROLE_PROMPT="$(cat "$PROMPT_FILE")"
 TASK_BODY="$(cat "$TASK_FILE")"
+
+# Substitute the {{USE_SECOND_BRAIN}} sentinel based on second_brain.enabled.
+# Helpers return "true"/"false"; if unavailable (older config-lib installed),
+# default to "false" so the prompt falls back to the local learnings file.
+SB_ENABLED="false"
+if declare -F didio_second_brain_enabled >/dev/null 2>&1; then
+  SB_ENABLED="$(didio_second_brain_enabled 2>/dev/null || echo "false")"
+fi
+ROLE_PROMPT="${ROLE_PROMPT//\{\{USE_SECOND_BRAIN\}\}/$SB_ENABLED}"
 
 FULL_PROMPT=$(cat <<PROMPT
 $ROLE_PROMPT

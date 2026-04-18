@@ -37,3 +37,10 @@ All diagrams are [Mermaid](https://mermaid.js.org/) `.mmd` files.
 |---|---|---|
 | [F05-architecture.mmd](F05-architecture.mmd) | F05-T01 | Data-flow: framework `templates/` → `didio-sync-all.sh` → `didio-sync-project.sh` → 5 downstream projects (with rollback tag creation) |
 | [F05-journey.mmd](F05-journey.mmd) | F05-T01 | Operator journey: trigger sync-all, per-project tag + copy loop, all-ok check, evidence review; failure branch shows rollback with `git reset --hard` |
+
+## F06 — Second-brain memory integration
+
+| File | Owner task | What it shows |
+|---|---|---|
+| [F06-architecture.mmd](F06-architecture.mmd) | F06-T11 | Two-track data-flow: spawn sentinel → prompt → agent picks memory_search (second-brain on) or Read (fallback); QA retro mirrors into second-brain via memory_add |
+| [F06-journey.mmd](F06-journey.mmd) | F06-T11 | Operator journey: run-wave → smoke preflight → per-task spawn with sentinel substitution → agent applies learnings → QA closes loop with memory_add |

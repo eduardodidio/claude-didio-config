@@ -1,0 +1,37 @@
+flowchart LR
+    subgraph SPAWN["didio-spawn-agent.sh"]
+        A[read didio.config.json] --> B{second_brain.enabled?}
+        B -->|true| C["substitute {{USE_SECOND_BRAIN}} → 'true'"]
+        B -->|false| D["substitute {{USE_SECOND_BRAIN}} → 'false'"]
+    end
+
+    subgraph PROMPT["role prompt (architect/developer/techlead/qa)"]
+        C --> E["Prior Learnings section<br/>reads 'true'"]
+        D --> F["Prior Learnings section<br/>reads 'false'"]
+    end
+
+    subgraph AGENT["claude agent at runtime"]
+        E --> G{mcp__second-brain__memory_search<br/>available?}
+        G -->|yes| H[call memory_search<br/>query + project + limit=10]
+        G -->|no| I[fallback: Read memory/agent-learnings/role.md]
+        H --> J{results empty?}
+        J -->|yes| I
+        J -->|no| K[apply filtered learnings]
+        I --> L[apply full-file learnings]
+        F --> I
+    end
+
+    subgraph RETRO["QA retrospective ceremony"]
+        K --> M[task work]
+        L --> M
+        M --> N[verdict PASSED]
+        N --> O[append to memory/agent-learnings/role.md]
+        O --> P{memory_add available?}
+        P -->|yes| Q[mirror to second-brain]
+        P -->|no| R[skip, local is enough]
+    end
+
+    classDef sbPath fill:#d1f5e0
+    classDef localPath fill:#fde0d1
+    class C,E,H,K,Q sbPath
+    class D,F,I,L,R localPath

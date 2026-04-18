@@ -47,3 +47,19 @@
 **Pattern to repeat:**
 - Bash version constraints affecting script compatibility (macOS bash 3.2 vs required 4+) should be documented as an operational note in the evidence — this kind of infra footgun is easy to miss and worth recording clearly.
 - For sync-type features with a single Wave-0 task, a summary table at the end of the evidence document (one row per project, columns: tag / sync result / protected files) makes idempotence and correctness immediately scannable.
+
+## F06 second-brain integration — 2026-04-18
+
+**What worked:**
+- Reusing the F03 integration-test harness (`_pass`/`_fail`/tmpdir/trap) for F06 kept review surface area predictable — same shape, new section labels.
+- Identifying lib-resolution-order flip in T08 as "scope creep but compounds across features, accept" — the right call, beats blocking on a 5-line change that pays for itself.
+- Per-Wave verdict table at the top of the review (APPROVED / APPROVED_WITH_FOLLOWUP / BLOCKING) lets QA scan and triage in one read.
+
+**What to avoid:**
+- Tolerating unchecked `[ ]` AC boxes for the 4th consecutive feature (F02, F03, F05, F06 all flagged). The fix has been "QA ticks them" three times. Promote to **BLOCKING** at developer-done starting F07 — force closure at the source, not the reviewer.
+- Letting "code-reviewed but not runtime-verified" ship as IMPORTANT only. F06's `tests/F06-token-benchmark.sh` was code-reviewed but not run during Dev (sandbox denial). QA caught it on re-run, but the gate should be tighter — any new test script must run at least once before the Wave is considered done.
+
+**Pattern to repeat:**
+- 5-area review structure (Architecture, Code quality, Test coverage, Diagrams, Cross-task consistency) per Wave with a one-line MINOR/IMPORTANT/BLOCKING tag — gives the QA agent a triage map.
+- Retrospective Seeds section at the end of the review, separate from per-Wave findings — surfaces patterns that would otherwise be diluted across Wave verdicts.
+- Sandbox `Content Integrity` denial pattern on `memory_add` of verbatim repo content: recommend prefixing future content with `Migrated from <path>@<sha>` provenance line.
