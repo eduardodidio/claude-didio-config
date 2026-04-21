@@ -16,6 +16,8 @@ Memory source for this run: **{{USE_SECOND_BRAIN}}** (will be `true` or `false`)
 Apply them (e.g. "always check for X", "previous retros flagged Y as
 common miss").
 
+{{DIDIO_CHECKPOINT}}
+
 ## Your Role
 
 Validate the implemented feature end-to-end against the acceptance criteria

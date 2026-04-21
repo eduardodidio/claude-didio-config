@@ -31,3 +31,11 @@
 **What to avoid:** `(( PASS++ ))` in bash test harnesses — the post-increment expression evaluates to `0` on the 0→1 transition, which trips `set -e` and falsely registers a failed test inside subshells. Always use `PASS=$((PASS+1))`. Also: writing a new shell script and executing it in the same session can trip sandbox "unverified-script" denials on first run — for one-off measurements, prefer inline `python3 <<'PY'` in a Bash call; ship the dedicated `.sh` for repeat runs.
 
 **Pattern to repeat:** When a feature evolves `bin/didio-config-lib.sh`, also flip `didio-spawn-agent.sh` to source project-local lib first (`PROJECT_ROOT/bin/didio-config-lib.sh`) before falling back to `${DIDIO_HOME}`. Compounds across all future features that touch the lib — they ship without waiting for global install to update.
+
+## F07 — 2026-04-20
+
+**What worked:** Every JSON writer uses Python's `os.replace(tmp, target)` for atomic writes. Eliminated corruption risk across concurrent probes without needing `flock` (macOS default lacks it). Paired with mtime-based throttle (5s for probe, 60s for checkpoint-write), this was enough — no lock needed. Also: running the ccusage JSON through a defensive field-lookup (`totalTokens` / `total_tokens` / sum of `input+output+cache_*`) avoids breaking when ccusage bumps minor versions.
+
+**What to avoid:** `npx -y <pkg>` in a hook path without a timeout. First-install on a fresh machine can take 30+ seconds; post-tool hook is backgrounded so non-fatal, but any foreground invocation would block. If needed in foreground: `perl -e 'alarm 10; exec @ARGV' -- npx -y pkg`. Also: `touch -t "$(date -u -v -N{unit} …)"` — `touch -t` reads local time, `date -u` prints UTC → backdated mtimes land in the future. Use Python `os.utime(p, (t-600, t-600))` for portable staleness fixtures.
+
+**Pattern to repeat:** Checkpoint-style JSON files where a human/agent writes semantic fields AND a script periodically rewrites mechanical fields — always read the previous file first, preserve the semantic keys, only overwrite the mechanical ones. `didio-checkpoint-write.sh:63-72` is the reference. Prevents stomping agent-authored progress on every tool call.

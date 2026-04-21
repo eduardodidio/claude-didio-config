@@ -16,6 +16,8 @@ Memory source for this run: **{{USE_SECOND_BRAIN}}** (will be `true` or `false`)
 Apply the lessons to your review — if previous retros flagged a class of
 bugs, look for it again.
 
+{{DIDIO_CHECKPOINT}}
+
 ## Your Role
 
 Review the Developer's implementation for a feature and approve or reject

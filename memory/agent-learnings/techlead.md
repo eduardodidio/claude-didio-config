@@ -63,3 +63,11 @@
 - 5-area review structure (Architecture, Code quality, Test coverage, Diagrams, Cross-task consistency) per Wave with a one-line MINOR/IMPORTANT/BLOCKING tag — gives the QA agent a triage map.
 - Retrospective Seeds section at the end of the review, separate from per-Wave findings — surfaces patterns that would otherwise be diluted across Wave verdicts.
 - Sandbox `Content Integrity` denial pattern on `memory_add` of verbatim repo content: recommend prefixing future content with `Migrated from <path>@<sha>` provenance line.
+
+## F07 — 2026-04-20
+
+**What worked:** Matrix-style per-criterion review table (architecture / code quality / test coverage / diagrams / cross-task consistency) made it easy to spot one gap that would otherwise hide in a prose review — the mandatory-diagrams check had no code ramification so a prose review could skim past it. A checklist caught it.
+
+**What to avoid:** Approving a feature without verifying that every gating hook has a staleness guard on its input. Without it, any test that leaves a fixture behind will brick future sessions — harder to reproduce, easy to miss in review, catastrophic when it hits.
+
+**Pattern to repeat:** When reviewing a feature that adds `matcher: "*"` hooks, add a dedicated "session-safety" section to the review: (1) does every on-disk input have `max_age_secs`? (2) do the hook's tests have `trap _cleanup EXIT`? (3) does the deny path JSON conform to `hookSpecificOutput` schema? (4) can the hook be disabled via a single config flag for emergency recovery?

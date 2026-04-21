@@ -1,0 +1,58 @@
+%% F07 session-guard — component & data flow
+flowchart TB
+    subgraph Claude_Code_Harness
+        Tool[Tool invocation]
+        Hook_Pre[PreToolUse hook<br/>bin/hooks/didio-pre-tool.sh]
+        Hook_Post[PostToolUse hook<br/>bin/hooks/didio-post-tool.sh]
+    end
+
+    subgraph Probe_Layer
+        Probe[didio-budget-probe.sh<br/>primary: npx ccusage<br/>fallback: transcript parse]
+        BudgetJSON[(logs/session-budget.json)]
+    end
+
+    subgraph Control_Plane
+        Pause[didio-budget-pause.sh]
+        Resume[didio-resume-feature.sh]
+        CkptW[didio-checkpoint-write.sh]
+        CkptR[didio-checkpoint-restore.sh]
+    end
+
+    subgraph State_Files
+        PausedJSON[(logs/session-paused.json)]
+        PausedLog[(logs/session-paused.log<br/>anti-loop counter)]
+        CkptJSON[(logs/agents/&lt;run_id&gt;.checkpoint.json)]
+        StateJSON[(logs/agents/state.json)]
+        MetaJSON[(logs/agents/&lt;run&gt;.meta.json)]
+    end
+
+    subgraph Config
+        Cfg[didio.config.json<br/>session_guard.*]
+        CfgLib[bin/didio-config-lib.sh<br/>didio_read_config_path]
+    end
+
+    Tool --> Hook_Pre
+    Tool --> Hook_Post
+    Hook_Post --> Probe
+    Probe --> BudgetJSON
+    Hook_Post --> CkptW
+    CkptW --> CkptJSON
+
+    Hook_Pre --> BudgetJSON
+    Hook_Pre -->|pct >= hard| Pause
+    Pause --> PausedJSON
+    Pause --> PausedLog
+    Pause --> StateJSON
+    Pause --> MetaJSON
+    Pause -->|sleep N then| Resume
+    Resume --> CkptR
+    CkptR --> CkptJSON
+    Resume -->|respawn with<br/>RETOMADA extra| Spawn[didio-spawn-agent.sh]
+
+    CfgLib --> Cfg
+    Hook_Pre -.reads.-> CfgLib
+    Probe -.reads.-> CfgLib
+    Pause -.reads.-> CfgLib
+
+    classDef new fill:#E9D5FF,stroke:#7C3AED,color:#000
+    class Probe,Pause,Resume,CkptW,CkptR,Hook_Pre,Hook_Post,BudgetJSON,PausedJSON,PausedLog,CkptJSON new

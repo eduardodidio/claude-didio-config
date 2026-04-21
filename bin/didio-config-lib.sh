@@ -157,6 +157,38 @@ print('true' if sb.get('enabled', False) else 'false')
 " 2>/dev/null || echo "false"
 }
 
+# Read a nested key using dot-path (e.g. "session_guard.hard_pct").
+# Prints the resolved value, or the supplied default if any path segment is
+# missing. Scalars print as JSON-free text; objects/arrays print as JSON.
+didio_read_config_path() {
+  local key_path="$1"
+  local default_val="${2:-}"
+  local config
+  config="$(didio_find_config)"
+  [[ -z "$config" ]] && echo "$default_val" && return 0
+  python3 - "$config" "$key_path" "$default_val" <<'PY' 2>/dev/null || echo "$default_val"
+import json, sys
+path, kp, dv = sys.argv[1], sys.argv[2], sys.argv[3]
+try:
+    with open(path) as f:
+        c = json.load(f)
+except Exception:
+    print(dv); sys.exit(0)
+v = c
+for part in kp.split('.'):
+    if isinstance(v, dict) and part in v:
+        v = v[part]
+    else:
+        print(dv); sys.exit(0)
+if isinstance(v, bool):
+    print('true' if v else 'false')
+elif isinstance(v, (dict, list)):
+    print(json.dumps(v))
+else:
+    print(v)
+PY
+}
+
 # Returns "true" or "false". Default true (if the config section exists but
 # the key is missing, assume fallback is safe).
 didio_second_brain_fallback() {

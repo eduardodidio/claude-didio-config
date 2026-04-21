@@ -1,0 +1,44 @@
+%% F07 session-guard — user journey (happy path + pause/resume)
+flowchart LR
+    subgraph User
+        U1[Launches /didio feature]
+        U9[Receives '▶️ Retomando' notification]
+    end
+
+    subgraph Agents[Claude agents - Waves]
+        A1[Agent runs tools normally]
+        A2{PreToolUse<br/>checks budget}
+        A3[Agent continues work]
+        A4[Writes checkpoint<br/>next_action_hint]
+        A10[Agent respawned with<br/>checkpoint hint]
+    end
+
+    subgraph Session_Guard
+        G1[PostToolUse probe<br/>refreshes budget]
+        G2{pct vs<br/>thresholds}
+        G3[inject warning<br/>systemMessage]
+        G4[deny + schedule pause]
+        G5[SIGTERM agents<br/>snapshot state]
+        G6{max_resumes<br/>per_day?}
+        G7[CronCreate + sleep<br/>until window_resets_at]
+        G8[Notify user<br/>⏸️ paused]
+        G11[Fallback: notify only<br/>no reschedule]
+    end
+
+    U1 --> A1
+    A1 --> A2
+    A2 -->|allow| A3 --> G1
+    G1 --> G2
+    G2 -->|pct < soft| A3
+    G2 -->|soft <= pct < hard| G3
+    G3 --> A4
+    A4 --> A3
+    G2 -->|pct >= hard| G4
+    G4 --> G5 --> G6
+    G6 -->|under cap| G7
+    G7 --> G8
+    G8 --> U9
+    U9 --> A10
+    A10 --> A1
+    G6 -->|cap reached| G11
+    G11 --> U9

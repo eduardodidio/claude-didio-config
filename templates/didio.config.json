@@ -19,5 +19,16 @@
     "feature": true,
     "bugfix": true,
     "review": true
+  },
+  "session_guard": {
+    "enabled": false,
+    "source": "ccusage",
+    "soft_pct": 0.90,
+    "hard_pct": 0.98,
+    "resume_buffer_minutes": 2,
+    "max_resumes_per_day": 3,
+    "notify": true,
+    "window_duration_minutes": 300,
+    "window_limit_tokens": 200000
   }
 }

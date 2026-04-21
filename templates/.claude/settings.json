@@ -16,5 +16,60 @@
       "Write(logs/**)",
       "Edit(./**)"
     ]
+  },
+  "hooks": {
+    "Stop": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash /Users/eduardodidio/didio-second-brain-claude/patterns/hooks/stop-session-summary/hook.sh"
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash /Users/eduardodidio/didio-second-brain-claude/patterns/hooks/subagent-stop-progress/hook.sh"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash /Users/eduardodidio/claude-didio-config/bin/hooks/didio-pre-tool.sh"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash /Users/eduardodidio/didio-second-brain-claude/patterns/hooks/post-tool-use-error/hook.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash /Users/eduardodidio/claude-didio-config/bin/hooks/didio-post-tool.sh"
+          }
+        ]
+      }
+    ]
   }
 }

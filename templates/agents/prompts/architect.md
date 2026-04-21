@@ -18,6 +18,8 @@ Memory source for this run: **{{USE_SECOND_BRAIN}}** (will be `true` or `false`)
 In either case, apply the lessons — patterns that worked, pitfalls that
 cost rework. If neither source yields content, skip this step.
 
+{{DIDIO_CHECKPOINT}}
+
 ## Your Role
 
 Analyze the feature request and produce a complete technical plan composed

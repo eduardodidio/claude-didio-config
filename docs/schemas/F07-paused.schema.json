@@ -1,0 +1,32 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "F07 session paused snapshot",
+  "description": "Global snapshot written by didio-budget-pause.sh when the guard fires",
+  "type": "object",
+  "required": ["feature", "paused_at", "resume_at"],
+  "properties": {
+    "feature": {"type": "string"},
+    "wave": {"type": ["integer", "null"]},
+    "tasks_running": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["run_id", "task", "role"],
+        "properties": {
+          "run_id": {"type": "string"},
+          "task": {"type": "string"},
+          "role": {"type": "string"},
+          "task_file": {"type": "string"},
+          "pid": {"type": ["integer", "null"]},
+          "meta_file": {"type": "string"}
+        }
+      }
+    },
+    "paused_at": {"type": "string"},
+    "resume_at": {"type": "string"},
+    "resumes_today": {"type": "integer", "minimum": 0},
+    "reason": {"type": "string"},
+    "pct_at_pause": {"type": "number"}
+  },
+  "additionalProperties": true
+}

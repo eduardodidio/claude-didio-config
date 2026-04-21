@@ -85,6 +85,18 @@ if declare -F didio_second_brain_enabled >/dev/null 2>&1; then
 fi
 ROLE_PROMPT="${ROLE_PROMPT//\{\{USE_SECOND_BRAIN\}\}/$SB_ENABLED}"
 
+# Substitute {{DIDIO_CHECKPOINT}} with the shared checkpointing block when
+# session_guard is enabled; otherwise strip the sentinel.
+CKPT_BLOCK=""
+if declare -F didio_read_config_path >/dev/null 2>&1; then
+  SG_ENABLED="$(didio_read_config_path session_guard.enabled false 2>/dev/null || echo "false")"
+  if [[ "$SG_ENABLED" == "true" ]]; then
+    CKPT_PATH="$PROJECT_ROOT/templates/agents/prompts/_checkpoint-block.md"
+    [[ -f "$CKPT_PATH" ]] && CKPT_BLOCK="$(cat "$CKPT_PATH")"
+  fi
+fi
+ROLE_PROMPT="${ROLE_PROMPT//\{\{DIDIO_CHECKPOINT\}\}/$CKPT_BLOCK}"
+
 FULL_PROMPT=$(cat <<PROMPT
 $ROLE_PROMPT
 
@@ -108,6 +120,15 @@ Constraints:
 - When done, print a one-line summary starting with "DIDIO_DONE:".
 PROMPT
 )
+
+RUN_ID="$(basename "$LOG_FILE" .jsonl)"
+export DIDIO_RUN_ID="$RUN_ID"
+export DIDIO_FEATURE="$FEATURE"
+export DIDIO_ROLE="$ROLE"
+export DIDIO_TASK="$TASK_ID"
+export DIDIO_META_FILE="$META_FILE"
+export DIDIO_LOG_FILE="$LOG_FILE"
+export DIDIO_PROJECT_ROOT="$PROJECT_ROOT"
 
 echo "[didio-spawn-agent] role=$ROLE feature=$FEATURE task=$TASK_ID model=$AGENT_MODEL log=$LOG_FILE" >&2
 

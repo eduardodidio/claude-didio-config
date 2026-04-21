@@ -16,6 +16,8 @@ Memory source for this run: **{{USE_SECOND_BRAIN}}** (will be `true` or `false`)
 
 Apply the lessons. If neither source yields content, skip this step.
 
+{{DIDIO_CHECKPOINT}}
+
 ## Your Role
 
 Implement **one task** from `tasks/features/<FXX>-<slug>/<FXX>-TYY.md`. You

@@ -18,6 +18,7 @@
 #   10. Sync memory/agent-learnings/ (preserve real content)
 #   11. Create logs/agents/.gitkeep
 #   12. Sync tasks/features/FXX-template/
+#   12b. Merge didio.config.json top-level blocks (session_guard, etc.)
 #   13. Append .gitignore entries
 #   14. Section-level CLAUDE.md sync
 #   15. Print colored summary
@@ -188,32 +189,66 @@ with open(src_path) as f:
 with open(dst_path) as f:
     dst = json.load(f)
 
+# Merge permissions.allow
 src_allow = src.get("permissions", {}).get("allow", [])
 dst_allow = dst.get("permissions", {}).get("allow", [])
-
 new_entries = [e for e in src_allow if e not in dst_allow]
-if not new_entries:
+
+if new_entries:
+    if "permissions" not in dst:
+        dst["permissions"] = {}
+    if "allow" not in dst["permissions"]:
+        dst["permissions"]["allow"] = []
+    dst["permissions"]["allow"].extend(new_entries)
+
+# Merge hooks with dedupe by command
+src_hooks = src.get("hooks", {})
+dst_hooks = dst.get("hooks", {})
+hooks_added = 0
+
+for event, src_matchers in src_hooks.items():
+    dst_matchers = dst_hooks.setdefault(event, [])
+    existing_cmds = {
+        h.get("command")
+        for m in dst_matchers
+        for h in m.get("hooks", [])
+        if h.get("command")
+    }
+    for src_matcher in src_matchers:
+        src_matcher_value = src_matcher.get("matcher", "*")
+        src_hook_list = src_matcher.get("hooks", [])
+        target = next(
+            (m for m in dst_matchers if m.get("matcher") == src_matcher_value),
+            None,
+        )
+        for hook in src_hook_list:
+            cmd = hook.get("command")
+            if not cmd or cmd in existing_cmds:
+                continue
+            if target is None:
+                target = {"matcher": src_matcher_value, "hooks": []}
+                dst_matchers.append(target)
+            target.setdefault("hooks", []).append(hook)
+            existing_cmds.add(cmd)
+            hooks_added += 1
+
+if new_entries or hooks_added:
+    if hooks_added:
+        dst["hooks"] = dst_hooks
+    with open(dst_path, "w") as f:
+        json.dump(dst, f, indent=2)
+        f.write("\n")
+    print(f"MERGED:perms={len(new_entries)},hooks={hooks_added}")
+else:
     print("NO_CHANGE")
-    sys.exit(0)
-
-if "permissions" not in dst:
-    dst["permissions"] = {}
-if "allow" not in dst["permissions"]:
-    dst["permissions"]["allow"] = []
-dst["permissions"]["allow"].extend(new_entries)
-
-with open(dst_path, "w") as f:
-    json.dump(dst, f, indent=2)
-    f.write("\n")
-
-print(f"MERGED:{len(new_entries)}")
 PY
     )
     if [[ "$MERGE_RESULT" == "NO_CHANGE" ]]; then
       log_action "NO_CHANGE" ".claude/settings.json"
-    elif [[ "$MERGE_RESULT" == MERGED:* ]]; then
-      N="${MERGE_RESULT#MERGED:}"
-      log_action "MERGED" ".claude/settings.json ($N permissions added)"
+    elif [[ "$MERGE_RESULT" =~ ^MERGED:perms=([0-9]+),hooks=([0-9]+)$ ]]; then
+      NP="${BASH_REMATCH[1]}"
+      NH="${BASH_REMATCH[2]}"
+      log_action "MERGED" ".claude/settings.json ($NP permissions + $NH hooks added)"
     fi
   else
     echo -e "${YELLOW}[WARN]${RESET} python3 not available — skipping settings.json merge" >&2
@@ -322,6 +357,51 @@ if [[ ! -d "$DST_TASK_TPL" ]]; then
   fi
 else
   log_action "NO_CHANGE" "tasks/features/FXX-template/ (already exists)"
+fi
+
+# ---------------------------------------------------------------------------
+# 12b. Merge didio.config.json — add missing top-level blocks (idempotent).
+#      Preserves any keys the user has customized; only adds new ones
+#      (e.g. session_guard from F07) when the block is absent.
+# ---------------------------------------------------------------------------
+SRC_CFG="$TEMPLATES/didio.config.json"
+DST_CFG="$TARGET/didio.config.json"
+
+if [[ ! -f "$SRC_CFG" ]]; then
+  echo -e "${YELLOW}[WARN]${RESET} Template didio.config.json missing — skipping" >&2
+elif [[ ! -f "$DST_CFG" ]]; then
+  cp "$SRC_CFG" "$DST_CFG"
+  log_action "ADDED" "didio.config.json"
+else
+  MERGE_CFG_RESULT=$(python3 - "$SRC_CFG" "$DST_CFG" <<'PY'
+import json, sys
+src_path, dst_path = sys.argv[1], sys.argv[2]
+with open(src_path) as f:
+    src = json.load(f)
+with open(dst_path) as f:
+    dst = json.load(f)
+added = []
+# Top-level block merge: only add keys that don't already exist at the root.
+# We do NOT recurse — users may have nested customizations, and we must
+# not stomp them. The F07 session_guard block is the typical case here.
+for k, v in src.items():
+    if k not in dst:
+        dst[k] = v
+        added.append(k)
+if added:
+    with open(dst_path, "w") as f:
+        json.dump(dst, f, indent=2)
+        f.write("\n")
+    print("MERGED:" + ",".join(added))
+else:
+    print("NO_CHANGE")
+PY
+  )
+  if [[ "$MERGE_CFG_RESULT" == "NO_CHANGE" ]]; then
+    log_action "NO_CHANGE" "didio.config.json"
+  elif [[ "$MERGE_CFG_RESULT" =~ ^MERGED:(.+)$ ]]; then
+    log_action "MERGED" "didio.config.json (added: ${BASH_REMATCH[1]})"
+  fi
 fi
 
 # ---------------------------------------------------------------------------

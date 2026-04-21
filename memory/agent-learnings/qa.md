@@ -31,3 +31,13 @@
 **What to avoid:** Marking partial outcomes with full `[x]` for the sake of a green-looking task file. T03 had 7/9 migration entries succeed; honest status is `[~] partial 7/9` plus a `[ ]` on the un-verified idempotent re-run. Honesty > optimism — the TechLead review is the source of truth, the task file just mirrors it.
 
 **Pattern to repeat:** Dual-write retrospective (passo 3 local-append + passo 3b `memory_add` mirror) closes the loop on any feature that introduces a new memory-store path — the feature validates itself by being the first user of its own pattern. Always include a provenance-prefix line (`Mirrored from memory/agent-learnings/<role>.md@<feature>`) on `memory_add` content to lower sandbox `Content Integrity` denial risk.
+
+## F07 — 2026-04-20
+
+**What worked:** Stubbing `didio-spawn-agent.sh` via `DIDIO_SPAWN_CMD` env override let the e2e test drive the full pause → schedule → resume cycle without spending a single real token. 13 scenarios in < 15s including SIGTERM of real sleep-loop PIDs. Fake meta files + seeded state.json exercise the real pause.sh code path, not a mock.
+
+**What to avoid:** Tests that seed "poisoned" fixtures (e.g. `session-budget.json` with `pct=0.99`) WITHOUT an `EXIT` trap from line 1. We bricked the host session twice during development because the smoke test's fixtures survived to the next tool call. `trap _cleanup EXIT` with a full fixture enumeration + state.json backup/restore is non-negotiable for tests that write to paths consumed by live hooks.
+
+**Pattern to repeat:** `LC_ALL=C grep -aq` for asserting against outputs containing embedded NUL bytes (e.g. anything built from `printf '%s\0' "$@"`). Default grep in UTF-8 locale silently fails to match multi-byte patterns across nul-terminated lines. `-a` forces text mode, `LC_ALL=C` treats bytes as bytes.
+
+**Pattern to repeat:** Portable backdating — `python3 -c "import os; os.utime('$f', ($t-600,$t-600))"` works on every platform. Never use `touch -t` for staleness tests — the format mixes local and UTC in confusing ways.

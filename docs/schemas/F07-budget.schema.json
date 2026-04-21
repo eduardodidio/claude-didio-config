@@ -1,0 +1,23 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "F07 session budget snapshot",
+  "description": "Current token-window utilization as observed by didio-budget-probe.sh",
+  "type": "object",
+  "required": ["source", "tokens_used", "limit", "pct", "updated_at"],
+  "properties": {
+    "source": {
+      "type": "string",
+      "enum": ["ccusage", "transcript"],
+      "description": "Where the numbers came from"
+    },
+    "session_id": {"type": "string"},
+    "tokens_used": {"type": "integer", "minimum": 0},
+    "limit": {"type": "integer", "minimum": 0},
+    "pct": {"type": "number", "minimum": 0, "maximum": 2},
+    "window_resets_at": {"type": "string"},
+    "weekly_resets_at": {"type": "string"},
+    "updated_at": {"type": "string"},
+    "degraded": {"type": "boolean"}
+  },
+  "additionalProperties": true
+}
