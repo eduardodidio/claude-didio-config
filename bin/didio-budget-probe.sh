@@ -1,12 +1,17 @@
 #!/usr/bin/env bash
-# didio-budget-probe.sh — write current token-window utilization to
+# didio-budget-probe.sh — write current 5h-window token utilization to
 # logs/session-budget.json. Two sources:
-#   1. `npx -y ccusage --json` (primary, knows window + weekly cap)
+#   1. `npx -y ccusage blocks --active --json --token-limit max` (primary)
 #   2. transcript parsing (fallback; reads $DIDIO_TRANSCRIPT_PATH jsonl)
 #
-# Throttled via flock so 10 rapid invocations produce at most 1 write.
-# Called by the PostToolUse hook — must never break the session, so all
-# failure paths exit 0 silently.
+# The key difference from prior versions: we use `blocks`, not `session`.
+# A block = Anthropic's 5h rolling billing window, which is what the
+# rate-limiter actually uses. `session` = per-chat — useless for a
+# window-aware guard.
+#
+# Throttled via mtime so rapid invocations produce at most 1 write per
+# $DIDIO_BUDGET_THROTTLE_SECS (default 5). Called by the PostToolUse hook —
+# must never break the session, so all failure paths exit 0 silently.
 #
 # Test hooks (for tests/F07-budget-smoke.sh — no impact in production):
 #   FAKE_CCUSAGE_JSON   override ccusage stdout with literal JSON
@@ -41,13 +46,15 @@ if command -v flock >/dev/null 2>&1; then
 fi
 
 # shellcheck disable=SC1090
-source "$PROJECT_ROOT/bin/didio-config-lib.sh" 2>/dev/null || exit 0
+source "$PROJECT_ROOT/bin/didio-config-lib.sh" 2>/dev/null \
+  || source "${DIDIO_HOME:-/Users/eduardodidio/claude-didio-config}/bin/didio-config-lib.sh" 2>/dev/null \
+  || exit 0
 
 ENABLED="$(didio_read_config_path session_guard.enabled true 2>/dev/null || echo true)"
 [[ "$ENABLED" != "true" ]] && exit 0
 
 SOURCE_PREF="$(didio_read_config_path session_guard.source ccusage 2>/dev/null || echo ccusage)"
-LIMIT_FALLBACK="$(didio_read_config_path session_guard.window_limit_tokens 200000 2>/dev/null || echo 200000)"
+LIMIT_FALLBACK="$(didio_read_config_path session_guard.window_limit_tokens 200000000 2>/dev/null || echo 200000000)"
 
 CC_JSON=""
 CC_OK=0
@@ -66,7 +73,10 @@ try_ccusage() {
     CC_OK=0
     return
   fi
-  CC_JSON="$(npx -y ccusage --json 2>/dev/null || true)"
+  # blocks --active --json --token-limit max is the canonical call.
+  # --active returns only the current 5h window.
+  # --token-limit max uses the historical max block as limit reference.
+  CC_JSON="$(npx -y ccusage blocks --active --json --token-limit max 2>/dev/null || true)"
   [[ -n "$CC_JSON" ]] && CC_OK=1 || CC_OK=0
 }
 
@@ -87,54 +97,78 @@ cc_raw = os.environ.get("DIDIO_CC_JSON", "")
 def now_iso():
     return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
-def parse_ccusage(raw):
-    """Be defensive: shape varies across ccusage versions."""
+def parse_ccusage_blocks(raw, limit_fallback):
+    """Parse `ccusage blocks --active --json --token-limit max` output.
+
+    Expected shape:
+      {"blocks": [{ "id": "...", "startTime": "...", "endTime": "...",
+                    "isActive": true, "totalTokens": N,
+                    "tokenLimitStatus": {"limit": N, "percentUsed": P, ...},
+                    "burnRate": {"tokensPerMinute": ...},
+                    "projection": {"remainingMinutes": ...} }]}
+    """
     try:
         d = json.loads(raw)
     except Exception:
         return None
-    # Try common shapes: top-level dict with 'sessions', or flat dict.
-    sessions = None
-    if isinstance(d, dict):
-        sessions = d.get("sessions") or d.get("windows") or None
-    if isinstance(sessions, list) and sessions:
-        s = sessions[-1]  # latest window
-    elif isinstance(d, dict):
-        s = d
-    else:
+    if not isinstance(d, dict):
+        return None
+    blocks = d.get("blocks") or []
+    if not isinstance(blocks, list) or not blocks:
+        return None
+    # Prefer the active block; fall back to last block if --active wasn't honored.
+    active = next((b for b in blocks if isinstance(b, dict) and b.get("isActive")), None)
+    if active is None:
+        active = blocks[-1] if isinstance(blocks[-1], dict) else None
+    if active is None:
         return None
 
-    def g(*keys, default=None):
-        for k in keys:
-            if isinstance(s, dict) and k in s and s[k] is not None:
-                return s[k]
-        return default
-
-    used = g("totalTokens", "total_tokens", "tokens_used", "usage")
+    used = active.get("totalTokens")
     if used is None:
-        inp = g("inputTokens", "input_tokens") or 0
-        out = g("outputTokens", "output_tokens") or 0
-        cache_c = g("cacheCreationTokens", "cache_creation_tokens") or 0
-        cache_r = g("cacheReadTokens", "cache_read_tokens") or 0
-        used = int(inp) + int(out) + int(cache_c) + int(cache_r)
-    limit = g("windowLimit", "window_limit", "limit") or limit_fb
-    window_resets = g("windowResetsAt", "window_resets_at", "resetsAt", "reset_at") or ""
-    weekly_resets = g("weeklyResetsAt", "weekly_resets_at") or ""
-    session_id = g("sessionId", "session_id", "id") or ""
+        tc = active.get("tokenCounts") or {}
+        used = int(tc.get("inputTokens", 0) or 0) + int(tc.get("outputTokens", 0) or 0) \
+             + int(tc.get("cacheCreationInputTokens", 0) or 0) \
+             + int(tc.get("cacheReadInputTokens", 0) or 0)
     try:
-        used = int(used); limit = int(limit)
+        used = int(used)
     except Exception:
         return None
+
+    tls = active.get("tokenLimitStatus") or {}
+    try:
+        limit = int(tls.get("limit") or limit_fallback)
+    except Exception:
+        limit = limit_fallback
+    if limit <= 0:
+        limit = limit_fallback
     if limit <= 0:
         return None
+
+    end_time = str(active.get("endTime") or "")       # window resets at
+    start_time = str(active.get("startTime") or "")
+    session_id = str(active.get("id") or "")
+
+    # Normalise to Z suffix so hook's python3 fromisoformat accepts either.
+    def norm(ts):
+        return ts.replace(".000Z", "Z").replace(".000", "") if ts else ts
+    end_time = norm(end_time)
+    start_time = norm(start_time)
+
+    burn = active.get("burnRate") or {}
+    proj = active.get("projection") or {}
+
     return {
         "source": "ccusage",
-        "session_id": str(session_id),
+        "session_id": session_id,
         "tokens_used": used,
         "limit": limit,
         "pct": round(used / limit, 4),
-        "window_resets_at": str(window_resets),
-        "weekly_resets_at": str(weekly_resets),
+        "window_resets_at": end_time,
+        "window_started_at": start_time,
+        "weekly_resets_at": "",
+        "burn_rate_tokens_per_min": burn.get("tokensPerMinute"),
+        "remaining_minutes": proj.get("remainingMinutes"),
+        "projected_tokens": proj.get("totalTokens"),
         "updated_at": now_iso(),
     }
 
@@ -172,6 +206,7 @@ def parse_transcript(path, limit):
         "limit": limit,
         "pct": round(used / limit, 4),
         "window_resets_at": "",
+        "window_started_at": "",
         "weekly_resets_at": "",
         "updated_at": now_iso(),
         "degraded": True,
@@ -179,7 +214,7 @@ def parse_transcript(path, limit):
 
 snap = None
 if cc_ok and source_pref == "ccusage":
-    snap = parse_ccusage(cc_raw)
+    snap = parse_ccusage_blocks(cc_raw, limit_fb)
 if snap is None:
     snap = parse_transcript(transcript, limit_fb)
 

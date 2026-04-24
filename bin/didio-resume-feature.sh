@@ -12,10 +12,28 @@
 set -u
 FEATURE="${1:?feature id required (e.g. F07)}"
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+DIDIO_HOME="${DIDIO_HOME:-$(cd "$SCRIPT_DIR/.." && pwd)}"
 PROJECT="${DIDIO_PROJECT_ROOT:-$(pwd)}"
 SNAP="$PROJECT/logs/session-paused.json"
-SPAWN="${DIDIO_SPAWN_CMD:-$PROJECT/bin/didio-spawn-agent.sh}"
-RESTORE="$PROJECT/bin/didio-checkpoint-restore.sh"
+
+# Spawn command resolution: downstream projects typically don't ship
+# bin/didio-spawn-agent.sh — use DIDIO_HOME (framework root) first.
+if [[ -n "${DIDIO_SPAWN_CMD:-}" ]]; then
+  SPAWN="$DIDIO_SPAWN_CMD"
+elif [[ -x "$DIDIO_HOME/bin/didio-spawn-agent.sh" ]]; then
+  SPAWN="$DIDIO_HOME/bin/didio-spawn-agent.sh"
+elif [[ -x "$HOME/.claude-didio-config/bin/didio-spawn-agent.sh" ]]; then
+  SPAWN="$HOME/.claude-didio-config/bin/didio-spawn-agent.sh"
+else
+  SPAWN="$PROJECT/bin/didio-spawn-agent.sh"
+fi
+
+if [[ -x "$DIDIO_HOME/bin/didio-checkpoint-restore.sh" ]]; then
+  RESTORE="$DIDIO_HOME/bin/didio-checkpoint-restore.sh"
+else
+  RESTORE="$PROJECT/bin/didio-checkpoint-restore.sh"
+fi
 
 [[ -f "$SNAP" ]] || { echo "[resume] no paused snapshot — nothing to do"; exit 0; }
 

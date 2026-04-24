@@ -4,16 +4,43 @@
   "highlander": false,
   "max_parallel": 0,
   "models": {
-    "architect":  { "model": "opus",   "fallback": "sonnet" },
-    "developer":  { "model": "sonnet", "fallback": "haiku"  },
-    "techlead":   { "model": "sonnet", "fallback": "haiku"  },
-    "qa":         { "model": "sonnet", "fallback": "haiku"  }
+    "architect": {
+      "model": "opus",
+      "fallback": "sonnet"
+    },
+    "developer": {
+      "model": "sonnet",
+      "fallback": "haiku",
+      "effort": "medium"
+    },
+    "techlead": {
+      "model": "sonnet",
+      "fallback": "haiku",
+      "effort": "medium"
+    },
+    "qa": {
+      "model": "sonnet",
+      "fallback": "haiku",
+      "effort": "medium"
+    }
   },
   "models_economy": {
-    "architect":  { "model": "sonnet", "fallback": "haiku" },
-    "developer":  { "model": "haiku",  "fallback": "haiku" },
-    "techlead":   { "model": "haiku",  "fallback": "haiku" },
-    "qa":         { "model": "haiku",  "fallback": "haiku" }
+    "architect": {
+      "model": "sonnet",
+      "fallback": "haiku"
+    },
+    "developer": {
+      "model": "haiku",
+      "fallback": "haiku"
+    },
+    "techlead": {
+      "model": "haiku",
+      "fallback": "haiku"
+    },
+    "qa": {
+      "model": "haiku",
+      "fallback": "haiku"
+    }
   },
   "retrospective": {
     "feature": true,
@@ -27,12 +54,13 @@
   "session_guard": {
     "enabled": true,
     "source": "ccusage",
-    "soft_pct": 0.90,
+    "soft_pct": 0.9,
     "hard_pct": 0.98,
     "resume_buffer_minutes": 2,
     "max_resumes_per_day": 3,
     "notify": true,
     "window_duration_minutes": 300,
-    "window_limit_tokens": 200000
+    "window_limit_tokens": 200000000,
+    "max_snapshot_age_secs": 300
   }
 }

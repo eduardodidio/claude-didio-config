@@ -20,6 +20,11 @@
 
 set -u
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# DIDIO_HOME is the framework root (one dir up from bin/). Resume script
+# MUST live under DIDIO_HOME — $PROJECT can be a worktree temp dir that
+# macOS cleans up before the scheduled sleep fires.
+DIDIO_HOME="${DIDIO_HOME:-$(cd "$SCRIPT_DIR/.." && pwd)}"
 PROJECT="${DIDIO_PROJECT_ROOT:-$(pwd)}"
 LOG_DIR="$PROJECT/logs"
 AGENTS_DIR="$LOG_DIR/agents"
@@ -30,8 +35,20 @@ STATE="$AGENTS_DIR/state.json"
 
 mkdir -p "$LOG_DIR" "$AGENTS_DIR"
 
+# Dedupe: if an active pause snapshot exists and is < DEDUPE_SECS old,
+# skip — we already paused recently. Prevents the hook from spamming a
+# new pause event on every subsequent blocked tool call.
+DEDUPE_SECS="${DIDIO_PAUSE_DEDUPE_SECS:-60}"
+if [[ -f "$SNAP" ]]; then
+  SNAP_AGE=$(( $(date +%s) - $(stat -f '%m' "$SNAP" 2>/dev/null || stat -c '%Y' "$SNAP" 2>/dev/null || echo 0) ))
+  if (( SNAP_AGE < DEDUPE_SECS )); then
+    exit 0
+  fi
+fi
+
 # shellcheck disable=SC1090
-source "$PROJECT/bin/didio-config-lib.sh" 2>/dev/null || true
+source "$DIDIO_HOME/bin/didio-config-lib.sh" 2>/dev/null \
+  || source "$PROJECT/bin/didio-config-lib.sh" 2>/dev/null || true
 
 MAX_RESUMES="$(didio_read_config_path session_guard.max_resumes_per_day 3 2>/dev/null || echo 3)"
 BUFFER_MIN="$(didio_read_config_path session_guard.resume_buffer_minutes 2 2>/dev/null || echo 2)"
@@ -59,21 +76,53 @@ if [[ -f "$PAUSE_LOG" ]]; then
   RESUMES_TODAY=$(grep -c "\"date\":\"$TODAY\"" "$PAUSE_LOG" 2>/dev/null || echo 0)
 fi
 
-# Extract feature + running agents from state.json.
+# Extract feature + running agents. Source of truth: individual
+# logs/agents/*.meta.json files (status=running + live PID). state.json
+# is consulted as a legacy fallback but nothing in the current framework
+# actually writes it.
 FEATURE=""
 RUNNING_JSON="[]"
-if [[ -f "$STATE" ]]; then
-  read -r FEATURE RUNNING_JSON <<<"$(python3 -c "
+RUNNING_JSON="$(python3 - "$AGENTS_DIR" "$STATE" <<'PY'
+import json, os, sys, glob
+agents_dir, state_path = sys.argv[1:3]
+running = []
+# Primary: scan meta files.
+for m in sorted(glob.glob(os.path.join(agents_dir, "*.meta.json"))):
+    try:
+        with open(m) as f:
+            d = json.load(f)
+    except Exception:
+        continue
+    if d.get("status") != "running":
+        continue
+    pid = d.get("pid")
+    # Liveness check: skip meta files whose pid is gone (stale).
+    if pid:
+        try:
+            os.kill(int(pid), 0)
+        except Exception:
+            continue  # pid not alive
+    d["meta_file"] = m
+    running.append(d)
+# Fallback: legacy state.json (kept for forward compat).
+if not running and os.path.isfile(state_path):
+    try:
+        with open(state_path) as f:
+            sj = json.load(f)
+        running = [a for a in sj.get("agents", []) if a.get("status") == "running"]
+    except Exception:
+        pass
+print(json.dumps(running))
+PY
+)"
+FEATURE="$(python3 -c "
 import json
 try:
-  d = json.load(open('$STATE'))
-  agents = [a for a in d.get('agents',[]) if a.get('status')=='running']
-  feat = agents[0]['feature'] if agents else (d.get('features',[{}])[0].get('feature','') if d.get('features') else '')
-  print(feat or 'F00', json.dumps(agents))
+  a = json.loads('''$RUNNING_JSON''')
+  print(a[0].get('feature','F00') if a else 'F00')
 except Exception:
-  print('F00', '[]')
+  print('F00')
 " 2>/dev/null)"
-fi
 
 # ── Write the snapshot (always) ───────────────────────────────────────────────
 python3 - "$SNAP" "$FEATURE" "$RUNNING_JSON" "$NOW_ISO" "$RESUME_AT" "$RESUMES_TODAY" "$PCT" <<'PY' 2>/dev/null
@@ -87,13 +136,14 @@ tasks = []
 for a in running:
     log = a.get("log", "")
     run_id = os.path.basename(log).rsplit(".jsonl", 1)[0] if log else ""
+    meta_file = a.get("meta_file") or (log.rsplit(".jsonl", 1)[0] + ".meta.json" if log else "")
     tasks.append({
         "run_id": run_id,
         "task": a.get("task", ""),
         "role": a.get("role", ""),
         "task_file": a.get("task_file", ""),
         "pid": a.get("pid"),
-        "meta_file": log.rsplit(".jsonl", 1)[0] + ".meta.json" if log else "",
+        "meta_file": meta_file,
     })
 payload = {
     "feature": feat,
@@ -185,8 +235,21 @@ except Exception:
 fi
 
 # Spawn the deferred resume.
+# Critical: use $DIDIO_HOME/bin/ (stable framework path), NOT $PROJECT/bin/.
+# If the calling session is a worktree temp dir (e.g. /var/folders/.../tmp.*),
+# $PROJECT would be that dir — macOS cleans up /var/folders periodically,
+# so the resume script would vanish before sleep wakes up.
+RESUME_SCRIPT="$DIDIO_HOME/bin/didio-resume-feature.sh"
+if [[ ! -x "$RESUME_SCRIPT" ]]; then
+  # Last-resort fallback; logs a warning.
+  RESUME_SCRIPT="$PROJECT/bin/didio-resume-feature.sh"
+  echo "[pause] WARN: DIDIO_HOME resume script missing, using $RESUME_SCRIPT" >&2
+fi
+
 PIDFILE="$LOG_DIR/resume-scheduled.pid"
-nohup bash -c "sleep $SLEEP_SECS && '$PROJECT/bin/didio-resume-feature.sh' '$FEATURE'" \
+# Pass DIDIO_HOME + PROJECT explicitly so the resumed run finds the
+# framework and its own paused snapshot.
+nohup bash -c "DIDIO_HOME='$DIDIO_HOME' DIDIO_PROJECT_ROOT='$PROJECT' sleep $SLEEP_SECS && '$RESUME_SCRIPT' '$FEATURE'" \
   >>"$LOG_DIR/resume-scheduled.log" 2>&1 &
 echo $! > "$PIDFILE"
 disown 2>/dev/null || true
