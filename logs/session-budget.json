@@ -1,10 +1,14 @@
 {
   "source": "ccusage",
-  "session_id": "",
-  "tokens_used": 0,
-  "limit": 200000,
-  "pct": 0.0,
-  "window_resets_at": "",
+  "session_id": "2026-04-25T20:00:00.000Z",
+  "tokens_used": 3241593,
+  "limit": 197608736,
+  "pct": 0.0164,
+  "window_resets_at": "2026-04-26T01:00:00Z",
+  "window_started_at": "2026-04-25T20:00:00Z",
   "weekly_resets_at": "",
-  "updated_at": "2026-04-23T17:13:25Z"
+  "burn_rate_tokens_per_min": 582384.8678300655,
+  "remaining_minutes": 250,
+  "projected_tokens": 148643886,
+  "updated_at": "2026-04-25T20:50:20Z"
 }

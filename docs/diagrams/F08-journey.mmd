@@ -1,0 +1,78 @@
+%% F08 user journey — BPMN-style operational flow for the
+%% agent-runtime-audit feature. Swimlanes:
+%%   Operator (humano) | didio Framework | Hooks/Guard | Downstreams
+
+flowchart TD
+    subgraph Operator["👤 Operator"]
+        OP_START(["Decision: audit agent runtime\n(effort missing + F07 sintomas)"])
+        OP_RUN["Run /create-feature F08\n(or /plan-feature F08)"]
+        OP_REV_DRY["Review logs/F08-sync-YYYYMMDD.log"]
+        OP_CONFIRM{{"Confirm real sync?\n(★ HUMAN GATE ★)"}}
+        OP_END(["End: F08 done\neffort propagated\nguard verified"])
+    end
+
+    subgraph Framework["🏗️ didio Framework (Waves)"]
+        W0["Wave 0 — T01\nAudit F07 guard + add effort schema\n(serial, blocking)"]
+        AUDIT_OUT["docs/F08-guard-audit.md\n7-row table PASS/FAIL/evidence"]
+        W0_DECIDE{"Wave 0 = 100% PASS?"}
+        W1A["Wave 1 — T02\nspawn-agent passes --effort"]
+        W1B["Wave 1 — T03\nconfig-lib didio_effort_for_role"]
+        W2_NOOP["Wave 2 — T04\nno-op (PASS path A)"]
+        W2_FIX["Wave 2 — T04{a,b,...}\nsurgical fixes (path B)"]
+        W2_DEFER["Wave 2 — T04\ndefer to F09 (path C)"]
+        W3_T05["Wave 3 — T05\nsync-project deep-merge + --dry-run"]
+        W3_T06["Wave 3 — T06\ntests/F08-sync-models.sh"]
+        W3_T07["Wave 3 — T07\nsync-all --dry-run + agg log"]
+        W3_T08["Wave 3 — T08\nReal sync (bash sync-all)"]
+        W4_TL["Wave 4 — T09\nTechLead review"]
+        W4_QA["Wave 4 — T10\nQA pass"]
+        W4_RETRO["Wave 4 — T11\nRetrospective + memories"]
+    end
+
+    subgraph Guard["🛡️ Hooks/Guard (observed, not changed unless FAIL)"]
+        G_PROBE["budget-probe → session-budget.json"]
+        G_PRE["pre-tool deny/warn"]
+        G_PAUSE["pause → session-paused.json"]
+        G_RESUME["resume scheduled agent"]
+    end
+
+    subgraph Downstreams["📦 Downstream (×4)"]
+        D_BEFORE["didio.config.json\n(no effort field)"]
+        D_AFTER["didio.config.json\neffort=medium per role\nlocal overrides preserved"]
+        D_TAG["pre-didio-sync-YYYYMMDD tag"]
+    end
+
+    OP_START --> OP_RUN
+    OP_RUN --> W0
+    W0 --> AUDIT_OUT
+    W0 -. inspects .-> G_PROBE
+    W0 -. inspects .-> G_PRE
+    W0 -. inspects .-> G_PAUSE
+    W0 -. inspects .-> G_RESUME
+    AUDIT_OUT --> W0_DECIDE
+    W0_DECIDE -->|yes: 7/7 PASS| W2_NOOP
+    W0_DECIDE -->|no: surgical FAIL| W2_FIX
+    W0_DECIDE -->|no: structural FAIL| W2_DEFER
+    W0 --> W1A
+    W0 --> W1B
+    W1A --> W3_T05
+    W1B --> W3_T05
+    W2_NOOP --> W3_T05
+    W2_FIX --> W3_T05
+    W2_DEFER --> W3_T05
+
+    W3_T05 --> W3_T06
+    W3_T05 --> W3_T07
+    W3_T06 --> W3_T07
+    W3_T07 --> OP_REV_DRY
+    OP_REV_DRY --> OP_CONFIRM
+    OP_CONFIRM -->|yes| W3_T08
+    OP_CONFIRM -->|no| OP_END
+    W3_T08 --> D_BEFORE
+    D_BEFORE --> D_AFTER
+    W3_T08 --> D_TAG
+
+    W3_T08 --> W4_TL
+    W4_TL --> W4_QA
+    W4_QA --> W4_RETRO
+    W4_RETRO --> OP_END

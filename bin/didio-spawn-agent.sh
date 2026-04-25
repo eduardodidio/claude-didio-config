@@ -55,6 +55,10 @@ else
 fi
 AGENT_MODEL=$(didio_model_for_role "$ROLE")
 AGENT_FALLBACK=$(didio_fallback_for_role "$ROLE")
+AGENT_EFFORT=""
+if declare -F didio_effort_for_role >/dev/null 2>&1; then
+  AGENT_EFFORT="$(didio_effort_for_role "$ROLE" 2>/dev/null || echo "")"
+fi
 
 # Meta header for dashboard consumption
 cat > "$META_FILE" <<EOF
@@ -68,7 +72,8 @@ cat > "$META_FILE" <<EOF
   "status": "running",
   "pid": $$,
   "model": "${AGENT_MODEL:-default}",
-  "fallback_model": "${AGENT_FALLBACK:-none}"
+  "fallback_model": "${AGENT_FALLBACK:-none}",
+  "effort": "${AGENT_EFFORT:-none}"
 }
 EOF
 
@@ -135,6 +140,16 @@ echo "[didio-spawn-agent] role=$ROLE feature=$FEATURE task=$TASK_ID model=$AGENT
 # Launch claude in headless streaming mode, new process, clean env. We
 # inherit PATH so the user's claude CLI is findable, but we deliberately do
 # not pass any other state — the agent's context is ONLY the prompt.
+if [[ "${DIDIO_DRY_RUN:-0}" == "1" ]]; then
+  printf '[DRY_RUN] claude -p <prompt_omitted>\n'
+  printf '[DRY_RUN]   --output-format stream-json\n'
+  printf '[DRY_RUN]   --verbose\n'
+  [[ -n "$AGENT_MODEL" ]]    && printf '[DRY_RUN]   --model %s\n' "$AGENT_MODEL"
+  [[ -n "$AGENT_FALLBACK" ]] && printf '[DRY_RUN]   --fallback-model %s\n' "$AGENT_FALLBACK"
+  [[ -n "$AGENT_EFFORT" ]]   && printf '[DRY_RUN]   --effort %s\n' "$AGENT_EFFORT"
+  printf '[DRY_RUN]   --dangerously-skip-permissions\n'
+  exit 0
+fi
 set +e
 claude \
   -p "$FULL_PROMPT" \
@@ -142,6 +157,7 @@ claude \
   --verbose \
   ${AGENT_MODEL:+--model "$AGENT_MODEL"} \
   ${AGENT_FALLBACK:+--fallback-model "$AGENT_FALLBACK"} \
+  ${AGENT_EFFORT:+--effort "$AGENT_EFFORT"} \
   --dangerously-skip-permissions \
   > "$LOG_FILE" 2>&1
 EXIT_CODE=$?

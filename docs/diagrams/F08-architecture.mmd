@@ -1,0 +1,71 @@
+%% F08 architecture — agent runtime: spawn-agent with model + effort,
+%% session-guard hooks observing budget, downstream sync propagating
+%% the models/effort block.
+%%
+%% Legend:
+%%   [NEW in F08]  = added by this feature (T02/T03/T05/T07)
+%%   [AUDIT]       = inspected by Wave 0 (T01), fixed conditionally in Wave 2
+
+flowchart LR
+    subgraph Operator["👤 Operator"]
+        OP_CLI["./bin/didio menu"]
+        OP_SYNC["didio-sync-all.sh\n[NEW in F08: --dry-run]"]
+    end
+
+    subgraph Config["🗂️ Config (this repo)"]
+        CFG["didio.config.json\n[NEW in F08: models[*].effort]"]
+        TMPL["templates/didio.config.json\n(mirror)"]
+        LIB["bin/didio-config-lib.sh\n[NEW in F08: didio_effort_for_role]"]
+    end
+
+    subgraph Spawn["🚀 Spawn runtime"]
+        SA["bin/didio-spawn-agent.sh"]
+        META["logs/agents/&lt;run&gt;.meta.json\n[NEW in F08: effort field]"]
+        CLA["claude -p\n--model ...\n--fallback-model ...\n[NEW in F08: --effort medium]"]
+    end
+
+    subgraph Guard["🛡️ Session guard (F07 — audited by F08-T01)"]
+        PRE["bin/hooks/didio-pre-tool.sh\n[AUDIT: deny on hard_pct]"]
+        POST["bin/hooks/didio-post-tool.sh\n[AUDIT: must fire in subprocesses]"]
+        PROBE["bin/didio-budget-probe.sh"]
+        BUD[("logs/session-budget.json")]
+        PAUSE["bin/didio-budget-pause.sh"]
+        RESUME["bin/didio-resume-feature.sh"]
+        PAUSED[("logs/session-paused.json")]
+    end
+
+    subgraph Downstream["📦 Downstream projects (×4)"]
+        DP_CFG[("&lt;target&gt;/didio.config.json\n[NEW in F08: effort merged]")]
+        DP_TAG["git tag pre-didio-sync-YYYYMMDD"]
+    end
+
+    subgraph Sync["🔄 Sync layer"]
+        SP["bin/didio-sync-project.sh\n[NEW in F08: deep-merge models + --dry-run]"]
+        SA_ALL["bin/didio-sync-all.sh\n[NEW in F08: --dry-run + agg log]"]
+        SLOG[("logs/F08-sync-YYYYMMDD.log")]
+    end
+
+    OP_CLI -->|reads| LIB
+    LIB -->|reads| CFG
+    SA -->|reads| LIB
+    SA -->|writes| META
+    SA -->|invokes| CLA
+
+    CLA -.->|each tool call| PRE
+    CLA -.->|each tool call| POST
+    POST --> PROBE
+    PROBE -->|atomic write| BUD
+    PRE -->|reads| BUD
+    PRE -->|pct &gt;= hard_pct → deny + fire| PAUSE
+    PAUSE -->|atomic write| PAUSED
+    PAUSE -->|schedule| RESUME
+    RESUME -->|respawn| SA
+
+    OP_SYNC --> SA_ALL
+    SA_ALL --> SP
+    SA_ALL -->|--dry-run| SLOG
+    SP -->|deep merge models| DP_CFG
+    SP -->|create| DP_TAG
+
+    CFG -. mirrored by .-> TMPL
+    TMPL -. upstream for .-> SP

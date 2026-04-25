@@ -106,6 +106,28 @@ print(role_cfg.get('fallback', ''))
 " 2>/dev/null || true
 }
 
+# Returns the --effort value for a given role. Only consults the main `models`
+# block — economy mode (Haiku) deliberately ignores effort. Returns empty string
+# if role has no effort field or if config is missing.
+didio_effort_for_role() {
+  local role="$1"
+  local config
+  config="$(didio_find_config)"
+  [[ -z "$config" ]] && return 0
+  python3 -c "
+import json
+with open('$config') as f:
+    c = json.load(f)
+economy = c.get('economy', False)
+# Economy mode uses Haiku — deliberately ignore any effort override.
+if economy:
+    print('')
+else:
+    role_cfg = c.get('models', {}).get('$role', {})
+    print(role_cfg.get('effort', ''))
+" 2>/dev/null || true
+}
+
 # Returns max parallel agents. Turbo mode overrides to 0 (unlimited).
 didio_max_parallel() {
   local config
@@ -233,7 +255,12 @@ print(f'  Modo: {badge_str}')
 print(f'  Paralelismo max: {mp_str}')
 for role in ['architect', 'developer', 'techlead', 'qa']:
     m = models.get(role, {})
-    print(f'    {role:10} -> {m.get(\"model\", \"?\")} (fallback: {m.get(\"fallback\", \"?\")})')
+    line = f'    {role:10} -> {m.get(\"model\", \"?\")} (fallback: {m.get(\"fallback\", \"?\")}'
+    eff = m.get('effort', '')
+    if eff and not economy:
+        line += f', effort: {eff}'
+    line += ')'
+    print(line)
 " 2>/dev/null || echo "  [erro lendo config]"
 }
 

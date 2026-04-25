@@ -1,0 +1,10 @@
+{
+  "feature": "F01",
+  "wave": null,
+  "tasks_running": [],
+  "paused_at": "2026-04-24T03:35:53Z",
+  "resume_at": "",
+  "resumes_today": 3,
+  "pct_at_pause": 1.4146,
+  "reason": "session_guard hard_pct reached"
+}
