@@ -61,6 +61,43 @@ pra confirmar antes de matar o processo.
 
 ---
 
+## Inspirações e refinamentos
+
+O `claude-didio-config` se inspira fortemente no **BMAD method** para
+elicitação de PRD, sharding e auditoria de readiness, mas cada
+estratégia foi adaptada às necessidades específicas dos projetos
+downstream do usuário (`blind-warrior`, `escudo-do-mestre-v1`,
+`access-play-create`, `mellon-magic-maker`). A intenção não é portar
+BMAD verbatim — é destilar o que funciona e integrar ao workflow
+Architect → Developer → TechLead → QA já existente, sem prefixar
+nada com `bmad-` no framework (comandos, diretórios e arquivos
+mantêm a identidade `didio`).
+
+Estratégias adotadas e em estudo:
+
+- **Output isolation** (`claude-didio-out/`) — F09 `[ativo]` —
+  rascunhos, brainstorms e research vão pra um diretório efêmero,
+  gitignored, fora do scan automático dos agentes.
+- **Arquivamento de features concluídas** (`archive/`) — F09
+  `[ativo]` — feature QA-aprovada migra de `tasks/features/` para
+  `archive/features/`; aprendizado fica em `memory/retrospectives/`.
+  Reduz custo de descoberta dos próximos agentes spawnados.
+- **PRD elicitation antes de planejar** — F11 `[em planejamento]` —
+  comando interativo que coleta requisitos com o usuário antes de
+  invocar o Architect, gerando rascunhos em
+  `claude-didio-out/prd-drafts/`.
+- **Readiness audit pré-Wave** — F10 `[em planejamento]` — checa o
+  brief antes de disparar Waves; impede execução de tasks com
+  contexto incompleto.
+- **Sharding de briefs grandes** — F12 `[backlog]` — quebra briefs
+  longos em pedaços focados antes do Architect, espelhando a prática
+  BMAD de dividir PRDs em épicos.
+
+Cada item linka, quando ativo, para o `_brief.md` da feature
+correspondente em `tasks/features/` ou `archive/features/`.
+
+---
+
 ## Primeiros passos — menu `/didio`
 
 Depois de instalado, dentro do Claude Code:

@@ -1,0 +1,45 @@
+%% F09 architecture — output isolation + archive
+%% Owner: F09-T01
+flowchart LR
+  subgraph Operator["Operator"]
+    OP[/"didio-archive-feature.sh FXX"/]
+  end
+
+  subgraph Agents["Spawned agents (architect/dev/techlead/qa)"]
+    SPAWN["bin/didio-spawn-agent.sh"]
+  end
+
+  subgraph Active["Active workspace (committed)"]
+    TASKS["tasks/features/&lt;FXX&gt;/"]
+    OUT["claude-didio-out/&#10;(gitignored)"]
+    LOGS["logs/agents/&lt;run&gt;.*"]
+  end
+
+  subgraph Retained["Retained (mixed)"]
+    RETRO["memory/retrospectives/&lt;FXX&gt;.md&#10;(committed)"]
+    ARCHIVE["archive/features/&lt;FXX&gt;/&#10;(gitignored)"]
+  end
+
+  subgraph Sync["Downstream sync"]
+    SYNC["bin/didio-sync-project.sh"]
+    DOWN_GI[".gitignore (downstream)"]
+    DOWN_BIN["bin/didio-archive-feature.sh (downstream)"]
+    DOWN_SET[".claude/settings.json (cond.)"]
+  end
+
+  SPAWN -->|writes| TASKS
+  SPAWN -->|writes drafts/research| OUT
+  SPAWN -->|writes JSONL + meta| LOGS
+
+  OP -->|invokes| SCRIPT["bin/didio-archive-feature.sh"]
+  SCRIPT -->|"check eligibility&#10;(qa PASSED + 30d)"| TASKS
+  SCRIPT -->|"copy retro"| RETRO
+  SCRIPT -->|"git mv"| ARCHIVE
+
+  SYNC -->|"append"| DOWN_GI
+  SYNC -->|"copy script"| DOWN_BIN
+  SYNC -.->|"merge if Branch A"| DOWN_SET
+
+  classDef gitignored stroke-dasharray: 5 5;
+  class OUT,ARCHIVE gitignored;
+  class LOGS gitignored;

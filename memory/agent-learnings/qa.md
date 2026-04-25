@@ -32,6 +32,14 @@
 
 **Pattern to repeat:** Dual-write retrospective (passo 3 local-append + passo 3b `memory_add` mirror) closes the loop on any feature that introduces a new memory-store path — the feature validates itself by being the first user of its own pattern. Always include a provenance-prefix line (`Mirrored from memory/agent-learnings/<role>.md@<feature>`) on `memory_add` content to lower sandbox `Content Integrity` denial risk.
 
+## F09 — 2026-04-25
+
+**What worked:** Cross-checking the machine-readable decision line (`## Decision` in scan-exclusion doc) against the actual implementation caught a doc/code mismatch that would have caused the scan exclusion test to select the wrong branch and fail.  Running `git status` on `bin/` and `templates/bin/` together found a dangling-symlink risk that the TechLead missed.
+
+**What to avoid:** Trusting that TechLead APPROVED means all declared artifacts exist. F09 T03 was APPROVED but `tests/F09-scan-exclusion.sh` was never created. Pattern: for every task the TechLead reviewed, `ls`/`grep` each declared output file before accepting the verdict. TechLead reviews describe intent; QA verifies existence.
+
+**Pattern to repeat:** For features that add new `bin/` scripts with `templates/bin/` symlinks — check both `git status bin/<script>` AND `git status templates/bin/<script>`. A staged symlink pointing to an untracked target is a dangling symlink on any fresh clone. This is a class of BLOCKING issue that doesn't show up in a code review unless you explicitly check `git status` for the target file.
+
 ## F07 — 2026-04-20
 
 **What worked:** Stubbing `didio-spawn-agent.sh` via `DIDIO_SPAWN_CMD` env override let the e2e test drive the full pause → schedule → resume cycle without spending a single real token. 13 scenarios in < 15s including SIGTERM of real sleep-loop PIDs. Fake meta files + seeded state.json exercise the real pause.sh code path, not a mock.

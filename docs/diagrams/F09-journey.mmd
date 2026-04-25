@@ -1,0 +1,35 @@
+%% F09 journey — operator archives a finished feature
+%% Owner: F09-T01
+flowchart TD
+  START([Operator wants to archive FXX]) --> MODE{Mode?}
+
+  MODE -->|"--list"| LIST["List eligible features&#10;(qa PASSED + 30d)"]
+  LIST --> END_LIST([print list, exit 0])
+
+  MODE -->|"--dry-run FXX"| DRY["Compute actions&#10;(no fs writes)"]
+  DRY --> END_DRY([print plan, exit 0])
+
+  MODE -->|"--help"| HELP["Show usage + link&#10;to archive/README.md"]
+  HELP --> END_HELP([exit 0])
+
+  MODE -->|"FXX (default)"| CHECK_EXIST{"Feature dir exists&#10;in tasks/features/?"}
+  CHECK_EXIST -->|no| ERR_NOT_FOUND([ERROR not found, exit 1])
+  CHECK_EXIST -->|yes| CHECK_ARCH{"Already in&#10;archive/features/?"}
+  CHECK_ARCH -->|yes| END_NC([NO_CHANGE, exit 0])
+  CHECK_ARCH -->|no| ELIG{"Eligible?&#10;qa PASSED + ≥30d"}
+
+  ELIG -->|no| ERR_INELIG["Print INELIGIBLE&#10;suggest --force"]
+  ERR_INELIG --> END_INELIG([exit 1])
+
+  ELIG -->|yes| COPY["Copy retrospective.md&#10;→ memory/retrospectives/FXX.md&#10;(stub if missing)"]
+  COPY --> MOVE["git mv tasks/features/FXX-* archive/features/&#10;(or mv if untracked)"]
+  MOVE --> SUMMARY["Print summary:&#10;files moved, retro saved"]
+  SUMMARY --> END_OK([exit 0])
+
+  MODE -->|"--force FXX"| TTY{"stdin is tty?"}
+  TTY -->|yes| CONFIRM["Prompt y/N"]
+  CONFIRM -->|N| END_ABORT([Aborted, exit 1])
+  CONFIRM -->|y| COPY
+  TTY -->|no| ENVCHK{"DIDIO_FORCE_YES=1?"}
+  ENVCHK -->|no| ERR_NOTTY([ERROR: needs DIDIO_FORCE_YES, exit 2])
+  ENVCHK -->|yes| COPY

@@ -44,3 +44,24 @@ All diagrams are [Mermaid](https://mermaid.js.org/) `.mmd` files.
 |---|---|---|
 | [F06-architecture.mmd](F06-architecture.mmd) | F06-T11 | Two-track data-flow: spawn sentinel → prompt → agent picks memory_search (second-brain on) or Read (fallback); QA retro mirrors into second-brain via memory_add |
 | [F06-journey.mmd](F06-journey.mmd) | F06-T11 | Operator journey: run-wave → smoke preflight → per-task spawn with sentinel substitution → agent applies learnings → QA closes loop with memory_add |
+
+## F07 — Session guard (token budget + pause/resume)
+
+| File | Owner task | What it shows |
+|---|---|---|
+| [F07-architecture.mmd](F07-architecture.mmd) | F07 | Component & data-flow: PreToolUse hook → session-guard → budget state → pause/resume cycle |
+| [F07-journey.mmd](F07-journey.mmd) | F07 | User journey: launch feature → budget consumed → graceful pause → resume on next session |
+
+## F08 — Agent runtime (spawn-agent model + effort)
+
+| File | Owner task | What it shows |
+|---|---|---|
+| [F08-architecture.mmd](F08-architecture.mmd) | F08 | Agent runtime: spawn-agent with model + effort config, session-guard hooks observing budget, downstream sync propagating models/effort block |
+| [F08-journey.mmd](F08-journey.mmd) | F08 | Operator journey for F08 agent runtime changes |
+
+## F09 — Output isolation + feature archival
+
+| File | Owner task | What it shows |
+|---|---|---|
+| [F09-architecture.mmd](F09-architecture.mmd) | F09-T01 | Data-flow: agents write drafts to `claude-didio-out/`, active work in `tasks/features/`, archive trigger moves to `archive/features/` + retro copy to `memory/retrospectives/`; downstream sync branch |
+| [F09-journey.mmd](F09-journey.mmd) | F09-T01 | BPMN-style: operator requests archive → eligibility check (qa PASSED + 30d) → copy retro → mv feature; branches for `--list`, `--dry-run`, `--force`, and ineligible error |

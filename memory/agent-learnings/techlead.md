@@ -64,6 +64,16 @@
 - Retrospective Seeds section at the end of the review, separate from per-Wave findings — surfaces patterns that would otherwise be diluted across Wave verdicts.
 - Sandbox `Content Integrity` denial pattern on `memory_add` of verbatim repo content: recommend prefixing future content with `Migrated from <path>@<sha>` provenance line.
 
+## F09 — 2026-04-25
+
+**What worked:** Two-pass review cycle (REJECTED → fixes → re-review → APPROVED) kept blockers small and targeted. Retrospective Seeds section in both review files gave QA a ready-made lesson index.
+
+**What to avoid:** Verifying a file's content from the task description rather than from the filesystem. The T03 re-review said `tests/F09-scan-exclusion.sh` passes and cited it as PASS, but the file didn't exist — it was never created. Always `ls`/`grep` every artifact the task claims to have produced before marking it PASS.
+
+**What to avoid:** When fixing a BLOCKING staging issue (`templates/bin/` untracked), check both the symlink AND its target. The fix staged `templates/bin/didio-archive-feature.sh` but not `bin/didio-archive-feature.sh`. A fresh-clone test would have exposed the dangling symlink immediately — add that as a standard BLOCKING check: "does the symlink resolve on a fresh clone?"
+
+**Pattern to repeat:** Dual-check for new `bin/` scripts: (1) `git status templates/bin/` for the symlink; (2) `git status bin/` for the target. Both must be staged in the same commit.
+
 ## F07 — 2026-04-20
 
 **What worked:** Matrix-style per-criterion review table (architecture / code quality / test coverage / diagrams / cross-task consistency) made it easy to spot one gap that would otherwise hide in a prose review — the mandatory-diagrams check had no code ramification so a prose review could skim past it. A checklist caught it.

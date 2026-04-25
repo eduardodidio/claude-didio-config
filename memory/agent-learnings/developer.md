@@ -32,6 +32,16 @@
 
 **Pattern to repeat:** When a feature evolves `bin/didio-config-lib.sh`, also flip `didio-spawn-agent.sh` to source project-local lib first (`PROJECT_ROOT/bin/didio-config-lib.sh`) before falling back to `${DIDIO_HOME}`. Compounds across all future features that touch the lib — they ship without waiting for global install to update.
 
+## F09 — 2026-04-25
+
+**What worked:** Copy-retro-then-move-feature order in the archive script (`copy_retro` before `move_to_archive`) means a partial failure leaves the retrospective safe in `memory/retrospectives/` even if the move fails. Single-responsibility helpers (`feature_dir`, `has_passed_qa`, `last_commit_age_days`, `copy_retro`, `move_to_archive`) made the script easy to review and test independently.
+
+**What to avoid:** Staging only the symlink in `templates/bin/` without staging the actual script in `bin/`. On a fresh clone the symlink would be dangling, silently causing `bin/didio-sync-project.sh` to warn-and-skip instead of copying the script downstream. Pattern: when adding a new `bin/<script>`, always run `git status bin/ templates/bin/` together before marking the Wave done — both paths must be staged.
+
+**What to avoid:** Leaving a machine-readable decision heading (used by test scripts via awk) out of sync with the actual decision taken. The `## Decision` line in `docs/F09-scan-exclusion-check.md` said `settings.json: permissions.deny` (the available mechanism) but the wave resolved to `gitignore-only`. Any doc used as machine-readable config must be updated when the decision changes scope.
+
+**Pattern to repeat:** Bake the Branch A/B decision into the test file at read time (awk from the decision doc) rather than hardcoding the branch in the test. Makes the test self-documenting and future-proof — updating the doc is enough if the mechanism ever changes.
+
 ## F07 — 2026-04-20
 
 **What worked:** Every JSON writer uses Python's `os.replace(tmp, target)` for atomic writes. Eliminated corruption risk across concurrent probes without needing `flock` (macOS default lacks it). Paired with mtime-based throttle (5s for probe, 60s for checkpoint-write), this was enough — no lock needed. Also: running the ccusage JSON through a defensive field-lookup (`totalTokens` / `total_tokens` / sum of `input+output+cache_*`) avoids breaking when ccusage bumps minor versions.

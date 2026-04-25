@@ -40,7 +40,20 @@ RESET='\033[0m'
 # ---------------------------------------------------------------------------
 DIDIO_HOME="${DIDIO_HOME:-/Users/eduardodidio/claude-didio-config}"
 TEMPLATES="$DIDIO_HOME/templates"
-TARGET="${1:-}"
+
+# ---------------------------------------------------------------------------
+# --dry-run flag (F09-T05 gap, implemented in T08)
+# ---------------------------------------------------------------------------
+DRY_RUN=0
+REAL_ARGS=()
+for _arg in "$@"; do
+  if [[ "$_arg" == "--dry-run" ]]; then
+    DRY_RUN=1
+  else
+    REAL_ARGS+=("$_arg")
+  fi
+done
+TARGET="${REAL_ARGS[0]:-}"
 
 # ---------------------------------------------------------------------------
 # Counters and action log
@@ -83,8 +96,10 @@ copy_if_missing() {
   if [[ -f "$dst" ]]; then
     log_action "NO_CHANGE" "$label (already exists)"
   else
-    mkdir -p "$(dirname "$dst")"
-    cp "$src" "$dst"
+    if [[ $DRY_RUN -eq 0 ]]; then
+      mkdir -p "$(dirname "$dst")"
+      cp "$src" "$dst"
+    fi
     log_action "ADDED" "$label"
   fi
 }
@@ -99,7 +114,9 @@ sync_dir() {
     return 0
   fi
 
-  mkdir -p "$dst_dir"
+  if [[ $DRY_RUN -eq 0 ]]; then
+    mkdir -p "$dst_dir"
+  fi
   while IFS= read -r -d '' src_file; do
     local rel="${src_file#$src_dir/}"
     local dst_file="$dst_dir/$rel"
@@ -143,13 +160,18 @@ PROJECT_NAME="$(basename "$TARGET")"
 echo -e "${BOLD}=== didio-sync-project: $PROJECT_NAME ===${RESET}"
 echo -e "Source : $TEMPLATES"
 echo -e "Target : $TARGET"
+if [[ $DRY_RUN -eq 1 ]]; then
+  echo -e "${YELLOW}DRY-RUN MODE — no files will be written${RESET}"
+fi
 echo
 
 # ---------------------------------------------------------------------------
 # 2. Create rollback git tag
 # ---------------------------------------------------------------------------
 TAG="pre-didio-sync-$(date +%Y%m%d)"
-if git -C "$TARGET" tag "$TAG" 2>/dev/null; then
+if [[ $DRY_RUN -eq 1 ]]; then
+  echo -e "${GREEN}[TAG]${RESET} DRY-RUN: would create rollback tag: $TAG"
+elif git -C "$TARGET" tag "$TAG" 2>/dev/null; then
   echo -e "${GREEN}[TAG]${RESET} Created rollback tag: $TAG"
 else
   echo -e "${CYAN}[TAG]${RESET} Rollback tag already exists (preserved): $TAG"
@@ -174,16 +196,19 @@ DST_SETTINGS="$TARGET/.claude/settings.json"
 if [[ ! -f "$SRC_SETTINGS" ]]; then
   echo -e "${YELLOW}[WARN]${RESET} Template settings.json missing — skipping" >&2
 elif [[ ! -f "$DST_SETTINGS" ]]; then
-  mkdir -p "$TARGET/.claude"
-  cp "$SRC_SETTINGS" "$DST_SETTINGS"
+  if [[ $DRY_RUN -eq 0 ]]; then
+    mkdir -p "$TARGET/.claude"
+    cp "$SRC_SETTINGS" "$DST_SETTINGS"
+  fi
   log_action "ADDED" ".claude/settings.json"
 else
   # Merge permissions.allow arrays (union, no duplicates) using python3
   if command -v python3 &>/dev/null; then
-    MERGE_RESULT=$(python3 - "$SRC_SETTINGS" "$DST_SETTINGS" <<'PY'
+    MERGE_RESULT=$(python3 - "$SRC_SETTINGS" "$DST_SETTINGS" "$DRY_RUN" <<'PY'
 import json, sys
 
 src_path, dst_path = sys.argv[1], sys.argv[2]
+dry_run = len(sys.argv) > 3 and sys.argv[3] == "1"
 with open(src_path) as f:
     src = json.load(f)
 with open(dst_path) as f:
@@ -232,23 +257,38 @@ for event, src_matchers in src_hooks.items():
             existing_cmds.add(cmd)
             hooks_added += 1
 
-if new_entries or hooks_added:
-    if hooks_added:
-        dst["hooks"] = dst_hooks
-    with open(dst_path, "w") as f:
-        json.dump(dst, f, indent=2)
-        f.write("\n")
-    print(f"MERGED:perms={len(new_entries)},hooks={hooks_added}")
+# Merge permissions.deny (F09 scan-exclusion)
+src_deny = src.get("permissions", {}).get("deny", [])
+dst_deny = dst.get("permissions", {}).get("deny", [])
+new_deny = [e for e in src_deny if e not in dst_deny]
+exclusion_added = 0
+if new_deny:
+    if "permissions" not in dst:
+        dst["permissions"] = {}
+    if "deny" not in dst["permissions"]:
+        dst["permissions"]["deny"] = []
+    dst["permissions"]["deny"].extend(new_deny)
+    exclusion_added = len(new_deny)
+
+if new_entries or hooks_added or new_deny:
+    if not dry_run:
+        if hooks_added:
+            dst["hooks"] = dst_hooks
+        with open(dst_path, "w") as f:
+            json.dump(dst, f, indent=2)
+            f.write("\n")
+    print(f"MERGED:perms={len(new_entries)},hooks={hooks_added},excl={exclusion_added}")
 else:
     print("NO_CHANGE")
 PY
     )
     if [[ "$MERGE_RESULT" == "NO_CHANGE" ]]; then
       log_action "NO_CHANGE" ".claude/settings.json"
-    elif [[ "$MERGE_RESULT" =~ ^MERGED:perms=([0-9]+),hooks=([0-9]+)$ ]]; then
+    elif [[ "$MERGE_RESULT" =~ ^MERGED:perms=([0-9]+),hooks=([0-9]+),excl=([0-9]+)$ ]]; then
       NP="${BASH_REMATCH[1]}"
       NH="${BASH_REMATCH[2]}"
-      log_action "MERGED" ".claude/settings.json ($NP permissions + $NH hooks added)"
+      NE="${BASH_REMATCH[3]}"
+      log_action "MERGED" ".claude/settings.json ($NP permissions + $NH hooks + $NE deny-exclusions added)"
     fi
   else
     echo -e "${YELLOW}[WARN]${RESET} python3 not available — skipping settings.json merge" >&2
@@ -294,7 +334,9 @@ copy_if_missing "$TEMPLATES/docs/prd/template.md" "$TARGET/docs/prd/template.md"
 # ---------------------------------------------------------------------------
 TEMPLATE_LEARNINGS="$TEMPLATES/memory/agent-learnings"
 TARGET_LEARNINGS="$TARGET/memory/agent-learnings"
-mkdir -p "$TARGET_LEARNINGS"
+if [[ $DRY_RUN -eq 0 ]]; then
+  mkdir -p "$TARGET_LEARNINGS"
+fi
 
 for role in architect developer techlead qa; do
   src="$TEMPLATE_LEARNINGS/$role.md"
@@ -306,7 +348,9 @@ for role in architect developer techlead qa; do
   fi
 
   if [[ ! -f "$dst" ]]; then
-    cp "$src" "$dst"
+    if [[ $DRY_RUN -eq 0 ]]; then
+      cp "$src" "$dst"
+    fi
     log_action "ADDED" "memory/agent-learnings/$role.md"
   else
     # Placeholder detection: file has ≤ 5 non-empty lines
@@ -315,7 +359,9 @@ for role in architect developer techlead qa; do
       if cmp -s "$src" "$dst"; then
         log_action "NO_CHANGE" "memory/agent-learnings/$role.md (placeholder, up to date)"
       else
-        cp "$src" "$dst"
+        if [[ $DRY_RUN -eq 0 ]]; then
+          cp "$src" "$dst"
+        fi
         log_action "ADDED" "memory/agent-learnings/$role.md (placeholder replaced)"
       fi
     else
@@ -332,9 +378,14 @@ if [[ -e "$TARGET/logs" && ! -d "$TARGET/logs" ]]; then
   echo -e "${YELLOW}[WARN]${RESET} $TARGET/logs exists as a file, not a directory — skipping logs/agents/.gitkeep" >&2
   log_action "SKIPPED" "logs/agents/.gitkeep (logs is a file)"
 else
-  mkdir -p "$TARGET/logs/agents"
+  if [[ $DRY_RUN -eq 0 ]]; then
+    mkdir -p "$TARGET/logs/agents"
+  fi
   if [[ ! -f "$TARGET/logs/agents/.gitkeep" ]]; then
-    touch "$TARGET/logs/agents/.gitkeep"
+    if [[ $DRY_RUN -eq 0 ]]; then
+      mkdir -p "$TARGET/logs/agents"
+      touch "$TARGET/logs/agents/.gitkeep"
+    fi
     log_action "ADDED" "logs/agents/.gitkeep"
   else
     log_action "NO_CHANGE" "logs/agents/.gitkeep (already exists)"
@@ -346,11 +397,16 @@ fi
 # ---------------------------------------------------------------------------
 SRC_TASK_TPL="$TEMPLATES/tasks/features/FXX-template"
 DST_TASK_TPL="$TARGET/tasks/features/FXX-template"
-mkdir -p "$TARGET/tasks/features"
+if [[ $DRY_RUN -eq 0 ]]; then
+  mkdir -p "$TARGET/tasks/features"
+fi
 
 if [[ ! -d "$DST_TASK_TPL" ]]; then
   if [[ -d "$SRC_TASK_TPL" ]]; then
-    cp -r "$SRC_TASK_TPL" "$DST_TASK_TPL"
+    if [[ $DRY_RUN -eq 0 ]]; then
+      mkdir -p "$TARGET/tasks/features"
+      cp -r "$SRC_TASK_TPL" "$DST_TASK_TPL"
+    fi
     log_action "ADDED" "tasks/features/FXX-template/"
   else
     echo -e "${YELLOW}[WARN]${RESET} Template tasks/features/FXX-template/ missing — skipping" >&2
@@ -370,12 +426,15 @@ DST_CFG="$TARGET/didio.config.json"
 if [[ ! -f "$SRC_CFG" ]]; then
   echo -e "${YELLOW}[WARN]${RESET} Template didio.config.json missing — skipping" >&2
 elif [[ ! -f "$DST_CFG" ]]; then
-  cp "$SRC_CFG" "$DST_CFG"
+  if [[ $DRY_RUN -eq 0 ]]; then
+    cp "$SRC_CFG" "$DST_CFG"
+  fi
   log_action "ADDED" "didio.config.json"
 else
-  MERGE_CFG_RESULT=$(python3 - "$SRC_CFG" "$DST_CFG" <<'PY'
+  MERGE_CFG_RESULT=$(python3 - "$SRC_CFG" "$DST_CFG" "$DRY_RUN" <<'PY'
 import json, sys
 src_path, dst_path = sys.argv[1], sys.argv[2]
+dry_run = len(sys.argv) > 3 and sys.argv[3] == "1"
 with open(src_path) as f:
     src = json.load(f)
 with open(dst_path) as f:
@@ -389,9 +448,10 @@ for k, v in src.items():
         dst[k] = v
         added.append(k)
 if added:
-    with open(dst_path, "w") as f:
-        json.dump(dst, f, indent=2)
-        f.write("\n")
+    if not dry_run:
+        with open(dst_path, "w") as f:
+            json.dump(dst, f, indent=2)
+            f.write("\n")
     print("MERGED:" + ",".join(added))
 else:
     print("NO_CHANGE")
@@ -412,20 +472,30 @@ GITIGNORE_ENTRIES=(
   "logs/agents/*.jsonl"
   "logs/agents/*.meta.json"
   "logs/agents/state.json"
+  "archive/"
+  "claude-didio-out/"
 )
 APPENDED_GITIGNORE=0
+declare -a NEW_GITIGNORE_ENTRIES=()
 
-[[ ! -f "$GITIGNORE" ]] && touch "$GITIGNORE"
+if [[ $DRY_RUN -eq 0 ]]; then
+  [[ ! -f "$GITIGNORE" ]] && touch "$GITIGNORE"
+fi
 
 for entry in "${GITIGNORE_ENTRIES[@]}"; do
-  if ! grep -qF "$entry" "$GITIGNORE"; then
-    echo "$entry" >> "$GITIGNORE"
+  if [[ ! -f "$GITIGNORE" ]] || ! grep -qF "$entry" "$GITIGNORE"; then
+    if [[ $DRY_RUN -eq 0 ]]; then
+      echo "$entry" >> "$GITIGNORE"
+    else
+      echo -e "  ${CYAN}[APPEND-PENDING]${RESET} .gitignore: $entry"
+    fi
+    NEW_GITIGNORE_ENTRIES+=("$entry")
     APPENDED_GITIGNORE=$((APPENDED_GITIGNORE + 1))
   fi
 done
 
 if [[ $APPENDED_GITIGNORE -gt 0 ]]; then
-  log_action "APPENDED" ".gitignore ($APPENDED_GITIGNORE entries added)"
+  log_action "APPENDED" ".gitignore ($APPENDED_GITIGNORE entries added: ${NEW_GITIGNORE_ENTRIES[*]})"
 else
   log_action "NO_CHANGE" ".gitignore"
 fi
@@ -439,7 +509,9 @@ TEMPLATE_CLAUDE="$TEMPLATES/CLAUDE.md.tmpl"
 if [[ ! -f "$TEMPLATE_CLAUDE" ]]; then
   echo -e "${YELLOW}[WARN]${RESET} CLAUDE.md.tmpl missing — skipping CLAUDE.md sync" >&2
 elif [[ ! -f "$TARGET_CLAUDE" ]]; then
-  cp "$TEMPLATE_CLAUDE" "$TARGET_CLAUDE"
+  if [[ $DRY_RUN -eq 0 ]]; then
+    cp "$TEMPLATE_CLAUDE" "$TARGET_CLAUDE"
+  fi
   log_action "ADDED" "CLAUDE.md (full template)"
 else
   SECTIONS=(
@@ -452,15 +524,37 @@ else
 
   for section_header in "${SECTIONS[@]}"; do
     if ! grep -qF "$section_header" "$TARGET_CLAUDE"; then
-      {
-        echo ""
-        extract_section "$section_header" "$TEMPLATE_CLAUDE"
-      } >> "$TARGET_CLAUDE"
+      if [[ $DRY_RUN -eq 0 ]]; then
+        {
+          echo ""
+          extract_section "$section_header" "$TEMPLATE_CLAUDE"
+        } >> "$TARGET_CLAUDE"
+      fi
       log_action "APPENDED" "CLAUDE.md (section: $section_header)"
     else
       log_action "NO_CHANGE" "CLAUDE.md (section: $section_header already present)"
     fi
   done
+fi
+
+# ---------------------------------------------------------------------------
+# 16. Sync bin/didio-archive-feature.sh
+# ---------------------------------------------------------------------------
+SRC_ARCH="$TEMPLATES/bin/didio-archive-feature.sh"
+DST_ARCH="$TARGET/bin/didio-archive-feature.sh"
+if [[ -f "$SRC_ARCH" ]]; then
+  if [[ ! -f "$DST_ARCH" ]]; then
+    if [[ $DRY_RUN -eq 0 ]]; then
+      mkdir -p "$(dirname "$DST_ARCH")"
+      cp "$SRC_ARCH" "$DST_ARCH"
+      chmod +x "$DST_ARCH"
+    fi
+    log_action "ADDED" "bin/didio-archive-feature.sh"
+  else
+    log_action "NO_CHANGE" "bin/didio-archive-feature.sh (already exists)"
+  fi
+else
+  echo -e "${YELLOW}[WARN]${RESET} Template bin/didio-archive-feature.sh missing — skipping" >&2
 fi
 
 # ---------------------------------------------------------------------------
@@ -492,3 +586,8 @@ echo
 echo -e "Total: ${GREEN}$COUNT_ADDED added${RESET}, ${CYAN}$COUNT_MERGED merged${RESET}," \
   "${CYAN}$COUNT_APPENDED appended${RESET}, ${YELLOW}$COUNT_SKIPPED skipped${RESET}," \
   "$COUNT_NOCHANGE no-change"
+
+if [[ $DRY_RUN -eq 1 ]]; then
+  echo
+  echo "DRY-RUN ONLY. Real sync pending human approval."
+fi

@@ -12,3 +12,7 @@ dashboard/.vite/
 /logs/agents/*.jsonl
 /logs/agents/*.meta.json
 /logs/agents/state.json
+
+# F09 — output isolation + archived features
+archive/
+claude-didio-out/
