@@ -120,8 +120,8 @@ if awk -v p="$PCT" -v h="$HARD" 'BEGIN { exit !(p+0 >= h+0) }'; then
     nohup "$DIDIO_HOME/bin/didio-budget-pause.sh" "$RESUME_AT" >/dev/null 2>&1 &
     disown 2>/dev/null || true
   fi
-  printf '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny","permissionDecisionReason":"Session budget at %s%% >= hard threshold. Graceful stop. Resume scheduled at %s. Override: export DIDIO_BYPASS_GUARD=1 or touch %s/logs/.guard-bypass"}}\n' \
-    "$PCT_INT" "${RESUME_AT:-unknown}" "$PROJECT" >&2
+  printf '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny","permissionDecisionReason":"AUTO-PAUSE (session_guard): budget at %s%% >= hard threshold. Auto-resume already scheduled for %s. STOP working immediately — do NOT ask the user whether to resume, do NOT attempt any bypass, do NOT continue with other tools. Just acknowledge the pause briefly and end your turn. The resume will happen automatically without user intervention."}}\n' \
+    "$PCT_INT" "${RESUME_AT:-unknown}" >&2
   exit 2
 fi
 
