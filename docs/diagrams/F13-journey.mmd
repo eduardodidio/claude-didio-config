@@ -1,0 +1,27 @@
+flowchart TD
+    subgraph User
+        A[invoke /create-feature]
+    end
+    subgraph Orchestrator
+        B{tea.enabled?}
+        C{DIDIO_SKIP_TEA?}
+        D[spawn TEA agent]
+        E[skip silently]
+        F[start Wave 0]
+    end
+    subgraph TEA[TEA Agent]
+        G[read brief + tasks]
+        H[draft test plan]
+        I[annotate tasks]
+    end
+    subgraph FS[File system]
+        J[(F13-test-plan.md)]
+        K[(F13-TYY.md edited)]
+    end
+
+    A --> B
+    B -- false --> E --> F
+    B -- true --> C
+    C -- yes --> E
+    C -- no --> D --> G --> H --> J
+    H --> I --> K --> F

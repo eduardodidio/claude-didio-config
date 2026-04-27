@@ -1,0 +1,25 @@
+sequenceDiagram
+    autonumber
+    participant U as User
+    participant Orch as /create-feature
+    participant Arch as Architect
+    participant FS as File system
+    participant TEA as TEA agent
+    participant W0 as Wave 0+
+
+    U->>Orch: /create-feature F13 ...
+    Orch->>Arch: didio spawn-agent architect
+    Arch->>FS: write F13-README.md + F13-TYY.md
+    Arch-->>Orch: DIDIO_DONE
+    Orch->>FS: read didio.config.json:tea.enabled
+    alt tea.enabled=false OR DIDIO_SKIP_TEA=1
+        Orch->>W0: skip TEA → start Wave 0
+    else tea.enabled=true
+        Note over Orch: (if F10 merged: /check-readiness first)
+        Orch->>TEA: didio spawn-agent tea
+        TEA->>FS: read F13-README.md + tasks
+        TEA->>FS: write F13-test-plan.md
+        TEA->>FS: edit each F13-TYY.md (add **Test plan:**)
+        TEA-->>Orch: DIDIO_DONE
+        Orch->>W0: start Wave 0
+    end
