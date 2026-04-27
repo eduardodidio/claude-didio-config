@@ -100,3 +100,10 @@ All diagrams are [Mermaid](https://mermaid.js.org/) `.mmd` files.
 |---|---|---|
 | [F14-architecture.mmd](F14-architecture.mmd) | F14-T01 | Three independent slash commands: `/brainstorm` → directions matrix; `/research` → market+technical brief; `/product-brief` → fuses prior outputs into ready brief |
 | [F14-journey.mmd](F14-journey.mmd) | F14-T01 | Greenfield discovery flow: brainstorm directions → research deepens → product-brief fuses → feeds `/elicit-prd` or `/plan-feature` |
+
+## F15 — Sensitive-file bypass for headless agents
+
+| File | Owner task | What it shows |
+|---|---|---|
+| [F15-architecture.mmd](F15-architecture.mmd) | F15-T04 | Data-flow: spawn-agent → `claude -p` with `--allowedTools` → PreToolUse hook decision branches; positive (`templates/commands/`, with `.claude/commands` symlink) and negative (`.claude/settings.json`) paths; post-exec JSONL parser → exit override |
+| [F15-journey.mmd](F15-journey.mmd) | F15-T04 | 5-swimlane flowchart (Operator / Wave-runner / Spawn-agent / Claude / Claude Code internals); happy path (Developer edits commands) and failure path (settings.json denied → exit ≠ 0 → wave-runner stops) |

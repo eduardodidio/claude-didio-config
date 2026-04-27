@@ -84,3 +84,10 @@
 **What worked:** Wave 0 front-loading (permissions + config block) prevented approval gaps in Waves 1+. Three independent slash commands with no spawn kept QA validation fully structural.
 **What to avoid:** Partial fix cycles — IMPORTANT issues (output path mismatch, two-level menu gaps) survived two REJECTED cycles because only BLOCKING items were fixed on each re-run. After any REJECTED verdict, fix ALL BLOCKING + IMPORTANT in the same pass. Also: never deliver infra (permissions, config) while primary deliverables (command files) are absent.
 **Pattern to repeat:** Run the smoke test and verify it passes BEFORE declaring a re-run ready after a REJECTED verdict. An unexecuted test script is not evidence.
+
+## F15 — 2026-04-27
+**What worked:** Systematic spike (T01) with a machine-readable decision token before Wave 1 implementation prevented building on a false premise. `bin/didio-jsonl-errors.py` extracted as standalone parser is a clean, reusable pattern.
+
+**What to avoid:** (1) Smoke tests routing through the CLI dispatcher (`./bin/didio spawn-agent`) rather than the implementation script directly (`./bin/didio-spawn-agent.sh`). The dispatcher may resolve to a globally installed binary that lacks the local changes — two review cycles were wasted because of this. Always call the implementation script directly and add: `# Call implementation directly — dispatcher may delegate to stale global install`. (2) False-positive AC checkboxes: checking `[x]` for "smoke exits 0" before running the smoke. A checkbox for a shell-command AC must include the actual command output as inline evidence; absence of output is a red flag.
+
+**Pattern to repeat:** For any smoke test that exercises `didio-spawn-agent`, call `./bin/didio-spawn-agent.sh` directly (not `./bin/didio spawn-agent`). Include a header comment explaining why. This is the same dispatcher-bypass discipline as the symlink-check pattern from F09.

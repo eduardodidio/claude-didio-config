@@ -134,6 +134,7 @@ export DIDIO_TASK="$TASK_ID"
 export DIDIO_META_FILE="$META_FILE"
 export DIDIO_LOG_FILE="$LOG_FILE"
 export DIDIO_PROJECT_ROOT="$PROJECT_ROOT"
+export DIDIO_AGENT=1
 
 echo "[didio-spawn-agent] role=$ROLE feature=$FEATURE task=$TASK_ID model=$AGENT_MODEL log=$LOG_FILE" >&2
 
@@ -148,6 +149,7 @@ if [[ "${DIDIO_DRY_RUN:-0}" == "1" ]]; then
   [[ -n "$AGENT_FALLBACK" ]] && printf '[DRY_RUN]   --fallback-model %s\n' "$AGENT_FALLBACK"
   [[ -n "$AGENT_EFFORT" ]]   && printf '[DRY_RUN]   --effort %s\n' "$AGENT_EFFORT"
   printf '[DRY_RUN]   --dangerously-skip-permissions\n'
+  printf '[DRY_RUN]   --allowedTools "Edit Write MultiEdit Read Bash Glob Grep"\n'
   [[ -n "$EXTRA" ]] && printf '[DRY_RUN]   EXTRA: %s\n' "$EXTRA"
   exit 0
 fi
@@ -160,9 +162,24 @@ claude \
   ${AGENT_FALLBACK:+--fallback-model "$AGENT_FALLBACK"} \
   ${AGENT_EFFORT:+--effort "$AGENT_EFFORT"} \
   --dangerously-skip-permissions \
+  --allowedTools "Edit Write MultiEdit Read Bash Glob Grep" \
   > "$LOG_FILE" 2>&1
 EXIT_CODE=$?
 set -e
+
+# F15: trust JSONL ground truth, not CLI exit code. Any tool_result with
+# is_error=true means the agent's actions failed even if the conversation
+# ended cleanly. Use exit code 2 (distinct from 1 = CLI usage error).
+# Set DIDIO_TOLERATE_TOOL_ERRORS=1 to skip this check for workflows that
+# intentionally permit benign tool errors (e.g. file-not-found the agent handles).
+if [[ "${DIDIO_TOLERATE_TOOL_ERRORS:-0}" != "1" ]]; then
+  TOOL_ERRORS=$(python3 "$PROJECT_ROOT/bin/didio-jsonl-errors.py" "$LOG_FILE" 2>/dev/null || echo 0)
+  TOOL_ERRORS="${TOOL_ERRORS:-0}"
+  if [[ "$TOOL_ERRORS" -gt 0 && "$EXIT_CODE" -eq 0 ]]; then
+    echo "[didio-spawn-agent] $TOOL_ERRORS tool_result error(s) detected — overriding exit code 0 → 2" >&2
+    EXIT_CODE=2
+  fi
+fi
 
 # Update meta with final status
 FINAL_STATUS="completed"

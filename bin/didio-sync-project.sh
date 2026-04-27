@@ -9,7 +9,7 @@
 #   1.  Validate target is a git repo
 #   2.  Create rollback git tag pre-didio-sync-YYYYMMDD
 #   3.  Sync .claude/agents/
-#   4.  Sync .claude/commands/
+#   4.  Sync .claude/commands/ (source: templates/commands/)
 #   5.  Merge .claude/settings.json allow arrays
 #   6.  Sync root agents/
 #   7.  Sync docs/adr/
@@ -183,9 +183,9 @@ fi
 sync_dir "$TEMPLATES/.claude/agents" "$TARGET/.claude/agents"
 
 # ---------------------------------------------------------------------------
-# 4. Sync .claude/commands/
+# 4. Sync .claude/commands/ (source: templates/commands/ — not under .claude/)
 # ---------------------------------------------------------------------------
-sync_dir "$TEMPLATES/.claude/commands" "$TARGET/.claude/commands"
+sync_dir "$TEMPLATES/commands" "$TARGET/.claude/commands"
 
 # ---------------------------------------------------------------------------
 # 5. Sync .claude/settings.json

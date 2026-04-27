@@ -1,0 +1,72 @@
+%% F15 — User journey (permission bypass + honest exit signal)
+%% Owner: F15-T04
+%% Happy path: Operator runs /create-feature → Developer edits .claude/commands/** → succeeds.
+%% Failure path: Developer attempts .claude/settings.json → blocked → spawn exits 2 → wave halts.
+
+flowchart LR
+    subgraph OperatorLane["👤 Operator"]
+        OP_START(["run /create-feature"])
+        OP_OK(["Wave continues ✓"])
+        OP_FAIL(["Wave halts ✗\n(failure surfaced)"])
+    end
+
+    subgraph WaveRunnerLane["⚙️ Wave-runner\nbin/didio-run-wave.sh"]
+        WR_SPAWN["spawn Developer agent\n(per task file)"]
+        WR_WAIT{"agent exit code?"}
+        WR_CONT["record done\ncontinue wave"]
+        WR_HALT["record failed\nhalt wave ⚠️"]
+    end
+
+    subgraph SpawnLane["🚀 Spawn-agent\nbin/didio-spawn-agent.sh"]
+        SA_EXPORT["export DIDIO_AGENT=1\n+ DIDIO_* vars"]
+        SA_INVOKE["claude -p\n--dangerously-skip-permissions\n--allowed-tools 'Edit Write Read Bash Glob Grep'"]
+        SA_PARSE["post-exec JSONL parser\n(python3 inline)\ncounts tool_result.is_error=true"]
+        SA_EXIT0["exit 0\nmeta: status=done"]
+        SA_EXIT2["exit 2\nmeta: status=failed ⚠️"]
+    end
+
+    subgraph ClaudeLane["🤖 Claude (headless)"]
+        CL_PLAN["reads task prompt\nplans tool calls"]
+        CL_CALL{"tool call target"}
+        CL_WRITTEN["file written ✓\ntool_result is_error=false"]
+        CL_BLOCKED["write denied ✗\ntool_result is_error=true"]
+    end
+
+    subgraph GuardLane["🛡️ Claude Code internals\n(sensitive-file guard)"]
+        G_COMMANDS["path: .claude/commands/**\nor templates/.claude/commands/**\n→ ALLOWED (via --allowed-tools)"]
+        G_SETTINGS["path: .claude/settings.json\n→ BLOCKED unconditionally\n(guard above --allowed-tools)"]
+    end
+
+    OP_START --> WR_SPAWN
+    WR_SPAWN --> SA_EXPORT
+    SA_EXPORT --> SA_INVOKE
+    SA_INVOKE --> CL_PLAN
+    CL_PLAN --> CL_CALL
+
+    CL_CALL -->|"Edit .claude/commands/foo.md\nhappy path"| G_COMMANDS
+    CL_CALL -->|"Edit .claude/settings.json\nfailure path"| G_SETTINGS
+
+    G_COMMANDS --> CL_WRITTEN
+    G_SETTINGS --> CL_BLOCKED
+
+    CL_WRITTEN --> SA_PARSE
+    CL_BLOCKED --> SA_PARSE
+
+    SA_PARSE -->|"0 errors"| SA_EXIT0
+    SA_PARSE -->|"≥1 errors"| SA_EXIT2
+
+    SA_EXIT0 --> WR_WAIT
+    SA_EXIT2 --> WR_WAIT
+
+    WR_WAIT -->|"0"| WR_CONT --> OP_OK
+    WR_WAIT -->|"non-zero"| WR_HALT --> OP_FAIL
+
+    classDef deny fill:#ffcccc,stroke:#cc0000,color:#660000
+    classDef allow fill:#ccffcc,stroke:#007700,color:#003300
+    classDef override fill:#fff3cc,stroke:#cc7700,color:#553300
+    classDef endpoint fill:#e8e8ff,stroke:#6666cc,color:#333366
+
+    class G_SETTINGS,CL_BLOCKED deny
+    class G_COMMANDS,CL_WRITTEN allow
+    class SA_EXIT2,SA_PARSE,WR_HALT override
+    class OP_OK,OP_FAIL,OP_START endpoint

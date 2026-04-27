@@ -116,3 +116,11 @@
 **What worked:** Classifying all findings as BLOCKING / IMPORTANT / MINOR gave the developer a clear fix hierarchy. IMPORTANT issues that the developer ignored became QA follow-ups rather than a 4th review cycle.
 **What to avoid:** Specifying test evidence requirements in prose ("save output to logs/F14-smoke.out"). The developer interpreted this loosely and saved to `tests/F14-smoke-result.md`. When you need evidence at a specific path, write it in a `must produce: <path>` format that is mechanically actionable.
 **Pattern to repeat:** Treat "smoke not executed after a rejection" as the same severity as "smoke fails" — the re-run is incomplete, not partial. Add this as an explicit BLOCKING check in the next REJECTED-cycle re-review.
+
+## F15 — 2026-04-27
+
+**What to avoid:** Marking a wave green because spawn-agent reported exit 0. CLI exit 0 is not a reliable signal — the conversation can end as `result.subtype=success` even when every tool call errored. Always grep the JSONL for `is_error: true` until the post-exec parser (added in F15-T03) is confirmed present in the running version of the script. Run `tests/F15-sensitive-edit.sh` first to verify the error-override path actually fires. Any TechLead review that touches `bin/didio-spawn-agent.sh` should include a check that the JSONL parser block is present and that `EXIT_CODE=2` override logic is reachable.
+
+**What to avoid (second pass):** Trusting `[x]` AC checkboxes on smoke tests without running the smoke live. F15 required three review cycles partly because a developer pre-checked a smoke AC before the smoke passed. Always run the smoke during review — `[x]` without attached output is not evidence.
+
+**Pattern to repeat:** When a smoke routes through a CLI dispatcher (`./bin/didio spawn-agent`), verify WHICH binary the dispatcher actually calls. If the feature changes a script that the dispatcher delegates to, the smoke must call the script directly (`./bin/didio-spawn-agent.sh`) or update the global install first. Check every smoke test: does it go through a dispatcher? If yes, add `diff ./bin/didio-spawn-agent.sh "${DIDIO_HOME:-$HOME/.claude-didio-config}/bin/didio-spawn-agent.sh" || echo "WARNING: local != installed"` before the smoke.

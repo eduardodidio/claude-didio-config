@@ -1,0 +1,71 @@
+%% F15 — Architecture (permission bypass + honest exit signal)
+%% Owner: F15-T04
+%% Approach C (path rename: templates/.claude/commands/ → templates/commands/) is the
+%% fix for AC1/AC2. --allowedTools (Approach A) was also added but proved insufficient
+%% for .claude/** paths. T03 adds the post-exec JSONL parser so exit code is honest.
+
+flowchart LR
+    OP(["👤 Operator"])
+
+    subgraph SpawnSetup["bin/didio-spawn-agent.sh — launch"]
+        SA_ENV["export DIDIO_AGENT=1\n+ DIDIO_* vars"]
+        SA_CMD["claude -p\n--dangerously-skip-permissions\n--allowedTools 'Edit Write Read Bash Glob Grep'\n--settings .claude/settings.json"]
+    end
+
+    subgraph ClaudeSession["🤖 Claude (headless session)"]
+        CL_TASK["processes task prompt"]
+
+        subgraph HappyPath["Allow path"]
+            TC_OK["Edit templates/commands/foo.md\n(.claude/commands is a symlink → templates/commands/)"]
+            GUARD_OK{"Claude Code\nsensitive-file guard"}
+            TR_OK["tool_result\nis_error=false ✓\nfile written"]
+        end
+
+        subgraph DenyPath["Deny path"]
+            TC_BAD["Edit .claude/settings.json"]
+            GUARD_BAD{"Claude Code\nsensitive-file guard"}
+            TR_ERR["tool_result\nis_error=true ✗\n'sensitive file — cannot write'"]
+        end
+    end
+
+    subgraph PostExec["bin/didio-spawn-agent.sh — post-exec"]
+        LOG[("JSONL log\n$LOG_FILE")]
+        PARSER["bin/didio-jsonl-errors.py\ncounts tool_result.is_error=true"]
+        EXIT_CHK{"error count > 0?"}
+        EXIT0["EXIT_CODE=0\nstatus=done"]
+        EXIT2["EXIT_CODE=2\nstatus=failed\n⚠️ override"]
+    end
+
+    WAVE["bin/didio-run-wave.sh\n(wave-runner)"]
+
+    OP --> SA_ENV
+    SA_ENV --> SA_CMD
+    SA_CMD --> CL_TASK
+
+    CL_TASK -->|happy path| TC_OK
+    CL_TASK -->|failure path| TC_BAD
+
+    TC_OK --> GUARD_OK
+    GUARD_OK -->|"path in allowed scope\n→ permitted"| TR_OK
+
+    TC_BAD --> GUARD_BAD
+    GUARD_BAD -->|"outside allowed scope\n→ blocked unconditionally"| TR_ERR
+
+    TR_OK --> LOG
+    TR_ERR --> LOG
+
+    LOG --> PARSER
+    PARSER --> EXIT_CHK
+    EXIT_CHK -->|"no"| EXIT0
+    EXIT_CHK -->|"yes"| EXIT2
+
+    EXIT0 --> WAVE
+    EXIT2 --> WAVE
+
+    classDef deny fill:#ffcccc,stroke:#cc0000,color:#660000
+    classDef allow fill:#ccffcc,stroke:#007700,color:#003300
+    classDef override fill:#fff3cc,stroke:#cc7700,color:#553300
+
+    class TC_BAD,GUARD_BAD,TR_ERR deny
+    class TC_OK,GUARD_OK,TR_OK allow
+    class EXIT2,PARSER override

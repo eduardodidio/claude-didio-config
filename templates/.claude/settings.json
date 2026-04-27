@@ -14,7 +14,10 @@
       "Write(tasks/**)",
       "Write(docs/**)",
       "Write(logs/**)",
-      "Edit(./**)"
+      "Edit(./**)",
+      "WebSearch",
+      "WebFetch",
+      "AskUserQuestion"
     ]
   },
   "hooks": {

@@ -53,3 +53,11 @@
 **What to avoid:** Spec'ing a pre-Wave gate across two separate tasks (T06 for `create-feature`, T07 for `didio`) — the T06 developer added the gate only to `didio.md`. Both commands are pipeline entry points; gates must land atomically. When planning a multi-entry-point gate, make it a single task or add an explicit cross-task consistency requirement to both.
 
 **Pattern to repeat:** Opt-in pre-Wave gate shape: `(config.enabled=false default) + (env-var bypass DIDIO_X_SKIP=1) + (forward-compat marker for coordinating sibling feature)`. This triple is portable to any future pre-Wave gate. New role registration must cover all 4 locations atomically: `didio-spawn-agent.sh`, `bin/didio`, `didio-sync-project.sh`, both config files.
+
+## F15 — 2026-04-27
+
+**What worked:** The minimum viable fix for the sensitive-file bypass was `--allowedTools` explicit list passed to `claude -p`, combined with `DIDIO_AGENT=1` as a sentinel env var exported by spawn-agent. The sentinel is cheap, composable, and lets any future hook branch on "spawned vs interactive" without adding new infrastructure. The post-exec JSONL error parser (override exit code to 2 when any `tool_result.is_error=true`) is the correct ground-truth layer — do not rely on CLI exit code in any spawn-style wrapper.
+
+**What to avoid:** Planning a permission fix based on the PreToolUse hook `permissionDecision: "allow"` approach (Approach E). F15-T01 spike proved conclusively that the sensitive-file guard is a separate layer that runs independently of hook output — the hook returned `allow` and the file was still denied. Any future Architect who sees a `.claude/**` write-permission problem should skip directly to `--allowedTools` or path restructuring, not hook-based allow.
+
+**Pattern to repeat:** When a permission gap surfaces in headless, before changing `--permission-mode` or restructuring paths, try passing `--allowedTools` with the required tools — it is the smallest blast radius fix and does not change project structure or downstream contracts. If `--allowedTools` is also insufficient, then escalate to path restructuring (Approach C) with an ADR documenting the downstream contract change.

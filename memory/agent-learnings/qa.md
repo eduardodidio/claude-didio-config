@@ -79,3 +79,10 @@
 **What to avoid:** Treating e2e scenarios that require live API as "PASS" based on dry-run alone. The correct QA disposition: mark them `scaffold-only` explicitly in the report, note the scenario labels and what they would verify, and do not inflate the verdict. The distinction matters when a future QA re-runs the feature.
 
 **Pattern to repeat:** For features with live-API-dependent e2e tests, always run the non-live scenarios (gate logic, config reads, bypass flag) first — they give structural confidence and complete AC coverage for the opt-out paths. Document live scenarios as scaffold with a one-line description of what they verify when run with real API.
+
+## F15 — 2026-04-27
+**What worked:** Reading all TechLead reviews (third review resolved prior REJECTED) up front gave a complete picture of what changed per cycle. Running all unit tests fresh (F15-exit-override: 14/14, F15-pre-tool-unit: 17/17, F09-archive: 39/39, F15-sync-regression: PASS) grounded the verdict in current evidence. The ADR Approach C inconsistency (described as "rejected" but implemented in T08) was caught by cross-referencing the decision/ADR against task notes — this class of doc/code mismatch is easy to miss in TechLead reviews that focus on code correctness.
+
+**What to avoid:** Treating a TechLead MINOR item about INDEX.md as "documentation only" without fixing it during QA. INDEX.md drift is a first-class correctness issue when it misrepresents the implemented allow path — future developers and architects will be misled. Fix MINOR index items during QA pass.
+
+**Pattern to repeat:** For features where the implemented approach deviated from the ADR's Alternatives "rejected" list (e.g., an approach was deferred until a later wave), verify the ADR's Alternatives section accurately calls it "deferred" not "rejected". A "rejected" label on an implemented approach is an integrity failure that erodes trust in the decision record.
