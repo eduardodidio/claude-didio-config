@@ -87,6 +87,6 @@
     "task_count_threshold": 6
   },
   "tea": {
-    "enabled": false
+    "enabled": true
   }
 }
