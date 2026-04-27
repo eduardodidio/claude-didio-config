@@ -6,7 +6,7 @@
 # Usage:
 #   didio-spawn-agent.sh <role> <feature-id> <task-file> [extra-prompt]
 #
-# Roles: architect | developer | techlead | qa
+# Roles: architect | developer | techlead | qa | readiness | tea
 #
 # The agent prompt is composed as:
 #   <role-prompt-from-agents/prompts/>  +  task context  +  optional extra
@@ -16,7 +16,7 @@
 
 set -euo pipefail
 
-ROLE="${1:?role required: architect|developer|techlead|qa}"
+ROLE="${1:?role required: architect|developer|techlead|qa|readiness|tea}"
 FEATURE="${2:?feature-id required (e.g. F01)}"
 TASK_FILE="${3:?task-file required (absolute or relative path)}"
 EXTRA="${4:-}"
@@ -148,6 +148,7 @@ if [[ "${DIDIO_DRY_RUN:-0}" == "1" ]]; then
   [[ -n "$AGENT_FALLBACK" ]] && printf '[DRY_RUN]   --fallback-model %s\n' "$AGENT_FALLBACK"
   [[ -n "$AGENT_EFFORT" ]]   && printf '[DRY_RUN]   --effort %s\n' "$AGENT_EFFORT"
   printf '[DRY_RUN]   --dangerously-skip-permissions\n'
+  [[ -n "$EXTRA" ]] && printf '[DRY_RUN]   EXTRA: %s\n' "$EXTRA"
   exit 0
 fi
 set +e

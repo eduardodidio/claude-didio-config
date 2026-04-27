@@ -1,0 +1,73 @@
+%% F14 — Architecture (data-flow diagram)
+%% Owner: F14-T01
+%% Mostra o pipeline de 3 commands composables (/brainstorm, /research,
+%% /product-brief) que alimentam decisões greenfield antes de
+%% /elicit-prd (F11) ou /plan-feature.
+
+flowchart LR
+    User(["👤 User"])
+
+    subgraph Config["didio.config.json"]
+        BUDGET[/"research.web_search_budget = 5\nresearch.web_fetch_budget = 3"/]
+    end
+
+    subgraph Cmd1["/brainstorm <topic>"]
+        B1["Orchestrator: 3–5 direções\n(direção, ganha/perde,\nesforço, risco, pré-condição)"]
+    end
+
+    subgraph Cmd2["/research <topic>"]
+        R1["Orchestrator: WebSearch + WebFetch\n(respeitando budget)"]
+        R2{"Budget atingido?"}
+    end
+
+    subgraph Web["🌐 Web"]
+        WS[["WebSearch"]]
+        WF[["WebFetch"]]
+    end
+
+    subgraph FS["📁 claude-didio-out/ (gitignored, F09)"]
+        BS[("brainstorms/<slug>-YYYYMMDD.md")]
+        RS[("research/<slug>-YYYYMMDD.md")]
+        PB[("prd-drafts/<FXX>-brief.md")]
+    end
+
+    subgraph Cmd3["/product-brief"]
+        P1{"brainstorms/ vazio?"}
+        P2{"research/ vazio?"}
+        P3["AskUserQuestion: qual brainstorm + qual research"]
+        P4["Funde em brief: Topic / Brainstorm directions /\nResearch highlights / Open questions / Suggested next step"]
+    end
+
+    subgraph Next["Próximo passo"]
+        N1{"F11 instalado?\n(.claude/commands/elicit-prd.md)"}
+        E1[/"sugere /elicit-prd <FXX>"/]
+        E2[/"sugere /plan-feature <FXX>"/]
+    end
+
+    User -->|"/brainstorm"| Cmd1
+    User -->|"/research"| Cmd2
+    User -->|"/product-brief"| Cmd3
+
+    BUDGET -. "limita buscas" .-> R1
+    R1 --> WS
+    R1 --> WF
+    WS --> R1
+    WF --> R1
+    R1 --> R2
+    R2 -- "não" --> R1
+    R2 -- "sim: rodapé com contagem" --> RS
+
+    B1 --> BS
+
+    BS -. "lê (opcional)" .-> P1
+    RS -. "lê (opcional)" .-> P2
+    P1 -- "não" --> P3
+    P1 -- "sim: marca _(skipped)_" --> P4
+    P2 -- "não" --> P3
+    P2 -- "sim: marca _(skipped)_" --> P4
+    P3 --> P4
+    P4 --> PB
+
+    PB --> N1
+    N1 -- "sim" --> E1
+    N1 -- "não" --> E2

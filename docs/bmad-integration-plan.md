@@ -125,6 +125,8 @@ usuário. Reabrir a discussão se aparecer feature realmente cross-functional
 
 ### F12 — sharding de briefs + economia de tokens adicional
 
+> **Status:** ✅ done — see `tasks/features/F12-sharding-token-economy/retrospective.md` (QA passed 2026-04-27).
+
 **Quando ativar:** quando um brief passa de 150 linhas ou feature tem >6
 tasks. Caso contrário, sharding adiciona indireção sem ganho.
 

@@ -325,9 +325,10 @@ fi
 sync_dir "$TEMPLATES/docs/diagrams/templates" "$TARGET/docs/diagrams/templates"
 
 # ---------------------------------------------------------------------------
-# 9. Sync docs/prd/template.md
+# 9. Sync docs/prd/ (templates: PRD output + elicit questions)
 # ---------------------------------------------------------------------------
 copy_if_missing "$TEMPLATES/docs/prd/template.md" "$TARGET/docs/prd/template.md"
+copy_if_missing "$TEMPLATES/docs/prd/elicit-questions.md" "$TARGET/docs/prd/elicit-questions.md"
 
 # ---------------------------------------------------------------------------
 # 10. Sync memory/agent-learnings/ (preserve files with real content)
@@ -338,7 +339,7 @@ if [[ $DRY_RUN -eq 0 ]]; then
   mkdir -p "$TARGET_LEARNINGS"
 fi
 
-for role in architect developer techlead qa; do
+for role in architect developer techlead qa readiness tea; do
   src="$TEMPLATE_LEARNINGS/$role.md"
   dst="$TARGET_LEARNINGS/$role.md"
 

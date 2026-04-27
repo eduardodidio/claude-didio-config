@@ -22,6 +22,16 @@
       "model": "sonnet",
       "fallback": "haiku",
       "effort": "medium"
+    },
+    "readiness": {
+      "model": "sonnet",
+      "fallback": "haiku",
+      "effort": "medium"
+    },
+    "tea": {
+      "model": "sonnet",
+      "fallback": "haiku",
+      "effort": "medium"
     }
   },
   "models_economy": {
@@ -38,6 +48,14 @@
       "fallback": "haiku"
     },
     "qa": {
+      "model": "haiku",
+      "fallback": "haiku"
+    },
+    "readiness": {
+      "model": "haiku",
+      "fallback": "haiku"
+    },
+    "tea": {
       "model": "haiku",
       "fallback": "haiku"
     }
@@ -62,5 +80,13 @@
     "window_duration_minutes": 300,
     "window_limit_tokens": 200000000,
     "max_snapshot_age_secs": 300
+  },
+  "sharding": {
+    "enabled": true,
+    "brief_lines_threshold": 150,
+    "task_count_threshold": 6
+  },
+  "tea": {
+    "enabled": false
   }
 }

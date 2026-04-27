@@ -49,3 +49,38 @@
 **What to avoid:** `npx -y <pkg>` in a hook path without a timeout. First-install on a fresh machine can take 30+ seconds; post-tool hook is backgrounded so non-fatal, but any foreground invocation would block. If needed in foreground: `perl -e 'alarm 10; exec @ARGV' -- npx -y pkg`. Also: `touch -t "$(date -u -v -N{unit} …)"` — `touch -t` reads local time, `date -u` prints UTC → backdated mtimes land in the future. Use Python `os.utime(p, (t-600, t-600))` for portable staleness fixtures.
 
 **Pattern to repeat:** Checkpoint-style JSON files where a human/agent writes semantic fields AND a script periodically rewrites mechanical fields — always read the previous file first, preserve the semantic keys, only overwrite the mechanical ones. `didio-checkpoint-write.sh:63-72` is the reference. Prevents stomping agent-authored progress on every tool call.
+
+## F10 — 2026-04-26
+**What worked:** Fixture-based testing with `F99-` prefix completely isolated from real features. Sequential Wave 3 chain (T08→T09→T10) enforced by manifest; respecting it prevented a scenario where T10 would assert fixtures that T08 hadn't created yet.
+
+**What to avoid:** Sync log assertions using two independent `grep -qF` calls (`grep -qF "[TOKEN]" && grep -qF "$path"`) — these check each token exists somewhere in the file, not that they co-occur on the same line. Use `grep -F "$path" "$LOG" | grep -qF "[TOKEN]"` to assert co-occurrence. Also: hardcoding absolute paths (`DIDIO_HOME="${DIDIO_HOME:-/Users/...}"`) in portable test scripts — derive from `${BASH_SOURCE[0]}` and keep the env override for CI. And: never mark a task `done` when its test runner exists but has never been executed; the AC must include a passing run, not just a created script.
+
+**Pattern to repeat:** FORCE/debug env vars needed by sanity tasks should be designed into the agent prompt during the Wave 1 task, not added retroactively. If Wave 3 includes "run against non-planned feature", the Wave 1 prompt must already support `DIDIO_X_FORCE=1`.
+
+## F11 — 2026-04-26
+**What worked:** Single-source-of-truth architecture (question template as sole owner of prompt text) kept the command body clean and testable. Sync propagation as a one-line `copy_if_missing` addition is the right pattern for new template files.
+
+**What to avoid:** (1) Leaving a Wave N task at `Status: planned` while Wave N+1 starts — the smoke test compensated with a `_warn` that created technical debt outliving its context. Never soft-gate to compensate for an incomplete prior-Wave task. (2) False-positive AC checkboxes: T05 marked `[x]` for "heading is `2. **📝`" when the actual heading was `16. **📝`. This class of integrity failure is harder to catch than an empty box because the checkbox appears complete. Include the actual grep output as inline evidence, not just `[x]`. (3) `_warn` in test scripts without a closing commitment — it becomes a silent regression gate.
+
+**Pattern to repeat:** For slash-command features, structural smoke tests (grep-based, no runtime invocation) give high assertion coverage quickly. Separate the command body from the data file (template) so both can be tested independently.
+
+## F12 — 2026-04-27
+
+**What worked:** Running all three smokes before marking tasks done — the pattern F06/F11 broke but F12 corrected. Smoke script created = smoke must be run; the AC checkbox for "rodar X imprime N passed, 0 failed" must be checked by actually running X.
+
+**What to avoid:** (1) Leaving skeleton status fields as-is after populating a doc. When you populate a skeleton doc created by a prior task, update `**Status:**` from "skeleton" to "populated (by FXX-TYY, YYYY-MM-DD)". One-line edit, signals completeness to future readers and QA. (2) Stale "# to be added in TXX" comments. If the approach changed (e.g., chose inline Python3 over a separate script), replace the skeleton comment with the actual approach. Never leave `# to be added in TXX` when TXX is already done. (3) Missing `## Notes from Developer` when the task spec explicitly says to create one. Body prose does not substitute — the Notes section is where reviewers and QA look first for decision evidence.
+
+**Pattern to repeat:** For tasks that introduce a new config sub-field with a non-obvious default behavior (e.g., `wave_summary` recognized-but-not-stored), document the rationale in `## Notes from Developer` immediately — not as a TechLead follow-up item.
+
+## F13 — 2026-04-27
+
+**What worked:** Fixture domain diversity (audio-game / a11y-ui / trivial-text) gave distinct behavioral coverage without inflating the suite. Using `DIDIO_DRY_RUN=1` mode in `F13-tea-e2e.sh` let QA validate spawn configuration without a live Claude API call.
+
+**What to avoid:** Marking a task `status: done` when its primary file artifact does not exist. T04 (`check-tests.md`) and T06 (TEA gate in `create-feature.md`) both fell into this pattern — "done but artifact absent" (3rd recurrence: F09-T03, F11-T05, F13-T04/T06). Before changing status: `test -f <primary-artifact-path> || echo FAIL`. Also: when a pipeline gate is added to one entry point (`didio.md`), add it to the other (`create-feature.md`) in the same task — never split across separate tasks that can execute in parallel.
+
+**Pattern to repeat:** For any task that creates/modifies a slash command, the closing step must include `diff -q .claude/commands/<cmd>.md templates/.claude/commands/<cmd>.md` to confirm byte-identity between root and template. A one-liner that catches the most common F13-class omission.
+
+## F14 — 2026-04-27
+**What worked:** Wave 0 front-loading (permissions + config block) prevented approval gaps in Waves 1+. Three independent slash commands with no spawn kept QA validation fully structural.
+**What to avoid:** Partial fix cycles — IMPORTANT issues (output path mismatch, two-level menu gaps) survived two REJECTED cycles because only BLOCKING items were fixed on each re-run. After any REJECTED verdict, fix ALL BLOCKING + IMPORTANT in the same pass. Also: never deliver infra (permissions, config) while primary deliverables (command files) are absent.
+**Pattern to repeat:** Run the smoke test and verify it passes BEFORE declaring a re-run ready after a REJECTED verdict. An unexecuted test script is not evidence.

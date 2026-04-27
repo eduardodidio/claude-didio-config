@@ -1,0 +1,46 @@
+%% F11 — Architecture (data-flow diagram)
+%% Owner: F11-T01
+%% Mostra o pipeline completo de /elicit-prd: leitura do question template,
+%% loop interativo via AskUserQuestion, escrita do draft em
+%% claude-didio-out/, confirmação e cópia para tasks/features/.../_brief.md.
+
+flowchart LR
+    User(["👤 User"])
+
+    subgraph Orchestrator["Orchestrator (model que invocou /elicit-prd)"]
+        CMD["/elicit-prd FXX &quot;título&quot;"]
+        LOAD["Load question template"]
+        ASK["Loop: AskUserQuestion (or text fallback)"]
+        WRITE["Write draft (template.md format)"]
+        CONFIRM["AskUserQuestion: copy to brief?"]
+        COPY["Copy draft → _brief.md"]
+        HINT["Suggest: /plan-feature FXX"]
+    end
+
+    subgraph FS["File system"]
+        QT[("templates/docs/prd/<br/>elicit-questions.md<br/>(8 fixed + 2 conditional Qs)")]
+        TPL[("templates/docs/prd/<br/>template.md<br/>(PRD output format — referenced)")]
+        DRAFT[("claude-didio-out/prd-drafts/<br/>FXX-prd.md<br/>(gitignored, preserved)")]
+        BRIEF[("tasks/features/FXX-slug/<br/>_brief.md")]
+    end
+
+    User -->|invokes| CMD
+    CMD --> LOAD
+    LOAD -->|reads| QT
+    LOAD --> ASK
+    ASK <-->|each Q| User
+    ASK -->|skip → placeholder| WRITE
+    ASK -->|answer → value| WRITE
+    WRITE -->|format from| TPL
+    WRITE -->|writes| DRAFT
+    DRAFT --> CONFIRM
+    CONFIRM <-->|yes/no| User
+    CONFIRM -->|yes| COPY
+    COPY -->|reads| DRAFT
+    COPY -->|creates| BRIEF
+    COPY --> HINT
+    CONFIRM -->|no| HINT
+    HINT -->|prints| User
+
+    classDef store fill:#e3e3ff,stroke:#5050aa
+    class QT,TPL,DRAFT,BRIEF store

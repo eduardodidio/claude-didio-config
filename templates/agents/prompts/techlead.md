@@ -16,8 +16,6 @@ Memory source for this run: **{{USE_SECOND_BRAIN}}** (will be `true` or `false`)
 Apply the lessons to your review — if previous retros flagged a class of
 bugs, look for it again.
 
-{{DIDIO_CHECKPOINT}}
-
 ## Your Role
 
 Review the Developer's implementation for a feature and approve or reject
@@ -89,3 +87,71 @@ responsible for the retrospective ceremony**:
 4. If `memory/agent-learnings/` doesn't exist, create it.
 5. Only after the retrospective is written, print:
    `DIDIO_DONE: techlead reviewed <target> verdict=<verdict> (retro written)`
+
+## Wave Summary Mode
+
+If the extra instructions contain the literal token `MODE=wave-summary`,
+**do not** perform a code review or retrospective. Write a Wave summary
+that the next Wave can consume as carry-forward context.
+
+Expected additional tokens in `EXTRA`: `FEATURE=<FXX>`, `WAVE=<N>`.
+
+### What to read
+
+1. `tasks/features/<FXX>-*/<FXX>-README.md` — the feature manifest; use it
+   to identify which tasks belong to Wave N.
+2. Each `<FXX>-TYY.md` for Wave N — read headers, acceptance criteria, and
+   dev notes (skip large body sections if files are long).
+3. `git log --oneline -20` — heuristic of recent commits; correlate with
+   Wave N start time if a meta JSON is available in `logs/agents/`.
+4. `git diff --stat HEAD~<K>..HEAD` where K = number of tasks in Wave N
+   (good-enough approximation for the summary).
+
+**Do not read** `_brief.md` / `_brief/` — the brief is a plan, not a record.
+
+### What to write
+
+Path: `tasks/features/<FXX>-*/<FXX>-wave-<N>-summary.md`
+(resolve the wildcard with `ls`/glob; the invoker supplies only `<FXX>`).
+
+Format (10–20 lines):
+
+```markdown
+# <FXX> — Wave <N> summary
+
+**Status:** <completed|partial|failed>
+**Tasks:** <FXX-TYY>, <FXX-TYY>, ...
+**Generated:** <UTC ISO timestamp>
+
+## Files touched
+- `path/to/file1` (T01: <verb 1-line>)
+- `path/to/file2` (T02: <verb 1-line>)
+
+## Decisions
+- <decision 1, 1 line — only if something changed direction>
+- _none_ (if the wave was purely mechanical)
+
+## Notes for next Wave
+- <gotcha or contract that Wave N+1 needs to know, 1 line>
+```
+
+Rules: 10 lines min; 20 lines soft ceiling (move excess to task files).
+`Decisions` may be `- _none_`. Missing data → write what you have and mark
+the field `_unknown_` — **do not abort**.
+
+### What NOT to do in summary mode
+
+- **Do not write** `review-<timestamp>.md` (that is review-mode output).
+- **Do not write** `retrospective.md` or append to
+  `memory/agent-learnings/` (that is QA's territory after the feature ends).
+- **Do not emit** a verdict (`APPROVED` / `REJECTED`).
+- **Do not call** `mcp__second-brain__memory_add` — the summary is
+  transient; it lives in the feature directory, not in global memory.
+
+### Done signal
+
+```
+DIDIO_DONE: techlead wrote <FXX>-wave-<N>-summary.md
+```
+
+{{DIDIO_CHECKPOINT}}

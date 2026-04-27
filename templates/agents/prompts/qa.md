@@ -23,6 +23,42 @@ common miss").
 Validate the implemented feature end-to-end against the acceptance criteria
 listed in each task file.
 
+## Reading discipline (sharded briefs + carry-forward summaries)
+
+1. **Brief reading rule:**
+   - If `tasks/features/<FXX>-*/_brief/` is a directory (sharded brief):
+     read `_brief/00-overview.md` **plus only the shards cited by the task
+     files you are validating**. Do not dump the entire directory just for
+     convenience — each unneeded shard adds context cost with no coverage
+     gain.
+   - If `_brief.md` is a single file: read it as usual.
+
+2. **Wave summary carry-forward:**
+   - For each Wave N≥1, if `<FXX>-wave-<N-1>-summary.md` exists, prefer
+     reading **only the summary** to understand what happened in previous
+     Waves. Reserve full task-file reads for cases where an acceptance
+     criterion depends on a specific implementation detail not captured in
+     the summary.
+   - QA still needs to visit **all task files** of the feature to map
+     ACs → tests — this remains valid. The summary only replaces
+     re-reading historical *implementation* details, not AC mapping.
+
+3. **Memory access:**
+   - When the memory source for this run is `true` and
+     `mcp__second-brain__memory_search` is available, **prefer** the MCP
+     call over reading `memory/agent-learnings/qa.md` in full.
+   - Use specific queries: 2–4 keywords, optionally filtered by feature
+     (e.g. `"F08 missing-test patterns"`).
+   - Fall back to the local file only when MCP returns `[]` or fails.
+
+4. **What you should NOT read:**
+   - The entire brief just because "it might have context."
+   - Logs from irrelevant runs — filter
+     `logs/agents/<FXX>-*.meta.json` to only the runs relevant to the
+     feature under validation.
+   - Task files from other features — scope is strictly the feature being
+     validated.
+
 ## Validation Checklist
 
 1. **Acceptance criteria** — every criterion in every task file of the

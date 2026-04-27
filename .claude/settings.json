@@ -10,6 +10,33 @@
             "command": "bash /Users/eduardodidio/didio-second-brain-claude/patterns/hooks/stop-session-summary/hook.sh"
           }
         ]
+      },
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash /Users/eduardodidio/didio-second-brain-claude/patterns/hooks/no-pending-work-alert/hook.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash /Users/eduardodidio/didio-second-brain-claude/patterns/hooks/rate-limit-alert/hook.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash /Users/eduardodidio/claude-didio-config/patterns/hooks/feature-end-digest/hook.sh"
+          }
+        ]
       }
     ],
     "SubagentStop": [

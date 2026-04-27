@@ -1,0 +1,79 @@
+%% F10 — User journey (BPMN-style flowchart with swimlanes)
+%% Owner: F10-T01
+%% Happy path + branches: BLOCKED, skip, status-not-planned, missing-feature.
+
+flowchart TD
+    subgraph User["👤 User"]
+        Start([start pipeline])
+        Fix1([fix path and retry])
+        Fix2([run with FORCE if intended])
+        Fix3([edit tasks and re-run])
+    end
+
+    subgraph Orchestrator["⚙️ Orchestrator"]
+        Cmd[/create-feature FXX &lt;desc&gt;]
+        Gate{Readiness gate}
+        Skip1[DIDIO_SKIP_READINESS=1\nyellow warning: skipped]
+        Skip2[status ≠ planned\nexit 0 silently]
+        SpawnRA[spawn readiness agent\nsonnet + effort=medium]
+        ParseV{parse\n**Verdict:**}
+        FireW0[dispatch Wave 0]
+        FireW1[dispatch Wave 1 … N\n→ TechLead → QA]
+        Abort[exit 1\nprint report path\ninstruct user to fix plan]
+        AbortMal[treat as BLOCKED\nreason: report malformed]
+    end
+
+    subgraph ReadinessAgent["🔍 Readiness Agent"]
+        FindDir{feature dir\nexists?}
+        CheckStatus{Status:\nplanned?}
+        Audit[run 5 checks:\n1 AC coverage\n2 traceability\n3 file collision\n4 Wave 0 completeness\n5 Testing non-empty]
+        WriteReport[write readiness-report.md\n**Verdict:** READY or BLOCKED]
+    end
+
+    subgraph FS["📁 File System"]
+        TmpBrief[_tmp-brief.md]
+        Tasks[FXX-README.md\nFXX-T*.md]
+        Report[readiness-report.md]
+        Done([feature done ✅])
+    end
+
+    Start --> Cmd
+    Cmd --> TmpBrief
+    Cmd --> Tasks
+    Cmd --> Gate
+
+    Gate -->|DIDIO_SKIP_READINESS=1| Skip1
+    Skip1 --> FireW0
+
+    Gate -->|normal flow| SpawnRA
+    SpawnRA --> FindDir
+    FindDir -->|no| Abort
+    Abort --> Fix1
+
+    FindDir -->|yes| CheckStatus
+    CheckStatus -->|no| Skip2
+
+    CheckStatus -->|yes| Audit
+    Audit --> WriteReport
+    WriteReport --> Report
+    Report --> ParseV
+
+    ParseV -->|READY| FireW0
+    FireW0 --> FireW1
+    FireW1 --> Done
+
+    ParseV -->|BLOCKED| Abort
+    Abort --> Fix3
+
+    ParseV -->|malformed\nor absent| AbortMal
+    AbortMal --> Abort
+
+    classDef gate fill:#fff3cd,stroke:#856404
+    classDef bad fill:#f8d7da,stroke:#721c24
+    classDef good fill:#d4edda,stroke:#155724
+    classDef skip fill:#d1ecf1,stroke:#0c5460
+    class Gate,FindDir,CheckStatus,ParseV gate
+    class Abort,AbortMal bad
+    class FireW0,FireW1,Done good
+    class Skip1 skip
+    class Skip2 skip

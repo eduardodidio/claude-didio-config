@@ -23,3 +23,33 @@
 **What to avoid:** Skipping the mandatory 2-diagram check. The Architect spec says "two diagrams per feature, non-negotiable" — F07 shipped without them and the TechLead caught the gap (had to create inline during review). Plan files should include a diagram subsection as a first-class deliverable, not an afterthought in a task's Dev Notes.
 
 **Pattern to repeat:** When planning a feature that adds a gating hook (anything that can deny tool calls via matcher "*"), include a Wave 0 task for the staleness guard — not an optional feature, a mandatory defensive layer. Any on-disk state a hook reads needs a `max_age_secs` config with sensible default (300s here) and a mtime-based skip.
+
+## F10 — 2026-04-26
+**What worked:** Wave manifest with explicit serial gates (Wave 0 blocking, Wave 3 sequential) prevented dependency violations across 13 tasks. Report-spec as a shared contract between agent (writer) and slash command (parser) let both sides evolve independently without coordination.
+
+**What to avoid:** Implicit file dependencies not captured in the Wave manifest. If task B's AC requires file X to exist, task A (the owner of X) must list X in "Files touched" AND the README dependency graph must include an explicit arrow A→B. Silent implicit dependencies become discovered-at-T10 surprises. Also: sanity/debug FORCE overrides (e.g. `DIDIO_READINESS_FORCE=1`) should be specced in the prompt task (Wave 1) when the Wave 3 task that needs them is already planned — not added retroactively to a `done` task.
+
+**Pattern to repeat:** Add a Wave-completion pre-check before TechLead: every task from Wave 0–N should be `Status: done`; any exception must be explicitly flagged in the TechLead spawn call. This mirrors what the readiness gate does for plans — do the same for execution completeness.
+
+## F11 — 2026-04-26
+**What worked:** Explicit parallelism constraints in the wave manifest (T02-T05 touch distinct files, no overlap) prevented conflicts during parallel Wave 1 execution. Architecture-layer table (listing exactly which files each task touches) is the right artifact for complex multi-file features.
+
+**What to avoid:** Under-constrained briefs for complex slash-command features — Architect ran 3 times (2 failures, 1 kill) on F11 before converging. For features that are "orchestration-only" (no code, only templates + slash commands), the brief should enumerate the exact files to create/edit and the expected diff at a high level. Vague briefs lead to planning cycles.
+
+**Pattern to repeat:** For slash-command features: make the question template the single source of truth (not the command body) and cite it in the brief explicitly. This keeps the command body lean and the template independently editable — which the AC structure can then verify via negative grep.
+
+## F12 — 2026-04-27
+
+**What worked:** Sharding contract as a self-validating output — requiring each generated task to cite ≥1 shard in `## Dev Notes` lets structural smoke tests verify sharding correctness without a live model run. The opt-in threshold trio (`enabled`, `brief_lines_threshold`, `task_count_threshold`) is the right shape for Tier 2 features: small features pay zero overhead.
+
+**What to avoid:** Omitting the kill-switch paths from the architecture diagram. All three gateways (sharding.enabled, brief_lines_threshold, task_count_threshold) must appear in the diagram — a reviewer who only reads the diagram should be able to understand every opt-out path.
+
+**Pattern to repeat:** When introducing a sharded brief, write `_brief/00-overview.md` as the always-read summary and `NN-<component>.md` as component shards. Every generated task's `## Dev Notes` must cite the relevant shard(s). This is programmatically verifiable and prevents context bloat in Developer/QA agents that only need one component.
+
+## F13 — 2026-04-27
+
+**What worked:** Reusing F10 (check-readiness) as the structural template for TEA (same role registration pattern, same slash-command shape, same pipeline gate) reduced implementation scope significantly. Wave 1 parallelism with 4 tasks touching strictly disjoint files prevented conflicts.
+
+**What to avoid:** Spec'ing a pre-Wave gate across two separate tasks (T06 for `create-feature`, T07 for `didio`) — the T06 developer added the gate only to `didio.md`. Both commands are pipeline entry points; gates must land atomically. When planning a multi-entry-point gate, make it a single task or add an explicit cross-task consistency requirement to both.
+
+**Pattern to repeat:** Opt-in pre-Wave gate shape: `(config.enabled=false default) + (env-var bypass DIDIO_X_SKIP=1) + (forward-compat marker for coordinating sibling feature)`. This triple is portable to any future pre-Wave gate. New role registration must cover all 4 locations atomically: `didio-spawn-agent.sh`, `bin/didio`, `didio-sync-project.sh`, both config files.

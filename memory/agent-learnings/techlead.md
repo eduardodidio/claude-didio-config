@@ -81,3 +81,38 @@
 **What to avoid:** Approving a feature without verifying that every gating hook has a staleness guard on its input. Without it, any test that leaves a fixture behind will brick future sessions — harder to reproduce, easy to miss in review, catastrophic when it hits.
 
 **Pattern to repeat:** When reviewing a feature that adds `matcher: "*"` hooks, add a dedicated "session-safety" section to the review: (1) does every on-disk input have `max_age_secs`? (2) do the hook's tests have `trap _cleanup EXIT`? (3) does the deny path JSON conform to `hookSpecificOutput` schema? (4) can the hook be disabled via a single config flag for emergency recovery?
+
+## F10 — 2026-04-26
+**What worked:** Flagging the co-located grep anti-pattern (M01) and the hardcoded absolute path (M02) as minor issues with code snippets showing the correct form gave the developer actionable fixes rather than just a description of the problem. The "Retrospective Seeds" section at the end of the review file made QA's ceremony significantly easier — seeds translate directly to learnings.
+
+**What to avoid:** Noting implicit file dependencies (e.g., T10 needed `templates/.claude/commands/check-readiness.md` which was T04's output) as a minor cosmetic item. These are structural dependency gaps — if the Wave manifest doesn't model them, future architects will repeat the mistake. Escalate implicit dependencies to IMPORTANT, not MINOR.
+
+**Pattern to repeat:** Before declaring APPROVED, verify that every task marked `Status: done` had its test runner actually executed (not just created). A smoke runner in `tests/` without a run log is the same class of gap as a missing test — if there's no evidence of execution, the task is not done.
+
+## F11 — 2026-04-26
+**What worked:** Classifying issues as BLOCKING vs IMPORTANT (with explicit evidence commands) made the re-review fast — developers knew exactly what to fix and QA knew exactly what to verify. The two-review cycle (REJECTED → APPROVED_WITH_FOLLOWUP) is the right outcome for a feature with both critical misses (T05 unexecuted, unchecked boxes) and functional correctness.
+
+**What to avoid:** Trusting AC checkbox state without spot-running the evidence command. T05 had `[x]` for "heading is `2. **📝`" — a literal check that was false. The rule: for any AC that cites a grep command as evidence, run the command. "Checked" means nothing without the output.
+
+**Pattern to repeat:** Any `_warn` in a test script that says "task X should add this" must be explicitly tracked in the wave manifest as a follow-up item. If that task completes and the `_warn` path is now reachable, promote to `_fail` before closing the Wave — not as a QA follow-up.
+
+## F12 — 2026-04-27
+
+**What worked:** Classifying TechLead follow-up items with explicit instructions (file path + exact field + what to change) let QA resolve all three in minutes. The APPROVED_WITH_FOLLOWUP verdict with a numbered follow-up list is the right format when the issues are real but non-blocking.
+
+**What to avoid:** Confusing Wave Summary Mode with the existing review modes. Wave Summary Mode is a distinct third mode (not a variant of "review" or "review-only"). Activation token is `MODE=wave-summary` in the EXTRA prompt — review carefully before treating a TechLead run as a code review when the EXTRA says otherwise.
+
+**Pattern to repeat:** For features that add new operational modes to an existing role (like Wave Summary Mode for TechLead), the review must explicitly check that the new mode's activation token is distinct from existing tokens, documented literally in the prompt, and tested with a DRY_RUN smoke that verifies the token appears in the spawn invocation.
+
+## F13 — 2026-04-27
+
+**What worked:** Grepping for the gate keyword across BOTH pipeline entry points (`create-feature.md` and `didio.md`) in a single pass caught the T06 omission immediately — the tea gate was in `didio.md` but not in `create-feature.md`. Parallel checks (ls deliverables, grep for gate, grep for INDEX.md entry) made the review fast and complete.
+
+**What to avoid:** Trusting `status: done` on any task whose primary deliverable is a file. T04 (`check-tests.md`) and T06 (TEA gate in `create-feature.md`) were both marked done with files either missing or unchanged. Always `ls`/`grep` the exact artifact path before marking APPROVED. Never infer from checkbox state.
+
+**Pattern to repeat:** For any feature that adds a pipeline gate, add this mandatory checklist item: `grep -l "<gate-keyword>" .claude/commands/create-feature.md .claude/commands/didio.md` — both must match. Missing from one is BLOCKING. Also: `grep -q "F<NN>" docs/diagrams/INDEX.md || echo BLOCKING` — INDEX.md staleness is a recurring BLOCKING issue across F03, F05, F09, F13; add it to the standard review pass before reading any other artifact.
+
+## F14 — 2026-04-27
+**What worked:** Classifying all findings as BLOCKING / IMPORTANT / MINOR gave the developer a clear fix hierarchy. IMPORTANT issues that the developer ignored became QA follow-ups rather than a 4th review cycle.
+**What to avoid:** Specifying test evidence requirements in prose ("save output to logs/F14-smoke.out"). The developer interpreted this loosely and saved to `tests/F14-smoke-result.md`. When you need evidence at a specific path, write it in a `must produce: <path>` format that is mechanically actionable.
+**Pattern to repeat:** Treat "smoke not executed after a rejection" as the same severity as "smoke fails" — the re-run is incomplete, not partial. Add this as an explicit BLOCKING check in the next REJECTED-cycle re-review.

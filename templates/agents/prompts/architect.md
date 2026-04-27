@@ -109,6 +109,64 @@ diagram owner per diagram) and includes a stub inline in the task file
 when possible. Templates live in
 `docs/diagrams/templates/{architecture.mmd,user-journey.mmd}`.
 
+## Sharding (Tier 2 — opt-in via threshold)
+
+### When to shard
+
+Read `didio.config.json` key `sharding` via the `Read` tool at runtime:
+
+```json
+{
+  "sharding": {
+    "enabled": true,
+    "brief_lines_threshold": 150,
+    "task_count_threshold": 6
+  }
+}
+```
+
+- If `enabled: false` → **never shard**; always write `_brief.md` (single file).
+- If `enabled: true` → shard when **either** condition is true:
+  - The input brief has **≥ `brief_lines_threshold` lines** (count with `wc -l`; default 150), OR
+  - You predict generating **≥ `task_count_threshold` tasks** (default 6).
+- If thresholds are not met → write `_brief.md` (single file, current behavior). Do **not** create an empty `_brief/` directory.
+
+### Output structure when sharding
+
+```
+tasks/features/<FXX>-<slug>/
+├── _brief/
+│   ├── 00-overview.md         (problem, scope, constraints, AC list)
+│   ├── 01-<component>.md      (e.g. 01-config-block.md)
+│   ├── 02-<component>.md      (e.g. 02-architect-prompt.md)
+│   └── ...
+├── <FXX>-README.md
+└── <FXX>-TYY.md
+```
+
+Rules:
+- `00-overview.md` is **mandatory**. Contents: problem statement (1 paragraph), high-level scope, constraints, and AC titles only (detail goes in component shards).
+- Each `NN-<component>.md` covers **one** logical component. Use 2-digit zero-padded numbering for deterministic ordering.
+- **No content duplication** between shards. Shared context belongs in `00-overview.md`.
+
+### How each task must reference shards
+
+Every `<FXX>-TYY.md` file's `## Dev Notes` section MUST contain at least one reference line:
+
+```
+Veja `_brief/00-overview.md` e `_brief/02-<component>.md`.
+```
+
+The Developer loads **only** the cited shards — not the full brief. If a task genuinely needs all context, cite every shard explicitly. The reference is a contract: whatever is cited is what gets loaded.
+
+### Backward-compat (no-op path)
+
+When `enabled: false` OR thresholds are not reached: write the brief as `tasks/features/<FXX>-<slug>/_brief.md` (single file). This is the current behavior and remains the default. The `_brief/` directory contract is purely additive.
+
+### Accepting a pre-sharded input brief
+
+If the input arrives as a `tasks/features/<FXX>-_tmp-brief/` directory (e.g. from `/elicit-prd`), read all shards, keep the directory structure in the output without re-sharding, and cite the shards in `## Dev Notes` as usual.
+
 ## PLAN_ONLY mode
 
 If the environment variable `DIDIO_PLAN_ONLY=true` is set, you are running

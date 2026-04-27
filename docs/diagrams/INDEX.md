@@ -65,3 +65,38 @@ All diagrams are [Mermaid](https://mermaid.js.org/) `.mmd` files.
 |---|---|---|
 | [F09-architecture.mmd](F09-architecture.mmd) | F09-T01 | Data-flow: agents write drafts to `claude-didio-out/`, active work in `tasks/features/`, archive trigger moves to `archive/features/` + retro copy to `memory/retrospectives/`; downstream sync branch |
 | [F09-journey.mmd](F09-journey.mmd) | F09-T01 | BPMN-style: operator requests archive → eligibility check (qa PASSED + 30d) → copy retro → mv feature; branches for `--list`, `--dry-run`, `--force`, and ineligible error |
+
+## F10 — Pre-Wave readiness gate
+
+| File | Owner task | What it shows |
+|---|---|---|
+| [F10-architecture.mmd](F10-architecture.mmd) | F10-T01 | Data-flow: `/check-readiness` → readiness agent reads `<FXX>-README.md` + tasks → 5-check loop → `readiness-report.md` with verdict READY/BLOCKED |
+| [F10-journey.mmd](F10-journey.mmd) | F10-T01 | Pipeline gate: `/create-feature` Architect → Step 1.5 readiness → Wave 0 (READY) or STOP (BLOCKED); bypass via `DIDIO_SKIP_READINESS=1` |
+
+## F11 — Interactive PRD elicitation
+
+| File | Owner task | What it shows |
+|---|---|---|
+| [F11-architecture.mmd](F11-architecture.mmd) | F11-T01 | Data-flow: `/elicit-prd` slash command → 8 fixed questions via AskUserQuestion → draft PRD in `claude-didio-out/prd-drafts/` → optional copy to `_brief.md` |
+| [F11-journey.mmd](F11-journey.mmd) | F11-T01 | Operator journey: invoke `/elicit-prd` → answer questions → review draft → confirm copy → feed `/plan-feature` |
+
+## F12 — Brief sharding + token economy
+
+| File | Owner task | What it shows |
+|---|---|---|
+| [F12-architecture.mmd](F12-architecture.mmd) | F12-T01 | Component/data-flow: Architect sharding decision (enabled, lines ≥ threshold, tasks ≥ threshold) → `_brief/` dir or single `_brief.md`; Wave summary loop: post-wave TechLead writes `FXX-wave-N-summary.md` → carry-forward to Wave N+1 |
+| [F12-journey.mmd](F12-journey.mmd) | F12-T01 | BPMN-style user journey: large feature → 3 decision gateways (sharding.enabled, brief_lines_threshold, task_count_threshold) → sharded or flat execution → Wave summaries → delivered |
+
+## F13 — TEA (Test Architect) opcional pre-Wave
+
+| File | Owner task | What it shows |
+|---|---|---|
+| [F13-architecture.mmd](F13-architecture.mmd) | F13-T01 | Sequence: Architect → tea.enabled check → spawn TEA → test-plan written → tasks annotated → Wave 0; branches for false (silent skip) and DIDIO_SKIP_TEA=1 (warned skip) |
+| [F13-journey.mmd](F13-journey.mmd) | F13-T01 | BPMN-style flowchart with User/Orchestrator/TEA/FS swimlanes; shows opt-in, bypass, and error paths |
+
+## F14 — Brainstorm + Research + Product-Brief commands
+
+| File | Owner task | What it shows |
+|---|---|---|
+| [F14-architecture.mmd](F14-architecture.mmd) | F14-T01 | Three independent slash commands: `/brainstorm` → directions matrix; `/research` → market+technical brief; `/product-brief` → fuses prior outputs into ready brief |
+| [F14-journey.mmd](F14-journey.mmd) | F14-T01 | Greenfield discovery flow: brainstorm directions → research deepens → product-brief fuses → feeds `/elicit-prd` or `/plan-feature` |

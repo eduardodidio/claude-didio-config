@@ -113,6 +113,35 @@ if [[ ${#FAILED[@]} -gt 0 ]]; then
 fi
 
 echo "[didio-run-wave] Wave $WAVE completed: $(echo $TASK_IDS | wc -w | tr -d ' ') tasks" >&2
+
+# Post-Wave summary (F12) — opt-in via sharding.wave_summary, default true.
+# Failure to write the summary is non-blocking — Wave N+1 simply lacks
+# carry-forward. Log a warning and continue.
+WAVE_SUMMARY_ENABLED="$(didio_read_config_path sharding.wave_summary true 2>/dev/null || echo "true")"
+if [[ "$WAVE_SUMMARY_ENABLED" == "true" ]]; then
+  SUMMARY_OUT="$FEATURE_DIR/${FEATURE}-wave-${WAVE}-summary.md"
+  # Use the feature README as the "task file" pointer — TechLead in
+  # wave-summary mode reads README + task files of the wave + git diff,
+  # not this file's body. Path just needs to exist + be readable.
+  if [[ -x "$DIDIO_HOME/bin/didio-spawn-agent.sh" ]]; then
+    echo "[didio-run-wave] post-Wave summary: spawning techlead for Wave $WAVE" >&2
+    set +e
+    "$DIDIO_HOME/bin/didio-spawn-agent.sh" techlead "$FEATURE" "$README" \
+      "MODE=wave-summary FEATURE=$FEATURE WAVE=$WAVE"
+    SUMMARY_EXIT=$?
+    set -e
+    if [[ $SUMMARY_EXIT -ne 0 ]]; then
+      echo "[didio-run-wave] WARN: wave-summary spawn exited $SUMMARY_EXIT (non-blocking)" >&2
+    elif [[ ! -f "$SUMMARY_OUT" ]]; then
+      echo "[didio-run-wave] WARN: techlead returned 0 but summary file absent: $SUMMARY_OUT" >&2
+    else
+      echo "[didio-run-wave] wave-summary written: $SUMMARY_OUT" >&2
+    fi
+  else
+    echo "[didio-run-wave] WARN: spawn-agent.sh not found, skipping wave-summary" >&2
+  fi
+fi
+
 if declare -f didio_feature_progress >/dev/null 2>&1; then
   didio_feature_progress "$FEATURE" >&2 || true
 fi

@@ -1,0 +1,63 @@
+%% F11 — User journey (BPMN-style)
+%% Owner: F11-T01
+%% Swimlanes: User / Orchestrator (model) / File system
+%% Decisões: feature dir já existe? skip por pergunta? copiar p/ brief?
+%% Ramos de erro: template elicit-questions.md ausente.
+
+flowchart TD
+    Start([Start: user wants new feature PRD])
+
+    subgraph User["👤 User lane"]
+        U1["Run /elicit-prd FXX &quot;título&quot;"]
+        UAns["Answer or type 'skip'"]
+        UConf["Answer: copy to brief? Y/N"]
+        UDone([Done — runs /plan-feature FXX next])
+    end
+
+    subgraph Orch["🤖 Orchestrator lane"]
+        O1{"FXX format valid?<br/>^F[0-9]+$"}
+        O2{"Load elicit-questions.md"}
+        O3["Loop over questions"]
+        OSkip{"answer == 'skip'?"}
+        OWrite["Compose draft using<br/>template.md sections"]
+        OAsk2["Ask: copy to _brief.md?"]
+        OSlug["Derive slug from título<br/>(kebab-case ASCII)"]
+        OCopy["Copy draft → _brief.md"]
+        OHint["Print '🔁 /plan-feature FXX'"]
+        OErr1["❌ Exit: invalid FXX"]
+        OErr2["❌ Exit: template missing"]
+    end
+
+    subgraph FS["📁 File system lane"]
+        FS1[("templates/docs/prd/<br/>elicit-questions.md")]
+        FS2[("claude-didio-out/<br/>prd-drafts/FXX-prd.md")]
+        FS3{"tasks/features/FXX-* exists?"}
+        FS4[("tasks/features/FXX-slug/<br/>_brief.md")]
+    end
+
+    Start --> U1
+    U1 --> O1
+    O1 -->|no| OErr1
+    O1 -->|yes| O2
+    O2 -->|missing| OErr2
+    O2 -->|read OK| FS1
+    FS1 --> O3
+    O3 --> UAns
+    UAns --> OSkip
+    OSkip -->|yes| OWrite
+    OSkip -->|no| OWrite
+    OWrite -->|next Q?| O3
+    OWrite -->|all Qs done| FS2
+    FS2 --> OAsk2
+    OAsk2 --> UConf
+    UConf -->|N| OHint
+    UConf -->|Y| FS3
+    FS3 -->|no| OSlug
+    OSlug --> FS4
+    FS3 -->|yes| FS4
+    FS4 --> OCopy
+    OCopy --> OHint
+    OHint --> UDone
+
+    classDef err fill:#ffe3e3,stroke:#aa5050
+    class OErr1,OErr2 err

@@ -1,0 +1,71 @@
+%% F12 — Sharding de briefs + economia de tokens (user journey, BPMN-style)
+%% Owner: F12-T01
+%% Type: flowchart TD with swimlanes (subgraph)
+%% Shows the end-to-end happy path of a LARGE feature being sharded and
+%% executed across multiple Waves with carry-forward summaries.
+%% Includes decision gateways (sharding kill-switch, lines threshold,
+%% task count threshold) and the non-blocking error branch for missing
+%% summary.
+
+flowchart TD
+    subgraph UserLane["👤 User"]
+        U_START(["Start: large feature<br/>brief drafted"])
+        U_CMD["Run /plan-feature FXX<br/>(or /create-feature FXX)"]
+        U_END(["End: feature delivered<br/>tokens reduced"])
+    end
+
+    subgraph ArchLane["🧠 Architect"]
+        A_READ["Read _tmp-brief.md<br/>+ didio.config.json"]
+        A_GATE_CFG{"sharding.enabled<br/>== true?"}
+        A_GATE_LINES{"brief lines ≥<br/>brief_lines_threshold?"}
+        A_GATE_TASKS{"predicted tasks ≥<br/>task_count_threshold?"}
+        A_SHARD["Write _brief/ dir<br/>00-overview.md<br/>+ NN-component.md"]
+        A_FLAT["Write _brief.md<br/>(single file)"]
+        A_TASKS_REF["Write FXX-TYY.md<br/>citing _brief/NN-..."]
+        A_TASKS_FLAT["Write FXX-TYY.md<br/>(legacy refs to _brief.md)"]
+    end
+
+    subgraph DevLane["🛠️ Developer (per Wave)"]
+        D_READ["Read only<br/>cited shard(s)"]
+        D_IMPL["Implement task"]
+        D_DONE["DIDIO_DONE"]
+    end
+
+    subgraph TLLane["🔍 TechLead (post-Wave summary mode)"]
+        T_READ["Read just-finished<br/>Wave's task files +<br/>git diff since wave start"]
+        T_WRITE["Write FXX-wave-N-summary.md<br/>10–20 lines"]
+        T_GATE_OK{"summary file<br/>written OK?"}
+        T_WARN["log warning<br/>(non-blocking)"]
+    end
+
+    subgraph FSLane["📁 File system"]
+        F_BRIEF[("_brief/ or _brief.md")]
+        F_TASKS[("FXX-TYY.md")]
+        F_SUMMARY[("FXX-wave-N-summary.md")]
+    end
+
+    U_START --> U_CMD --> A_READ --> A_GATE_CFG
+    A_GATE_CFG -- "no (kill-switch)" --> A_FLAT
+    A_GATE_CFG -- "yes" --> A_GATE_LINES
+    A_GATE_LINES -- "yes" --> A_SHARD
+    A_GATE_LINES -- "no" --> A_GATE_TASKS
+    A_GATE_TASKS -- "yes" --> A_SHARD
+    A_GATE_TASKS -- "no" --> A_FLAT
+
+    A_SHARD --> F_BRIEF
+    A_SHARD --> A_TASKS_REF --> F_TASKS
+    A_FLAT --> F_BRIEF
+    A_FLAT --> A_TASKS_FLAT --> F_TASKS
+
+    F_TASKS --> D_READ
+    F_BRIEF -. "shards or single file" .-> D_READ
+    D_READ --> D_IMPL --> D_DONE
+
+    D_DONE --> T_READ --> T_WRITE --> T_GATE_OK
+    T_GATE_OK -- "yes" --> F_SUMMARY
+    T_GATE_OK -- "no (write failed)" --> T_WARN
+    F_SUMMARY -- "carry-forward to Wave N+1" --> D_READ
+    T_WARN -. "Wave N+1 falls back to<br/>full task files" .-> D_READ
+
+    F_SUMMARY --> U_END
+    T_WARN --> U_END

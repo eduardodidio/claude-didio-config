@@ -27,7 +27,7 @@ Usage:
 
   didio spawn-agent <role> <feature-id> <task-file> [extra-prompt]
       Launch a single agent in a clean bash context via 'claude -p'.
-      Roles: architect | developer | techlead | qa
+      Roles: architect | developer | techlead | qa | readiness | tea
       Logs streamed to logs/agents/<feature>-<role>-<taskid>-<ts>.jsonl
 
   didio run-wave <feature-id> <wave-number>

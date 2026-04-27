@@ -1,0 +1,55 @@
+%% F12 — Sharding de briefs + economia de tokens (architecture / data-flow)
+%% Owner: F12-T01
+%% Type: flowchart LR (component / data-flow)
+%% Shows two mechanisms:
+%%   1. Sharding decision (Architect-time)
+%%   2. Wave Summary loop (run-wave-time)
+
+flowchart LR
+    subgraph User["👤 User"]
+        CMD["/plan-feature FXX<br/>or /create-feature FXX"]
+    end
+
+    subgraph Config["didio.config.json"]
+        CFG["sharding:<br/>  enabled<br/>  brief_lines_threshold (150)<br/>  task_count_threshold (6)"]
+    end
+
+    subgraph Architect["🧠 Architect (model)"]
+        READ["Read brief + config"]
+        DECIDE{"shard?<br/>(lines ≥ thr<br/>OR<br/>tasks ≥ thr)<br/>AND enabled"}
+        WRITE_SHARDED["Write _brief/<br/>00-overview.md<br/>NN-component.md<br/>+ tasks citing shards"]
+        WRITE_FLAT["Write _brief.md<br/>(single file, legacy)"]
+    end
+
+    subgraph FS_Tasks["📁 tasks/features/FXX-*"]
+        BRIEF_DIR[("_brief/<br/>00-overview.md<br/>01-...md")]
+        BRIEF_FILE[("_brief.md")]
+        TASKS[("FXX-TYY.md<br/>(Dev Notes cite<br/>_brief/NN-...)")]
+    end
+
+    subgraph WaveLoop["🔁 didio-run-wave loop"]
+        RUN_N["didio run-wave FXX N"]
+        SPAWN_DEV["Spawn Developers<br/>(read shards only)"]
+        POST_WAVE["Post-Wave hook"]
+        SUMMARY_AGENT["TechLead<br/>MODE=wave-summary"]
+        SUMMARY_FILE[("FXX-wave-N-summary.md<br/>10–20 lines")]
+        RUN_NEXT["didio run-wave FXX N+1<br/>EXTRA: read summary first"]
+    end
+
+    CMD -->|"args"| READ
+    CFG -->|"thresholds"| DECIDE
+    READ --> DECIDE
+    DECIDE -- "yes" --> WRITE_SHARDED
+    DECIDE -- "no" --> WRITE_FLAT
+    WRITE_SHARDED --> BRIEF_DIR
+    WRITE_SHARDED --> TASKS
+    WRITE_FLAT --> BRIEF_FILE
+    WRITE_FLAT --> TASKS
+
+    TASKS --> RUN_N
+    RUN_N --> SPAWN_DEV
+    SPAWN_DEV -->|"read only<br/>cited shards"| BRIEF_DIR
+    SPAWN_DEV --> POST_WAVE
+    POST_WAVE --> SUMMARY_AGENT
+    SUMMARY_AGENT --> SUMMARY_FILE
+    SUMMARY_FILE -->|"carry-forward"| RUN_NEXT

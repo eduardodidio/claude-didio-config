@@ -1,0 +1,82 @@
+%% F14 — User journey (BPMN-style)
+%% Owner: F14-T01
+%% Jornada dos 3 commands com branches de skip explícitos (cada command
+%% pode ser pulado), branches de erro (WebSearch indisponível, budget),
+%% e decisão final F11 vs /plan-feature.
+
+flowchart TD
+    subgraph UserLane["👤 User"]
+        U_START(["Decisão greenfield: precisa explorar"])
+        U_PICK{"Por onde começar?"}
+        U_TOPIC1["Digita /brainstorm \"<topic>\""]
+        U_TOPIC2["Digita /research \"<topic>\""]
+        U_PB["Digita /product-brief"]
+        U_PICK_FILES["Escolhe brainstorm + research\n(via AskUserQuestion)"]
+        U_END(["Tem brief — segue para\n/elicit-prd ou /plan-feature"])
+    end
+
+    subgraph OrchLane["🤖 Orchestrator (modelo)"]
+        O_BRAIN_GENERIC{"Topic genérico?"}
+        O_ASK_CTX["Pede contexto extra ao usuário"]
+        O_BRAIN_GEN["Gera 3–5 direções estruturadas"]
+        O_RES_LOOP["Loop: WebSearch + WebFetch"]
+        O_RES_AVAIL{"WebSearch disponível?"}
+        O_RES_BUDGET{"Budget atingido?"}
+        O_PB_LIST["Lista arquivos em\nclaude-didio-out/{brainstorms,research}/"]
+        O_PB_BS_EMPTY{"brainstorms/ vazio?"}
+        O_PB_RS_EMPTY{"research/ vazio?"}
+        O_PB_MERGE["Funde em brief"]
+        O_F11_CHECK{"F11 instalado?"}
+    end
+
+    subgraph FSLane["📁 File system"]
+        FS_BS[("claude-didio-out/brainstorms/<slug>.md")]
+        FS_RS[("claude-didio-out/research/<slug>.md")]
+        FS_PB[("claude-didio-out/prd-drafts/<FXX>-brief.md")]
+    end
+
+    subgraph WebLane["🌐 Web"]
+        W_SEARCH[["WebSearch"]]
+        W_FETCH[["WebFetch"]]
+        W_FAIL[/"❌ Indisponível / erro"/]
+    end
+
+    U_START --> U_PICK
+
+    U_PICK -- "explorar opções" --> U_TOPIC1
+    U_PICK -- "buscar precedentes" --> U_TOPIC2
+    U_PICK -- "já tem inputs" --> U_PB
+
+    %% /brainstorm flow
+    U_TOPIC1 --> O_BRAIN_GENERIC
+    O_BRAIN_GENERIC -- "sim" --> O_ASK_CTX
+    O_ASK_CTX --> O_BRAIN_GEN
+    O_BRAIN_GENERIC -- "não" --> O_BRAIN_GEN
+    O_BRAIN_GEN --> FS_BS
+
+    %% /research flow
+    U_TOPIC2 --> O_RES_AVAIL
+    O_RES_AVAIL -- "não" --> W_FAIL
+    W_FAIL --> FS_RS
+    O_RES_AVAIL -- "sim" --> O_RES_LOOP
+    O_RES_LOOP --> W_SEARCH
+    O_RES_LOOP --> W_FETCH
+    W_SEARCH --> O_RES_BUDGET
+    W_FETCH --> O_RES_BUDGET
+    O_RES_BUDGET -- "não" --> O_RES_LOOP
+    O_RES_BUDGET -- "sim: rodapé com contagem" --> FS_RS
+
+    %% /product-brief flow
+    U_PB --> O_PB_LIST
+    FS_BS -. "lista" .-> O_PB_LIST
+    FS_RS -. "lista" .-> O_PB_LIST
+    O_PB_LIST --> O_PB_BS_EMPTY
+    O_PB_BS_EMPTY -- "sim" --> O_PB_MERGE
+    O_PB_BS_EMPTY -- "não" --> U_PICK_FILES
+    U_PICK_FILES --> O_PB_RS_EMPTY
+    O_PB_RS_EMPTY -- "sim" --> O_PB_MERGE
+    O_PB_RS_EMPTY -- "não" --> O_PB_MERGE
+    O_PB_MERGE --> FS_PB
+    FS_PB --> O_F11_CHECK
+    O_F11_CHECK -- "sim" --> U_END
+    O_F11_CHECK -- "não" --> U_END

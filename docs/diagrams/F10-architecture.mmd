@@ -1,0 +1,47 @@
+%% F10 — Architecture (sequence diagram)
+%% Owner: F10-T01
+%% User invokes /create-feature → Architect plans → /check-readiness gate
+%% spawns the new readiness agent → verdict gates Wave 0.
+
+sequenceDiagram
+    autonumber
+    actor User
+    participant CF as /create-feature
+    participant Arc as Architect agent
+    participant CR as /check-readiness
+    participant RA as readiness agent
+    participant FS as File system<br/>(tasks/features/FXX-*/)
+    participant W0 as Wave 0 runner
+
+    User->>CF: /create-feature FXX <desc>
+    CF->>FS: write _tmp-brief.md
+    CF->>Arc: spawn architect
+    Arc->>FS: read _tmp-brief.md
+    Arc->>FS: write FXX-README.md + FXX-T*.md (Status: planned)
+    Arc-->>CF: DIDIO_DONE
+
+    Note over CF,CR: Step 1.5 — Readiness gate
+
+    alt DIDIO_SKIP_READINESS=1 (bypass)
+        CF-->>User: ⚠️ readiness skipped (warn)
+        CF->>W0: dispatch Wave 0
+    else normal flow
+        CF->>CR: /check-readiness FXX
+        CR->>RA: spawn readiness (sonnet/medium)
+        RA->>FS: read FXX-README.md + each FXX-T*.md
+        RA->>RA: run 5 audit checks<br/>(AC coverage, traceability,<br/>file collision, Wave 0 completeness, Testing)
+        RA->>FS: write readiness-report.md
+        RA-->>CR: DIDIO_DONE: verdict=READY|BLOCKED
+        CR->>FS: read readiness-report.md
+        CR->>CR: parse ^**Verdict:** (READY|BLOCKED)$
+
+        alt verdict = READY
+            CR-->>CF: exit 0
+            CF->>W0: dispatch Wave 0
+            W0-->>User: Wave 0 progress…
+        else verdict = BLOCKED
+            CR-->>User: 🚫 BLOCKED — see readiness-report.md
+            CR-->>CF: exit 1
+            CF-->>User: pipeline aborted (fix plan and re-run)
+        end
+    end

@@ -49,3 +49,33 @@
 **Pattern to repeat:** `LC_ALL=C grep -aq` for asserting against outputs containing embedded NUL bytes (e.g. anything built from `printf '%s\0' "$@"`). Default grep in UTF-8 locale silently fails to match multi-byte patterns across nul-terminated lines. `-a` forces text mode, `LC_ALL=C` treats bytes as bytes.
 
 **Pattern to repeat:** Portable backdating — `python3 -c "import os; os.utime('$f', ($t-600,$t-600))"` works on every platform. Never use `touch -t` for staleness tests — the format mixes local and UTC in confusing ways.
+
+## F10 — 2026-04-26
+**What worked:** Reading the TechLead review first (APPROVED_WITH_FOLLOWUP with explicit IMPORTANT/MINOR classification) made QA triage fast — IMPORTANT items get fixed, MINOR items get fixed, IMPORTANT gaps (like AC7 no test) got a new test created immediately. The QA prior-learning "create the test, don't just report it" was correctly applied: the AC7 bypass test was written and passed 9/9.
+
+**What to avoid:** Accepting "verified via documentation text" as evidence for AC7-class features. Any env-var bypass or safety gate must have an automated structural test that asserts the token exists in every expected file — even if the behavior is a Claude slash command and can't be exercised by shell. Documentation can drift; a test catches the drift.
+
+**Pattern to repeat:** When an AC's artifact is supposed to land at a specific path (e.g., `tasks/features/F09-*/readiness-report.md`) always `ls`/`find` that path before accepting the TechLead verdict. TechLead reviews describe intent; QA verifies existence. If the file is at a different location (e.g., in `tests/F10-fixtures/`), copy it to the declared path — the spec is authoritative.
+
+## F11 — 2026-04-26
+**What worked:** Reading both TechLead reviews (REJECTED → APPROVED_WITH_FOLLOWUP) up front reduced discovery work — the two IMPORTANT issues were clearly documented with exact file/line references. Fixing issues in-place (harden `_warn`, move option block, correct false-positive AC boxes) rather than just reporting them kept the feature moving.
+
+**What to avoid:** False-positive AC checkboxes are a new class of integrity failure harder to catch than empty boxes. The checkbox looks complete but the condition is false. Pattern to detect: for any AC that cites a grep command as evidence, run the command and compare the output to what the checkbox claims.
+
+**Pattern to repeat:** When a `_warn` in a test script is confirmed stale (the referenced task is done), harden it to `_fail` immediately during QA — don't defer. The swap from 1 soft-warn to 2 hard-fail assertions added 1 net assertion (31 vs 30) and made the suite a true regression gate. This is the correct end-state for any `_warn` whose trigger condition has been resolved.
+
+## F12 — 2026-04-27
+
+**What worked:** All three smokes (9/15/9 = 33 checks) re-run before writing the QA report grounded the verdict in fresh evidence. Triaging the three TechLead follow-up items and fixing them directly (status field, stale comment, missing Notes section) rather than just documenting them kept the feature clean without blocking the verdict.
+
+**What to avoid:** Marking end-to-end behavioral validation as complete when only structural/DRY_RUN evidence exists. For Tier 2 features (wave summaries, sharding), structural-only is sufficient per the task spec — but the QA report must explicitly say "structural-only, end-to-end deferred" rather than silently omitting the qualification.
+
+**Pattern to repeat:** For every AC that has a kill-switch (enabled=false, threshold=9999), the smoke must test both the ON path and the OFF path. A smoke that only tests the happy path is not a kill-switch test — it is a regression test for the feature being on. The OFF path is the one that prevents future accidental activation in downstream projects.
+
+## F13 — 2026-04-27
+
+**What worked:** Using `DIDIO_DRY_RUN=1` on `F13-tea-e2e.sh` validated spawn configuration (model/fallback/effort flags) and gate logic (scenarios C/C2) without a live Claude API call — covering 2 of 4 scenarios structurally. F13-sync-smoke.sh ran to exit 0, confirming AC7 per-project preservation. Reading both TechLead reviews before starting QA gave a complete picture of what was fixed vs what remained scaffold-only.
+
+**What to avoid:** Treating e2e scenarios that require live API as "PASS" based on dry-run alone. The correct QA disposition: mark them `scaffold-only` explicitly in the report, note the scenario labels and what they would verify, and do not inflate the verdict. The distinction matters when a future QA re-runs the feature.
+
+**Pattern to repeat:** For features with live-API-dependent e2e tests, always run the non-live scenarios (gate logic, config reads, bypass flag) first — they give structural confidence and complete AC coverage for the opt-out paths. Document live scenarios as scaffold with a one-line description of what they verify when run with real API.
