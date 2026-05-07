@@ -118,6 +118,29 @@ O menu te dá 1-clique pra:
 
 No terminal, o equivalente é `didio menu` (ou `didio` sem argumentos).
 
+### 💡 Dica: economize tokens usando o menu do terminal
+
+O `/didio` dentro do Claude Code carrega ~260 linhas de prompt no contexto
+**antes** de você escolher a opção — e ainda usa `AskUserQuestion`, que é
+um round-trip do modelo. Para a maioria das ações (status, dashboard,
+listar features, toggles de config) você não precisa do LLM.
+
+**Zero tokens — rode no terminal:**
+
+```bash
+didio          # abre o menu (TUI puro em bash)
+didio menu     # idem
+```
+
+O menu dispara a ação direto (ex: `didio dashboard`, abre docs, toggles)
+e só invoca o Claude quando a ação **realmente** precisa de LLM (criar
+feature, revisar branch, retro).
+
+**Atalho de dentro do Claude Code:** digite `!didio` no prompt — o
+prefixo `!` executa o shell direto na sessão. Mais barato que `/didio`,
+mas a saída ainda entra no contexto do modelo. Use `/didio` apenas quando
+a próxima ação já é LLM-heavy.
+
 ---
 
 ## Prompts pré-configurados (copie e cole)
