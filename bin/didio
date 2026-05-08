@@ -14,8 +14,10 @@ case "$SUBCMD" in
   log-watcher)   exec "$DIDIO_HOME/bin/didio-log-watcher.sh" "$@" ;;
   easter-egg)    exec "$DIDIO_HOME/bin/didio-easter-egg.sh" "$@" ;;
   sync-project)  exec "$DIDIO_HOME/bin/didio-sync-project.sh" "$@" ;;
-  sync-all)      exec "$DIDIO_HOME/bin/didio-sync-all.sh" "$@" ;;
-  menu|"")       exec "$DIDIO_HOME/bin/didio-menu.sh" "$@" ;;
+  sync-all)        exec "$DIDIO_HOME/bin/didio-sync-all.sh" "$@" ;;
+  poc-from-minutes) exec "$DIDIO_HOME/bin/didio-poc-from-minutes.sh" "$@" ;;
+  resume-pending)  exec "$DIDIO_HOME/bin/didio-resume-pending.sh" "$@" ;;
+  menu|"")         exec "$DIDIO_HOME/bin/didio-menu.sh" "$@" ;;
   version)       echo "didio $(cat "$DIDIO_HOME/VERSION" 2>/dev/null || echo dev)" ;;
   help|-h|--help)
     cat <<EOF
@@ -53,6 +55,13 @@ Usage:
   didio sync-all [target-projects.json]
       Run sync-project for every project listed in target-projects.json.
       Default config: tasks/features/F04-sync-downstream/target-projects.json
+
+  didio poc-from-minutes <ata>   Generate runnable POC from meeting minutes
+
+  didio resume-pending [--feature FXX] [--dry-run] [--max-retries N]
+      Scan logs/agents/_pending/ and re-spawn rate-limited jobs whose
+      reset has passed. Idempotent (lockfile + atomic consume).
+      See ADR-0014 for the pending JSON schema.
 
   didio version
       Print framework version.

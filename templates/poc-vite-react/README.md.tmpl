@@ -1,0 +1,21 @@
+# {{POC_NAME}}
+
+POC scaffolded from a meeting via `didio poc-from-minutes`.
+
+## Run
+
+```bash
+npm install
+npm run dev
+```
+
+## Generated files
+
+- `src/mocks/*.ts` — mock data extracted from the meeting minutes.
+- `src/pages/*.tsx` — page stubs, one per screen in the manifest.
+- `src/App.tsx` — router with one Route per screen.
+- `_pipeline/manifest.json` — the manifest produced by meeting-parser.
+- `_pipeline/log.jsonl` — pipeline step log.
+
+To regenerate: re-run `didio poc-from-minutes <ata>` against a fresh
+directory.

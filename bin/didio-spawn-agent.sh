@@ -16,10 +16,28 @@
 
 set -euo pipefail
 
-ROLE="${1:?role required: architect|developer|techlead|qa|readiness|tea}"
+ROLE="${1:?role required: architect|developer|techlead|qa|readiness|tea|meeting-parser}"
 FEATURE="${2:?feature-id required (e.g. F01)}"
 TASK_FILE="${3:?task-file required (absolute or relative path)}"
 EXTRA="${4:-}"
+
+# F22 — rate-limit handling defaults
+if [[ -z "${DIDIO_ON_RATE_LIMIT:-}" ]]; then
+  if [[ "${DIDIO_CI:-${CI:-0}}" = "1" ]]; then
+    DIDIO_ON_RATE_LIMIT='fail-fast'
+  else
+    DIDIO_ON_RATE_LIMIT='wait'
+  fi
+fi
+# Also accept --on-rate-limit=<mode> anywhere in argv (overrides env)
+for _arg in "$@"; do
+  case "$_arg" in
+    --on-rate-limit=*) DIDIO_ON_RATE_LIMIT="${_arg#--on-rate-limit=}" ; break ;;
+  esac
+done
+unset _arg
+DIDIO_MAX_RETRIES="${DIDIO_MAX_RETRIES:-3}"
+DIDIO_RETRIES_SO_FAR="${DIDIO_RETRIES_SO_FAR:-0}"
 
 PROJECT_ROOT="$(pwd)"
 AGENTS_DIR="$PROJECT_ROOT/agents"
@@ -38,6 +56,16 @@ if [[ ! -f "$TASK_FILE" ]]; then
 fi
 
 mkdir -p "$LOG_DIR"
+
+# F22 — source rate-limit lib (defines didio_rl_* helpers)
+RL_LIB="${DIDIO_HOME:-$HOME/.claude-didio-config}/bin/didio-rate-limit-lib.sh"
+if [[ -f "$RL_LIB" ]]; then
+  # shellcheck disable=SC1090
+  source "$RL_LIB"
+else
+  echo "[didio-spawn-agent] WARN: rate-limit-lib not found at $RL_LIB; falling back to fail-fast" >&2
+  DIDIO_ON_RATE_LIMIT='fail-fast'
+fi
 
 TS="$(date +%Y%m%d-%H%M%S)"
 TASK_ID="$(basename "$TASK_FILE" .md)"
@@ -181,9 +209,86 @@ if [[ "${DIDIO_TOLERATE_TOOL_ERRORS:-0}" != "1" ]]; then
   fi
 fi
 
+# F22 — rate-limit classification and branching
+RL_CLASS="success"
+if [[ $EXIT_CODE -ne 0 ]] && declare -F didio_rl_classify_jsonl >/dev/null 2>&1; then
+  RL_CLASS=$(didio_rl_classify_jsonl "$LOG_FILE")
+fi
+
+if [[ "$RL_CLASS" = "rate_limit" ]]; then
+  PENDING_DIR="$PROJECT_ROOT/logs/agents/_pending"
+  mkdir -p "$PENDING_DIR"
+  PENDING_ID="${FEATURE}-${ROLE}-${TASK_ID}-${TS}"
+  RESET_AT=$(didio_rl_parse_reset_to_unix "$LOG_FILE")
+  _TS_NOW="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+  didio_rl_append_telemetry "$PENDING_DIR" \
+    "$(printf '{"event":"rate_limit","role":"%s","feature":"%s","task":"%s","reset_at_unix":%s,"retries":%s,"mode":"%s","ts":"%s"}' \
+      "$ROLE" "$FEATURE" "$TASK_ID" "$RESET_AT" "$DIDIO_RETRIES_SO_FAR" "$DIDIO_ON_RATE_LIMIT" "$_TS_NOW")"
+
+  if (( DIDIO_RETRIES_SO_FAR >= DIDIO_MAX_RETRIES )); then
+    echo "[didio-spawn-agent] max-retries exhausted ($DIDIO_RETRIES_SO_FAR/$DIDIO_MAX_RETRIES) — failing" >&2
+    didio_rl_append_telemetry "$PENDING_DIR" \
+      "$(printf '{"event":"failed_max_retries","role":"%s","feature":"%s","task":"%s","retries":%s,"ts":"%s"}' \
+        "$ROLE" "$FEATURE" "$TASK_ID" "$DIDIO_RETRIES_SO_FAR" "$_TS_NOW")"
+    NOTIFY="${DIDIO_HOME:-$HOME/.claude-didio-config}/bin/didio-notify.sh"
+    [[ -x "$NOTIFY" ]] && "$NOTIFY" "rate-limit max-retries: $PENDING_ID" >/dev/null 2>&1 || true
+    EXIT_CODE=3
+  else
+    case "$DIDIO_ON_RATE_LIMIT" in
+      wait)
+        NOW=$(date +%s)
+        SLEEP_FOR=$(( RESET_AT - NOW + ${DIDIO_RL_MARGIN_SEC:-60} ))
+        (( SLEEP_FOR < 0 )) && SLEEP_FOR=0
+        RESET_AT_HUMAN="$(date -r "$RESET_AT" 2>/dev/null || date -u -d "@$RESET_AT" 2>/dev/null || echo "unix:$RESET_AT")"
+        echo "[didio-spawn-agent] rate-limited; sleeping ${SLEEP_FOR}s until $RESET_AT_HUMAN" >&2
+        sleep "$SLEEP_FOR"
+        export DIDIO_RETRIES_SO_FAR=$(( DIDIO_RETRIES_SO_FAR + 1 ))
+        export DIDIO_ON_RATE_LIMIT DIDIO_MAX_RETRIES
+        didio_rl_append_telemetry "$PENDING_DIR" \
+          "$(printf '{"event":"resume","role":"%s","feature":"%s","task":"%s","retries":%s,"ts":"%s"}' \
+            "$ROLE" "$FEATURE" "$TASK_ID" "$DIDIO_RETRIES_SO_FAR" "$(date -u +%Y-%m-%dT%H:%M:%SZ)")"
+        exec "$0" "$ROLE" "$FEATURE" "$TASK_FILE" "$EXTRA"
+        ;;
+      schedule)
+        # Convert epoch to ISO-8601 for reset_at (required by resume-pending parser).
+        # Pass epoch as reset_at_unix so resume-pending can fall back if ISO parse fails.
+        RESET_AT_ISO=$(python3 -c \
+          "from datetime import datetime,timezone; print(datetime.fromtimestamp($RESET_AT, tz=timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'))" \
+          2>/dev/null || echo "")
+        PENDING_JSON=$(didio_rl_build_pending_json \
+          --id="$PENDING_ID" \
+          --role="$ROLE" --feature="$FEATURE" --task="$TASK_ID" \
+          --task-file="$TASK_FILE" --extra-prompt="$EXTRA" \
+          --cwd="$PROJECT_ROOT" \
+          --model="$AGENT_MODEL" --fallback-model="$AGENT_FALLBACK" \
+          --reset-at="${RESET_AT_ISO:-$RESET_AT}" --reset-at-unix="$RESET_AT" \
+          --retries="$DIDIO_RETRIES_SO_FAR" \
+          --max-retries="$DIDIO_MAX_RETRIES" \
+          --original-log="$LOG_FILE")
+        didio_rl_persist_pending "$PENDING_DIR" "$PENDING_ID" "$PENDING_JSON"
+        RESET_AT_HUMAN="$(date -r "$RESET_AT" 2>/dev/null || date -u -d "@$RESET_AT" 2>/dev/null || echo "unix:$RESET_AT")"
+        echo "[didio-spawn-agent] rate-limited; scheduled pending: $PENDING_DIR/$PENDING_ID.json (reset at $RESET_AT_HUMAN)" >&2
+        EXIT_CODE=2
+        ;;
+      fail-fast|*)
+        echo "[didio-spawn-agent] rate-limited; fail-fast mode (set DIDIO_ON_RATE_LIMIT=wait or =schedule to recover)" >&2
+        EXIT_CODE=1
+        ;;
+    esac
+  fi
+fi
+
 # Update meta with final status
-FINAL_STATUS="completed"
-[[ $EXIT_CODE -ne 0 ]] && FINAL_STATUS="failed"
+if [[ "$RL_CLASS" = "rate_limit" ]]; then
+  case "$EXIT_CODE" in
+    2) FINAL_STATUS="rate_limited_scheduled" ;;
+    3) FINAL_STATUS="failed_max_retries" ;;
+    *) FINAL_STATUS="failed" ;;
+  esac
+else
+  FINAL_STATUS="completed"
+  [[ $EXIT_CODE -ne 0 ]] && FINAL_STATUS="failed"
+fi
 
 # Pick a thematic phrase for this role+outcome (may be empty if disabled)
 PHRASE=""

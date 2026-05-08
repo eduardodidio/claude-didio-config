@@ -1,0 +1,18 @@
+flowchart LR
+  ata[ata.md] --> parser{meeting-parser<br/>LLM}
+  parser --> manifest[manifest.json]
+  schema[(manifest.schema.json)] -. validates .-> manifest
+  manifest --> scaffold[scaffold<br/>cp template]
+  template[(templates/poc-vite-react/)] -. source .-> scaffold
+  scaffold --> mockgen[mock_gen<br/>src/mocks/*.ts]
+  mockgen --> uigen[ui_gen<br/>src/pages/*.tsx + App.tsx]
+  uigen --> style[style_step]
+  styleref[(--style-ref<br/>default mellon)] -. extract --primary, font .-> style
+  style --> install[npm install]
+  install -->|ok| smoke[smoke<br/>HTTP 200 in ≤30s]
+  smoke -->|ok| git[git init + commit]
+  git --> done([POC pronto])
+  install -->|fail| exit5[exit 5]
+  smoke -->|fail| exit6[exit 6]
+  parser -->|invalid| exit4[exit 4]
+  git -->|fail| exit7[exit 7]

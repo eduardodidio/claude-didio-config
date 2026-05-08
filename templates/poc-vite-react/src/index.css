@@ -1,0 +1,96 @@
+/* didio poc-from-minutes — style-customizer replaces:
+   --primary, --background, --foreground, --font-family
+   based on --style-ref project (default: mellon-magic-maker).
+*/
+
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 220 15% 5%;
+    --foreground: 0 0% 96%;
+
+    --card: 220 15% 8%;
+    --card-foreground: 0 0% 96%;
+
+    --popover: 220 15% 9%;
+    --popover-foreground: 0 0% 96%;
+
+    /* didio purple — style-customizer overwrites with --style-ref primary */
+    --primary: 265 70% 65%;
+    --primary-foreground: 0 0% 98%;
+
+    --secondary: 220 15% 12%;
+    --secondary-foreground: 0 0% 80%;
+
+    --muted: 220 15% 11%;
+    --muted-foreground: 220 10% 48%;
+
+    --accent: 265 70% 65%;
+    --accent-foreground: 0 0% 98%;
+
+    --destructive: 15 70% 52%;
+    --destructive-foreground: 0 0% 96%;
+
+    --border: 220 15% 14%;
+    --input: 220 15% 14%;
+    --ring: 265 70% 65%;
+
+    --radius: 0.75rem;
+
+    /* didio brand token */
+    --didio: 265 70% 65%;
+
+    /* Sidebar */
+    --sidebar-background: 220 15% 6%;
+    --sidebar-foreground: 0 0% 80%;
+    --sidebar-primary: 265 70% 65%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 220 15% 11%;
+    --sidebar-accent-foreground: 0 0% 90%;
+    --sidebar-border: 220 15% 12%;
+    --sidebar-ring: 265 70% 65%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    color-scheme: dark;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Geist Sans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-feature-settings: 'tnum' 1;
+    letter-spacing: -0.01em;
+  }
+
+  .font-mono, .tabular-nums, [data-value] {
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Scrollbar styling */
+  ::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+  ::-webkit-scrollbar-track {
+    background: hsl(var(--background));
+  }
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--border));
+    border-radius: 2px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground));
+  }
+}

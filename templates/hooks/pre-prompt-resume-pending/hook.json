@@ -1,0 +1,13 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          { "type": "command",
+            "command": "bash patterns/hooks/pre-prompt-resume-pending/hook.sh" }
+        ]
+      }
+    ]
+  }
+}

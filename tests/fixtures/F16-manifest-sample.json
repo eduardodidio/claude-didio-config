@@ -1,0 +1,52 @@
+{
+  "name": "petshop-agendamentos",
+  "screens": [
+    {
+      "path": "/agendamentos",
+      "title": "Agendamentos do Dia",
+      "components": ["Table", "Badge"],
+      "data_shape": "Agendamento"
+    },
+    {
+      "path": "/agendamentos/:id",
+      "title": "Detalhe do Agendamento",
+      "components": ["Card"],
+      "data_shape": "Agendamento"
+    },
+    {
+      "path": "/agendamentos/novo",
+      "title": "Novo Agendamento",
+      "components": ["Form", "Input", "Button"],
+      "data_shape": null
+    }
+  ],
+  "entities": [
+    {
+      "name": "Agendamento",
+      "fields": [
+        { "name": "id",          "type": "id"     },
+        { "name": "pet_nome",    "type": "string" },
+        { "name": "dono_nome",   "type": "string" },
+        { "name": "horario",     "type": "date"   },
+        { "name": "status",      "type": "string" },
+        { "name": "observacoes", "type": "string" }
+      ]
+    },
+    {
+      "name": "Pet",
+      "fields": [
+        { "name": "id",        "type": "id"     },
+        { "name": "nome",      "type": "string" },
+        { "name": "especie",   "type": "string" },
+        { "name": "raca",      "type": "string" },
+        { "name": "dono_nome", "type": "string" }
+      ]
+    }
+  ],
+  "mocks": {
+    "use_msw": false,
+    "records_per_entity": 5
+  },
+  "style_ref": null,
+  "uses_animation": false
+}

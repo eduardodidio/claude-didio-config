@@ -61,3 +61,10 @@
 **What to avoid:** Planning a permission fix based on the PreToolUse hook `permissionDecision: "allow"` approach (Approach E). F15-T01 spike proved conclusively that the sensitive-file guard is a separate layer that runs independently of hook output — the hook returned `allow` and the file was still denied. Any future Architect who sees a `.claude/**` write-permission problem should skip directly to `--allowedTools` or path restructuring, not hook-based allow.
 
 **Pattern to repeat:** When a permission gap surfaces in headless, before changing `--permission-mode` or restructuring paths, try passing `--allowedTools` with the required tools — it is the smallest blast radius fix and does not change project structure or downstream contracts. If `--allowedTools` is also insufficient, then escalate to path restructuring (Approach C) with an ADR documenting the downstream contract change.
+
+## F16 — 2026-05-08
+**What worked:** 10-AC feature with all ACs having machine-checkable validation commands (grep, python3 assertion, bash -n). Readiness gate caught the T08/T09 same-file collision before Wave 2 ran — separating into sequential waves eliminated the issue with zero rework.
+
+**What to avoid:** New config blocks without synthetic fixture placeholders. When Wave 0 adds a config block, Wave 0 should also commit a synthetic test fixture for any Wave 3+ test that reads live-API output. Otherwise the test can only run with an API key — breaks structural CI.
+
+**Pattern to repeat:** Wave 0 checklist addition: (1) every subprocess log goes to `<dest>/_pipeline/`, not `/tmp/`; (2) every key in a new config block has a `cfg.get(...)` in the consuming code; (3) if any Wave 3+ test reads output from a live-API call, Wave 0 commits a synthetic fixture validated against the schema.

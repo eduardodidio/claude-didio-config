@@ -32,6 +32,11 @@
       "model": "sonnet",
       "fallback": "haiku",
       "effort": "medium"
+    },
+    "meeting-parser": {
+      "model": "sonnet",
+      "fallback": "haiku",
+      "effort": "medium"
     }
   },
   "models_economy": {
@@ -56,6 +61,10 @@
       "fallback": "haiku"
     },
     "tea": {
+      "model": "haiku",
+      "fallback": "haiku"
+    },
+    "meeting-parser": {
       "model": "haiku",
       "fallback": "haiku"
     }
@@ -88,5 +97,11 @@
   "research": {
     "web_search_budget": 5,
     "web_fetch_budget": 3
+  },
+  "poc": {
+    "default_style_ref": "/Users/eduardodidio/mellon-magic-maker",
+    "smoke_timeout_secs": 30,
+    "install_timeout_secs": 180,
+    "build_timeout_secs": 60
   }
 }

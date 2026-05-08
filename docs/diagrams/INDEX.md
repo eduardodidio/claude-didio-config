@@ -107,3 +107,10 @@ All diagrams are [Mermaid](https://mermaid.js.org/) `.mmd` files.
 |---|---|---|
 | [F15-architecture.mmd](F15-architecture.mmd) | F15-T04 | Data-flow: spawn-agent → `claude -p` with `--allowedTools` → PreToolUse hook decision branches; positive (`templates/commands/`, with `.claude/commands` symlink) and negative (`.claude/settings.json`) paths; post-exec JSONL parser → exit override |
 | [F15-journey.mmd](F15-journey.mmd) | F15-T04 | 5-swimlane flowchart (Operator / Wave-runner / Spawn-agent / Claude / Claude Code internals); happy path (Developer edits commands) and failure path (settings.json denied → exit ≠ 0 → wave-runner stops) |
+
+## F16 — meeting-to-poc: ata de reunião → POC frontend rodável
+
+| File | Owner task | What it shows |
+|---|---|---|
+| [F16-architecture.mmd](F16-architecture.mmd) | F16-T01 | `flowchart LR`: 7-step pipeline data-flow — `ata.md` → meeting-parser (LLM) → `manifest.json` → scaffold (cp template) → mock_gen → ui_gen → style_step → npm install → smoke (HTTP 200) → git commit → POC; side-inputs: `manifest.schema.json`, `templates/poc-vite-react/`, `--style-ref`; error exits 4/5/6/7 |
+| [F16-journey.mmd](F16-journey.mmd) | F16-T01 | `flowchart TD` with 4 swimlanes (User, Slash command, Pipeline, meeting-parser); user journey from meeting end → write ata → `/poc-from-minutes` → AskUserQuestion → pipeline → POC; decision branches for invalid manifest (exit 4), npm install fail (exit 5), smoke fail (exit 6), git fail (exit 7) |

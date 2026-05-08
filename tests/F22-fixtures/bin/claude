@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+# bin/claude — mock `claude` binary for F22 tests.
+# Reads fixtures from the parent fixtures dir (one level up from this bin/).
+# MOCK_CLAUDE_FIXTURE: basename of the .jsonl fixture (required).
+# MOCK_CLAUDE_EXIT:    exit code to use (default 0).
+set -euo pipefail
+FIXTURE="${MOCK_CLAUDE_FIXTURE:?set MOCK_CLAUDE_FIXTURE to a .jsonl basename}"
+EXIT="${MOCK_CLAUDE_EXIT:-0}"
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+FIXTURE_PATH="$DIR/$FIXTURE"
+[[ -f "$FIXTURE_PATH" ]] || { echo "mock-claude: fixture not found: $FIXTURE_PATH" >&2; exit 127; }
+cat "$FIXTURE_PATH"
+exit "$EXIT"

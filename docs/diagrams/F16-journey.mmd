@@ -1,0 +1,28 @@
+flowchart TD
+  subgraph User
+    A1[termina reunião] --> A2[escreve ata.md]
+    A2 --> A3[roda /poc-from-minutes ata.md]
+    Z1[cd dest && npm run dev] --> Z2[POC navegável]
+  end
+  subgraph Slash[Slash command orchestrator]
+    A3 --> B1[AskUserQuestion: nome / dest / style-ref]
+    B1 --> B2[exec didio-poc-from-minutes.sh]
+  end
+  subgraph Pipeline[bin/didio-poc-pipeline.py]
+    B2 --> C1[parse_step]
+    C1 --> C2[scaffold_step]
+    C2 --> C3[mock_gen + ui_gen]
+    C3 --> C4[style_step]
+    C4 --> C5[install + smoke]
+    C5 --> C6[git_init]
+    C6 --> Z1
+  end
+  subgraph LLM[meeting-parser]
+    C1 --> D1[lê ata]
+    D1 --> D2[escreve manifest.json]
+    D2 --> C2
+  end
+  C1 -->|manifest inválido| E4[exit 4: reescrever ata]
+  C5 -->|npm install fail| E5[exit 5]
+  C5 -->|HTTP ≠ 200| E6[exit 6: porta ocupada?]
+  C6 -->|git fail| E7[exit 7]

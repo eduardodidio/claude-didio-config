@@ -3,6 +3,7 @@
 #
 # Usage:
 #   didio-run-wave.sh <feature-id> <wave-number> [role]
+#   didio-run-wave.sh --resume <feature-id>
 #
 # Reads tasks/features/<feature>-*/<feature>-README.md and finds the line:
 #   Wave <N>: <task-id>, <task-id>, ...
@@ -15,6 +16,12 @@
 
 set -euo pipefail
 
+# --resume short-circuit: delegate to resume-pending and exec away
+if [[ "${1:-}" = "--resume" ]]; then
+  FEATURE_TO_RESUME="${2:?--resume requires a feature id}"
+  exec "${DIDIO_HOME:-$HOME/.claude-didio-config}/bin/didio-resume-pending.sh" --feature "$FEATURE_TO_RESUME"
+fi
+
 FEATURE="${1:?feature-id required (e.g. F01)}"
 WAVE="${2:?wave-number required (e.g. 1)}"
 ROLE="${3:-developer}"
@@ -23,6 +30,10 @@ PROJECT_ROOT="$(pwd)"
 
 # Load config lib early so didio_find_feature_dir is available
 source "${DIDIO_HOME:-$HOME/.claude-didio-config}/bin/didio-config-lib.sh"
+
+# Load rate-limit lib for pending job persistence (F22)
+# shellcheck disable=SC1090
+source "${DIDIO_HOME:-$HOME/.claude-didio-config}/bin/didio-rate-limit-lib.sh"
 
 FEATURE_DIR=$(didio_find_feature_dir "$FEATURE") || {
   echo "[didio-run-wave] feature directory not found: tasks/features/${FEATURE}-*" >&2
@@ -75,10 +86,20 @@ if [[ -f "$PROGRESS_LIB" ]]; then
   didio_feature_progress "$FEATURE" >&2 || true
 fi
 
-PIDS=()
-FAILED=()
+SPAWNED=()        # TID:PID pairs — tasks that were actually spawned
+FAILED=()         # TID:rc pairs — real (non-rate-limit) failures
+RATE_LIMITED=0
+PENDING_AFTER=()  # tasks not yet spawned when rate-limit was already detected
+RESET_AT_FROM_CHILD=""
+RESET_AT_FROM_CHILD_ISO=""
 
 for TID in $TASK_IDS; do
+  # If a prior wait already detected rate-limit, defer remaining tasks without spawning
+  if (( RATE_LIMITED == 1 )); then
+    PENDING_AFTER+=("$TID")
+    continue
+  fi
+
   TASK_FILE="$FEATURE_DIR/${TID}.md"
   if [[ ! -f "$TASK_FILE" ]]; then
     echo "[didio-run-wave] task file missing, skipping: $TASK_FILE" >&2
@@ -97,15 +118,74 @@ for TID in $TASK_IDS; do
     "$DIDIO_HOME/bin/didio-spawn-agent.sh" "$ROLE" "$FEATURE" "$TASK_FILE" \
       "This task is part of Wave $WAVE. Other tasks in this Wave run concurrently — do not touch their files."
   ) &
-  PIDS+=($!)
+  SPAWNED+=("$TID:$!")
 done
 
-# Wait for all, collect failures
-for PID in "${PIDS[@]}"; do
-  if ! wait "$PID"; then
-    FAILED+=("pid:$PID")
+# Wait for all spawned children; classify exit=2 as rate-limit, others as real failures
+for entry in "${SPAWNED[@]+"${SPAWNED[@]}"}"; do
+  TID="${entry%%:*}"
+  PID="${entry##*:}"
+  set +e
+  wait "$PID"
+  rc=$?
+  set -e
+  if [[ $rc -eq 0 ]]; then
+    :
+  elif [[ $rc -eq 2 ]]; then
+    RATE_LIMITED=1
+    # Lift reset_at from the most recent pending file written by the rate-limited child.
+    # Prefer reset_at_unix (epoch int) so we can pass both ISO and unix forms downstream.
+    latest=$(ls -t "$PROJECT_ROOT/logs/agents/_pending/${FEATURE}-"*.json 2>/dev/null | head -n1 || true)
+    if [[ -n "$latest" ]]; then
+      RESET_AT_FROM_CHILD=$(python3 -c \
+        "import json,sys; d=json.load(open(sys.argv[1])); print(d.get('reset_at_unix') or '')" \
+        "$latest" 2>/dev/null || true)
+      RESET_AT_FROM_CHILD_ISO=$(python3 -c \
+        "from datetime import datetime,timezone; import json,sys; d=json.load(open(sys.argv[1])); \
+         u=d.get('reset_at_unix'); print(datetime.fromtimestamp(int(u),tz=timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ') if u else d.get('reset_at',''))" \
+        "$latest" 2>/dev/null || true)
+    fi
+  else
+    FAILED+=("$TID:$rc")
   fi
 done
+
+# Persist pending stubs for tasks that were never spawned due to rate-limit
+if (( RATE_LIMITED == 1 )) && (( ${#PENDING_AFTER[@]} > 0 )); then
+  PENDING_DIR="$PROJECT_ROOT/logs/agents/_pending"
+  mkdir -p "$PENDING_DIR"
+  TS=$(date +%Y%m%d-%H%M%S)
+  for TID in "${PENDING_AFTER[@]}"; do
+    TASK_FILE="$FEATURE_DIR/${TID}.md"
+    PENDING_ID="${FEATURE}-${ROLE}-${TID}-${TS}"
+    PENDING_JSON=$(didio_rl_build_pending_json \
+      --id="$PENDING_ID" \
+      --role="$ROLE" \
+      --feature="$FEATURE" \
+      --task="$TID" \
+      --task-file="$TASK_FILE" \
+      --extra-prompt="Wave $WAVE — pending after rate-limit on sibling task" \
+      --cwd="$PROJECT_ROOT" \
+      --reset-at="${RESET_AT_FROM_CHILD_ISO:-$RESET_AT_FROM_CHILD}" \
+      --reset-at-unix="$RESET_AT_FROM_CHILD" \
+      --retries=0 \
+      --max-retries="${DIDIO_MAX_RETRIES:-3}" \
+      --original-log="")
+    didio_rl_persist_pending "$PENDING_DIR" "$PENDING_ID" "$PENDING_JSON"
+    didio_rl_append_telemetry "$PENDING_DIR" \
+      "$(printf '{"event":"wave_pending","role":"%s","feature":"%s","task":"%s","wave":%s,"ts":"%s"}' \
+        "$ROLE" "$FEATURE" "$TID" "$WAVE" "$(date -u +%Y-%m-%dT%H:%M:%SZ)")"
+  done
+  [[ ${#FAILED[@]} -gt 0 ]] && echo "[didio-run-wave] Wave $WAVE also had real failures: ${FAILED[*]}" >&2
+  echo "[didio-run-wave] Wave $WAVE rate-limited; ${#PENDING_AFTER[@]} task(s) deferred. Resume with: didio run-wave --resume $FEATURE" >&2
+  exit 2
+fi
+
+if (( RATE_LIMITED == 1 )); then
+  [[ ${#FAILED[@]} -gt 0 ]] && echo "[didio-run-wave] Wave $WAVE also had real failures: ${FAILED[*]}" >&2
+  echo "[didio-run-wave] Wave $WAVE rate-limited during execution. Resume with: didio run-wave --resume $FEATURE" >&2
+  exit 2
+fi
 
 if [[ ${#FAILED[@]} -gt 0 ]]; then
   echo "[didio-run-wave] Wave $WAVE failed: ${FAILED[*]}" >&2

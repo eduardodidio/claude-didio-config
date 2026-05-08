@@ -1,0 +1,2 @@
+{"type":"system","subtype":"init","cwd":"/tmp/test","session_id":"sess-fake-006","tools":[],"mcp_servers":[],"model":"claude-opus-4-7","permissionMode":"bypassPermissions"}
+{"type":"assistant","message":{"id":"msg-fake-006","type":"message","role":"assistant","content":[{"type":"text","text":"Working on the task..."}],"model":"claude-opus-4-7","stop_reason":"end_turn","usage":{"input_tokens":10,"output_tokens":8}},"session_id":"sess-fake-006"}
