@@ -89,16 +89,16 @@ fi
 SPAWNED=()        # TID:PID pairs — tasks that were actually spawned
 FAILED=()         # TID:rc pairs — real (non-rate-limit) failures
 RATE_LIMITED=0
-PENDING_AFTER=()  # tasks not yet spawned when rate-limit was already detected
 RESET_AT_FROM_CHILD=""
 RESET_AT_FROM_CHILD_ISO=""
 
 for TID in $TASK_IDS; do
-  # If a prior wait already detected rate-limit, defer remaining tasks without spawning
-  if (( RATE_LIMITED == 1 )); then
-    PENDING_AFTER+=("$TID")
-    continue
-  fi
+  # F23 — removed deferred-spawn path (was gated on RATE_LIMITED==1 here).
+  # RATE_LIMITED=1 can never be set during the spawn-loop because
+  # RATE_LIMITED is only set by the wait-loop that runs AFTER spawn.
+  # See F22 retrospective + ADR-0014. Rate-limit handling now lives
+  # entirely inside didio-spawn-agent via --on-rate-limit=schedule
+  # plus `didio resume-pending`.
 
   TASK_FILE="$FEATURE_DIR/${TID}.md"
   if [[ ! -f "$TASK_FILE" ]]; then
@@ -149,37 +149,6 @@ for entry in "${SPAWNED[@]+"${SPAWNED[@]}"}"; do
     FAILED+=("$TID:$rc")
   fi
 done
-
-# Persist pending stubs for tasks that were never spawned due to rate-limit
-if (( RATE_LIMITED == 1 )) && (( ${#PENDING_AFTER[@]} > 0 )); then
-  PENDING_DIR="$PROJECT_ROOT/logs/agents/_pending"
-  mkdir -p "$PENDING_DIR"
-  TS=$(date +%Y%m%d-%H%M%S)
-  for TID in "${PENDING_AFTER[@]}"; do
-    TASK_FILE="$FEATURE_DIR/${TID}.md"
-    PENDING_ID="${FEATURE}-${ROLE}-${TID}-${TS}"
-    PENDING_JSON=$(didio_rl_build_pending_json \
-      --id="$PENDING_ID" \
-      --role="$ROLE" \
-      --feature="$FEATURE" \
-      --task="$TID" \
-      --task-file="$TASK_FILE" \
-      --extra-prompt="Wave $WAVE — pending after rate-limit on sibling task" \
-      --cwd="$PROJECT_ROOT" \
-      --reset-at="${RESET_AT_FROM_CHILD_ISO:-$RESET_AT_FROM_CHILD}" \
-      --reset-at-unix="$RESET_AT_FROM_CHILD" \
-      --retries=0 \
-      --max-retries="${DIDIO_MAX_RETRIES:-3}" \
-      --original-log="")
-    didio_rl_persist_pending "$PENDING_DIR" "$PENDING_ID" "$PENDING_JSON"
-    didio_rl_append_telemetry "$PENDING_DIR" \
-      "$(printf '{"event":"wave_pending","role":"%s","feature":"%s","task":"%s","wave":%s,"ts":"%s"}' \
-        "$ROLE" "$FEATURE" "$TID" "$WAVE" "$(date -u +%Y-%m-%dT%H:%M:%SZ)")"
-  done
-  [[ ${#FAILED[@]} -gt 0 ]] && echo "[didio-run-wave] Wave $WAVE also had real failures: ${FAILED[*]}" >&2
-  echo "[didio-run-wave] Wave $WAVE rate-limited; ${#PENDING_AFTER[@]} task(s) deferred. Resume with: didio run-wave --resume $FEATURE" >&2
-  exit 2
-fi
 
 if (( RATE_LIMITED == 1 )); then
   [[ ${#FAILED[@]} -gt 0 ]] && echo "[didio-run-wave] Wave $WAVE also had real failures: ${FAILED[*]}" >&2

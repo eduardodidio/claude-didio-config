@@ -237,6 +237,12 @@ o estado atual do código. Inclua arquitetura e jornada do usuário (BPMN).
   Developer = Senhor dos Anéis, TechLead = Naruto, QA = Pokémon.
   Totalmente customizável em `easter-eggs.json`.
 
+- **Rate-limit auto-resume (F22)**
+  `didio spawn-agent` detecta rate-limit da Anthropic no JSONL e suspende
+  o agente em vez de falhar. Use `--on-rate-limit=wait|schedule|fail-fast`
+  e `DIDIO_CI=1` pra controlar o comportamento. `didio resume-pending`
+  ou `didio spawn-agent --help` pra ver todas as flags.
+
 - **Highlander mode (opt-in)** — _equivalente a Auto Mode on_
   Ativa o Auto Mode nativo do Claude Code via
   `permissions.defaultMode: "auto"` e mantém um allow-list liberal como

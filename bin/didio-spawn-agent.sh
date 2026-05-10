@@ -16,6 +16,45 @@
 
 set -euo pipefail
 
+# F23 — built-in --help
+if [[ "${1:-}" = "--help" || "${1:-}" = "-h" ]]; then
+  cat <<'EOF'
+USAGE:
+  didio spawn-agent <role> <feature> <task-file> [extra-prompt]
+
+FLAGS:
+  --on-rate-limit=<mode>   wait | schedule | fail-fast.
+                           Default: wait (interactive),
+                           fail-fast (when DIDIO_CI=1 or CI=1).
+  --max-retries=<N>        Max retry attempts on rate-limit. Default: 3.
+  --help, -h               Show this help and exit.
+
+ENV VARS:
+  DIDIO_HOME                       Framework install dir.
+                                   Default: $HOME/.claude-didio-config.
+  DIDIO_CI                         When =1, defaults --on-rate-limit to
+                                   fail-fast. Same effect: CI=1.
+  DIDIO_ON_RATE_LIMIT              Overrides flag default.
+  DIDIO_MAX_RETRIES                Overrides --max-retries default (3).
+  DIDIO_RATE_LIMIT_MARGIN_SEC      Extra seconds to wait past reset_at.
+                                   Default: 60.
+  DIDIO_RETRIES_SO_FAR             Internal counter; honored across
+                                   exec re-spawns.
+  AGENT_MODEL / AGENT_FALLBACK     Override model selection.
+
+EXAMPLES:
+  # Default invocation
+  didio spawn-agent developer F23 tasks/features/F23/F23-T02.md
+
+  # Schedule pending file on rate-limit (cron-friendly)
+  didio spawn-agent developer F23 ./task.md --on-rate-limit=schedule
+
+  # CI mode — fail-fast on rate-limit
+  DIDIO_CI=1 didio spawn-agent developer F23 ./task.md
+EOF
+  exit 0
+fi
+
 ROLE="${1:?role required: architect|developer|techlead|qa|readiness|tea|meeting-parser}"
 FEATURE="${2:?feature-id required (e.g. F01)}"
 TASK_FILE="${3:?task-file required (absolute or relative path)}"

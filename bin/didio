@@ -66,6 +66,13 @@ Usage:
   didio version
       Print framework version.
 
+Rate-limit handling (F22):
+  --on-rate-limit=<mode>   Applies to spawn-agent and run-wave.
+                           wait (default) | schedule | fail-fast.
+  --max-retries=<N>        Retry budget per spawn (default: 3).
+  DIDIO_CI=1               Force fail-fast in non-interactive runs.
+  For the full reference:  didio spawn-agent --help
+
 Environment:
   DIDIO_HOME   Framework install directory (default: ~/.claude-didio-config)
 EOF
