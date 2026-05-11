@@ -115,7 +115,7 @@ for TID in $TASK_IDS; do
   fi
 
   (
-    "$DIDIO_HOME/bin/didio-spawn-agent.sh" "$ROLE" "$FEATURE" "$TASK_FILE" \
+    "${DIDIO_HOME:-$HOME/.claude-didio-config}/bin/didio-spawn-agent.sh" "$ROLE" "$FEATURE" "$TASK_FILE" \
       "This task is part of Wave $WAVE. Other tasks in this Wave run concurrently — do not touch their files."
   ) &
   SPAWNED+=("$TID:$!")
