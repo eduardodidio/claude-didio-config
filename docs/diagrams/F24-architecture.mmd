@@ -1,0 +1,53 @@
+%% F24 — auto-install second-brain: component & data-flow diagram.
+%% Shows the resolution chain for DIDIO_SECOND_BRAIN_HOME and the
+%% consumers that depend on it.
+
+flowchart LR
+  subgraph Sources["Resolution sources (precedence: top → bottom)"]
+    ENV[["$DIDIO_SECOND_BRAIN_HOME<br/>(env var)"]]
+    CFG[("didio.config.json<br/>second_brain.home")]
+    H1["$HOME/didio-second-brain-claude<br/>(heuristic 1)"]
+    H2["$HOME/.claude-second-brain<br/>(heuristic 2)"]
+  end
+
+  subgraph Lib["bin/didio-config-lib.sh (T01)"]
+    F1["didio_second_brain_home()"]
+    F2["didio_second_brain_installed()"]
+  end
+
+  subgraph Helper["Shared clone helper"]
+    HELP["bin/didio-install-second-brain.sh<br/>(T04)<br/>idempotent clone/pull"]
+  end
+
+  subgraph Consumers
+    INST["install.sh (T03)<br/>raw bash, virgin machine"]
+    SMK["bin/didio-second-brain-smoke.sh (T05)<br/>preflight check"]
+    SKL["skills/install-claude-didio-framework/SKILL.md (T06)<br/>per-project materialization"]
+  end
+
+  subgraph Template["templates/.claude/settings.json (T02)"]
+    PH["{{DIDIO_SECOND_BRAIN_HOME}}<br/>(3 hook commands:<br/>Stop, SubagentStop, PostToolUse)"]
+  end
+
+  subgraph Output["Materialized per project"]
+    OUT[(".claude/settings.json<br/>hooks resolved OR omitted")]
+  end
+
+  ENV --> F1
+  CFG --> F1
+  H1 --> F1
+  H2 --> F1
+  F1 --> F2
+
+  F2 --> SMK
+  F1 --> SKL
+
+  INST -. invokes .-> HELP
+  SKL  -. invokes .-> HELP
+  HELP -. writes .-> H1
+
+  SKL  -- yes: sed substitute --> PH
+  SKL  -- no: strip 3 entries  --> PH
+  PH   --> OUT
+
+  INST -- writes shell rc snippet --> ENV

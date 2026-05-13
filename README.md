@@ -321,6 +321,106 @@ jornada BPMN), prompts pré-configurados, rebranding "Didio Agents Dash".
 
 ---
 
+## Rate-limit recovery
+
+Quando o Anthropic API responde com rate-limit no meio de uma Wave,
+o `didio spawn-agent` (a partir da F22) sabe se recuperar sem perder
+trabalho. O comportamento é controlado pelo flag `--on-rate-limit`:
+
+- **`--on-rate-limit=wait`** — bloqueia o spawn até o reset do
+  rate-limit (lê o header `Retry-After`, dorme o tempo necessário +
+  `DIDIO_RATE_LIMIT_MARGIN_SEC`, retoma). Use no fluxo interativo
+  local: você está olhando o terminal e prefere esperar a continuar
+  na mão.
+- **`--on-rate-limit=schedule`** — marca a task como `pending`,
+  escreve um stub em `_pending/`, e devolve exit=0 imediato. Use em
+  CI ou orquestrações longas: o follow-up é feito por
+  `didio resume-pending` quando o reset ocorrer. **Default em CI**
+  (quando `DIDIO_CI=1`).
+- **`--on-rate-limit=fail-fast`** — propaga o erro como exit=1 sem
+  espera. Use só quando você quer que o pipeline pare e te avise
+  (debugging, dry-runs).
+
+O número de retries antes de o flag tomar efeito é controlado por
+`--max-retries` (default 3). Veja
+[ADR-0014: rate-limit auto-resume](../didio-second-brain-claude/docs/adr/0014-rate-limit-auto-resume.md)
+no hub second-brain para a decisão arquitetural completa.
+<!-- O link acima assume que ambos os repos são irmãos sob ~/. -->
+
+### Troubleshooting: agent spawn falhou com exit 1
+
+1. Cheque o JSONL do agent que falhou: `logs/agents/<role>-<feature>-<ts>.jsonl`.
+2. Procure por `"hit your limit"` ou `"rate_limit"` no log:
+   ```bash
+   grep -E 'hit your limit|rate_limit' logs/agents/*.jsonl | tail -5
+   ```
+3. Se o termo aparecer, o agent foi rate-limited. Recupere com:
+   ```bash
+   didio resume-pending          # processa todos os pending
+   ```
+   ou re-spawne explicitamente:
+   ```bash
+   didio spawn-agent <role> --on-rate-limit=wait
+   ```
+4. Se o termo não aparecer, é outro tipo de erro — abra o JSONL
+   manualmente e investigue.
+
+### Variáveis de ambiente DIDIO_*
+
+| Variável | Default | Descrição |
+|---|---|---|
+| `DIDIO_HOME` | `~/claude-didio-config` | Path para o repositório do framework. |
+| `DIDIO_CI` | `0` | Quando `1`, muda default de `--on-rate-limit` para `schedule`. |
+| `DIDIO_MAX_RETRIES` | `3` | Número de retries antes de aplicar `--on-rate-limit`. |
+| `DIDIO_ON_RATE_LIMIT` | `wait` (ou `schedule` se `DIDIO_CI=1`) | Default global do flag `--on-rate-limit`. |
+| `DIDIO_PLAN_ONLY` | `0` | Quando `1`, Architect roda em planning-only (não spawna Developer). |
+
+### Snippet `didio spawn-agent --help` (referência inline)
+
+<!-- f24:help-snippet:start -->
+```text
+USAGE:
+  didio spawn-agent <role> <feature> <task-file> [extra-prompt]
+
+FLAGS:
+  --on-rate-limit=<mode>   wait | schedule | fail-fast.
+                           Default: wait (interactive),
+                           fail-fast (when DIDIO_CI=1 or CI=1).
+  --max-retries=<N>        Max retry attempts on rate-limit. Default: 3.
+  --help, -h               Show this help and exit.
+
+ENV VARS:
+  DIDIO_HOME                       Framework install dir.
+                                   Default: $HOME/.claude-didio-config.
+  DIDIO_CI                         When =1, defaults --on-rate-limit to
+                                   fail-fast. Same effect: CI=1.
+  DIDIO_ON_RATE_LIMIT              Overrides flag default.
+  DIDIO_MAX_RETRIES                Overrides --max-retries default (3).
+  DIDIO_RATE_LIMIT_MARGIN_SEC      Extra seconds to wait past reset_at.
+                                   Default: 60.
+  DIDIO_RETRIES_SO_FAR             Internal counter; honored across
+                                   exec re-spawns.
+  AGENT_MODEL / AGENT_FALLBACK     Override model selection.
+
+EXAMPLES:
+  # Default invocation
+  didio spawn-agent developer F23 tasks/features/F23/F23-T02.md
+
+  # Schedule pending file on rate-limit (cron-friendly)
+  didio spawn-agent developer F23 ./task.md --on-rate-limit=schedule
+
+  # CI mode — fail-fast on rate-limit
+  DIDIO_CI=1 didio spawn-agent developer F23 ./task.md
+```
+<!-- f24:help-snippet:end -->
+
+> Este bloco é validado por `tests/F24-readme.sh`: se você editou o
+> `--help` em `bin/didio-spawn-agent.sh`, regenere este bloco rodando
+> `bin/didio spawn-agent --help` e copiando o output entre os
+> marcadores HTML acima. O teste falha se divergir.
+
+---
+
 ## Memória dos agentes (learnings entre features)
 
 A cada feature, o QA roda a cerimônia de retrospectiva e consolida

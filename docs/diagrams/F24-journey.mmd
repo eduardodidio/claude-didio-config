@@ -1,0 +1,41 @@
+%% F24 — auto-install second-brain: user journey (BPMN-style swimlanes).
+%% Covers 4 scenarios: virgin install / opt-out / opt-in / already-installed
+%% idempotent re-run, all converging on a working materialized project.
+
+flowchart TD
+  subgraph UserLane["👤 User"]
+    U_RUN(["Runs install.sh"])
+    U_ANS{"DIDIO_INSTALL_SB?<br/>or interactive answer"}
+    U_SKILL(["Runs /install-claude-didio-framework<br/>in a new project"])
+    U_SBQ{"Habilitar second-brain MCP?"}
+    U_DONE(["✅ Project bootstrapped<br/>hooks working OR cleanly omitted"])
+  end
+
+  subgraph InstallLane["🖥️ install.sh (raw bash, T03)"]
+    I_DETECT{"$DIDIO_SECOND_BRAIN_HOME/.git<br/>or heuristic dir found?"}
+    I_OFFER["Prompt:<br/>'Clone MCP? [Y/n]'"]
+    I_CLONE["bash didio-install-second-brain.sh<br/>(T04)"]
+    I_RC["Append/replace managed block<br/>in ~/.zshrc or ~/.bashrc"]
+    I_SKIP["Skip MCP step<br/>(warn if non-TTY)"]
+  end
+
+  subgraph SkillLane["🧠 install skill (T06, inside Claude Code)"]
+    S_RESOLVE["didio_second_brain_home()"]
+    S_CLONE_IF_NEEDED["Invoke helper<br/>if path empty"]
+    S_SUBST["sed s|{{DIDIO_SECOND_BRAIN_HOME}}|...|g<br/>+ set second_brain.home/.enabled=true"]
+    S_STRIP["python3 strip 3 hook entries<br/>+ set second_brain.enabled=false"]
+    S_VERIFY["json.load + grep -c '/Users/eduardodidio/' == 0"]
+  end
+
+  U_RUN --> I_DETECT
+  I_DETECT -- found --> I_RC
+  I_DETECT -- absent --> U_ANS
+  U_ANS -- yes/Y/auto --> I_CLONE --> I_RC
+  U_ANS -- no/non-TTY --> I_SKIP
+
+  I_RC --> U_SKILL
+  I_SKIP --> U_SKILL
+
+  U_SKILL --> U_SBQ
+  U_SBQ -- yes --> S_RESOLVE --> S_CLONE_IF_NEEDED --> S_SUBST --> S_VERIFY --> U_DONE
+  U_SBQ -- no  --> S_STRIP   --> S_VERIFY --> U_DONE
