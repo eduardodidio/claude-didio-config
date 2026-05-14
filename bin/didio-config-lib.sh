@@ -225,6 +225,45 @@ print('true' if sb.get('fallback_to_local', True) else 'false')
 " 2>/dev/null || echo "true"
 }
 
+# Resolve the absolute path to a local didio-second-brain-claude install.
+# Precedence:
+#   1. $DIDIO_SECOND_BRAIN_HOME (if set and points to a dir containing .git)
+#   2. didio.config.json second_brain.home (resolved via didio_read_config_path)
+#   3. Heuristic search of $HOME/didio-second-brain-claude, $HOME/.claude-second-brain
+# Returns absolute path on stdout, or empty string. Never errors.
+didio_second_brain_home() {
+  if [[ -n "${DIDIO_SECOND_BRAIN_HOME:-}" && -d "$DIDIO_SECOND_BRAIN_HOME/.git" ]]; then
+    echo "$DIDIO_SECOND_BRAIN_HOME"
+    return 0
+  fi
+  local from_config
+  from_config="$(didio_read_config_path 'second_brain.home' '')"
+  if [[ -n "$from_config" && -d "$from_config/.git" ]]; then
+    echo "$from_config"
+    return 0
+  fi
+  local candidate
+  for candidate in "$HOME/didio-second-brain-claude" "$HOME/.claude-second-brain"; do
+    if [[ -d "$candidate/.git" ]]; then
+      echo "$candidate"
+      return 0
+    fi
+  done
+  echo ""
+}
+
+# Returns "true" iff didio_second_brain_home resolves AND the expected
+# hook layout is present at that path. Used by smoke + skill.
+didio_second_brain_installed() {
+  local home
+  home="$(didio_second_brain_home)"
+  if [[ -n "$home" && -f "$home/patterns/hooks/stop-session-summary/hook.sh" ]]; then
+    echo "true"
+  else
+    echo "false"
+  fi
+}
+
 # Print a summary of current config (for menu display).
 didio_config_summary() {
   local config

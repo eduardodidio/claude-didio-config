@@ -74,6 +74,11 @@
     "bugfix": true,
     "review": true
   },
+  "second_brain": {
+    "enabled": false,
+    "fallback_to_local": true,
+    "home": ""
+  },
   "session_guard": {
     "enabled": false,
     "source": "ccusage",

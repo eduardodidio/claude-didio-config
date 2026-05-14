@@ -67,7 +67,8 @@
   },
   "second_brain": {
     "enabled": true,
-    "fallback_to_local": true
+    "fallback_to_local": true,
+    "home": ""
   },
   "session_guard": {
     "enabled": true,

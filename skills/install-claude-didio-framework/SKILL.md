@@ -57,6 +57,11 @@ Use the **AskUserQuestion** tool with these questions (one batch is fine):
      equivalent of turning Auto Mode on. Only use it in sandboxed
      projects without secrets."
 4. **Create ADR-0001** documenting framework adoption? — `yes` (default) / `no`
+5. **Habilitar second-brain MCP?** — single select:
+   - `yes` (recomendado) — Prior Learnings via MCP. Economiza tokens
+     reusando learnings entre projetos.
+   - `no` — Usar somente arquivos locais em `memory/agent-learnings/`.
+   Default: `yes`.
 
 ## Materialization steps
 
@@ -87,11 +92,112 @@ and `sed` for substitution, or Write/Edit tools as appropriate.
    - `{{DATE}}` → today's date (YYYY-MM-DD)
    - `{{PROJECT_OWNER}}` → the current git user.name (fallback to "TBD")
    - `{{EXTRA_PROJECT_NOTES}}` → empty
+   - `{{DIDIO_HOME}}` → resolved absolute path of the framework install,
+     i.e. `$DIDIO_HOME` (or `$HOME/.claude-didio-config` if unset). Applied
+     to `./.claude/settings.json` (PreToolUse + PostToolUse didio hooks) so
+     the materialized file is portable across machines.
+     Example sed:
+     ```bash
+     DIDIO_HOME_RESOLVED="${DIDIO_HOME:-$HOME/.claude-didio-config}"
+     sed -i.bak "s|{{DIDIO_HOME}}|$DIDIO_HOME_RESOLVED|g" .claude/settings.json
+     rm -f .claude/settings.json.bak
+     ```
 
 4. **Highlander mode**: if the user said yes, overwrite
    `./.claude/settings.json` with the contents of
    `./.claude/settings.highlander.json`. Leave both files in place so the
    choice is reversible.
+
+4.5. **Second-brain hook substitution**: based on the answer to question 5.
+
+   **If user answered `no`**:
+
+   - Strip the three hook entries whose `command` contains
+     `{{DIDIO_SECOND_BRAIN_HOME}}` from `./.claude/settings.json` using
+     `python3 -c` (do NOT use Edit/sed — the targets live in nested arrays):
+
+     ```bash
+     python3 - <<'PY'
+     import json
+     p = '.claude/settings.json'
+     with open(p) as f: s = json.load(f)
+     for key in ('Stop', 'SubagentStop', 'PostToolUse'):
+         entries = s.get('hooks', {}).get(key, [])
+         for entry in entries:
+             entry['hooks'] = [
+                 h for h in entry.get('hooks', [])
+                 if '{{DIDIO_SECOND_BRAIN_HOME}}' not in h.get('command', '')
+             ]
+         s['hooks'][key] = [e for e in entries if e.get('hooks')]
+         if not s['hooks'][key]:
+             del s['hooks'][key]
+     with open(p, 'w') as f:
+         json.dump(s, f, indent=2)
+         f.write('\n')
+     PY
+     ```
+
+   - In `./didio.config.json`, set `second_brain.enabled = false`:
+
+     ```bash
+     python3 - <<'PY'
+     import json
+     p = 'didio.config.json'
+     with open(p) as f: c = json.load(f)
+     c.setdefault('second_brain', {})['enabled'] = False
+     with open(p, 'w') as f:
+         json.dump(c, f, indent=2)
+         f.write('\n')
+     PY
+     ```
+
+   **If user answered `yes`**:
+
+   1. Resolve `DIDIO_SECOND_BRAIN_HOME` via the helper lib:
+
+      ```bash
+      RESOLVED=$(bash -c 'source "$DIDIO_HOME/bin/didio-config-lib.sh"; didio_second_brain_home')
+      ```
+
+   2. If `$RESOLVED` is empty, invoke the helper script to clone:
+
+      ```bash
+      RESOLVED=$("$DIDIO_HOME/bin/didio-install-second-brain.sh") || RESOLVED=""
+      ```
+
+      If the helper exits non-zero, ask the user whether to retry or
+      fall through to the "no" branch above.
+
+   3. Substitute the placeholder in `./.claude/settings.json`:
+
+      ```bash
+      sed -i.bak "s|{{DIDIO_SECOND_BRAIN_HOME}}|$RESOLVED|g" ./.claude/settings.json
+      rm ./.claude/settings.json.bak
+      ```
+
+   4. In `./didio.config.json`, set `second_brain.home = "$RESOLVED"` and
+      `second_brain.enabled = true`. Use `python3 -c` with double-quoted
+      string so `$RESOLVED` expands via the shell:
+
+      ```bash
+      python3 -c "
+      import json
+      p = 'didio.config.json'
+      with open(p) as f: c = json.load(f)
+      c.setdefault('second_brain', {})['home'] = '$RESOLVED'
+      c['second_brain']['enabled'] = True
+      with open(p, 'w') as f:
+          json.dump(c, f, indent=2)
+          f.write('\n')
+      "
+      ```
+
+   5. JSON-validity check (mandatory):
+
+      ```bash
+      python3 -c "import json; json.load(open('.claude/settings.json'))" \
+        || { echo "ERROR: settings.json corrupted after substitution"; exit 1; }
+      ```
 
 5. **ADR-0001**: if the user said no, delete
    `./docs/adr/0001-adopt-claude-didio-framework.md`. Otherwise fill in
@@ -122,7 +228,31 @@ and `sed` for substitution, or Write/Edit tools as appropriate.
 
 7. **Verify**: run `ls -la ./CLAUDE.md ./agents/prompts/ ./tasks/features/
    ./.claude/commands/create-feature.md` and confirm everything is in
-   place.
+   place. Then run the following checks and include their output in the
+   final report — surface any failure loudly and do not silently continue:
+
+   ```bash
+   # Confirm no hardcoded author paths remain:
+   grep -c '/Users/eduardodidio/' .claude/settings.json
+   # Expect: 0
+   ```
+
+   ```bash
+   # If user said "no" to second-brain, confirm hook entries were stripped:
+   python3 -c "
+   import json
+   s = json.load(open('.claude/settings.json'))
+   hooks = s.get('hooks', {})
+   for k in ('Stop','SubagentStop','PostToolUse'):
+       for e in hooks.get(k, []):
+           for h in e.get('hooks', []):
+               assert 'DIDIO_SECOND_BRAIN_HOME' not in h.get('command',''), f'leftover hook in {k}'
+   print('ok')
+   "
+   ```
+
+   Both checks must print their result in the final report so the user
+   sees confirmation.
 
 8. **Install the user-level slash commands** (optional, ask the user):
    symlink `./.claude/commands/create-feature.md` and `dashboard.md` from

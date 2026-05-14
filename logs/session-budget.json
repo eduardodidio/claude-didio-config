@@ -1,14 +1,14 @@
 {
   "source": "ccusage",
-  "session_id": "2026-05-08T17:00:00.000Z",
-  "tokens_used": 55767556,
-  "limit": 123102528,
-  "pct": 0.453,
-  "window_resets_at": "2026-05-08T22:00:00Z",
-  "window_started_at": "2026-05-08T17:00:00Z",
+  "session_id": "2026-05-13T22:00:00.000Z",
+  "tokens_used": 31212815,
+  "limit": 83700460,
+  "pct": 0.3729,
+  "window_resets_at": "2026-05-14T03:00:00Z",
+  "window_started_at": "2026-05-13T22:00:00Z",
   "weekly_resets_at": "",
-  "burn_rate_tokens_per_min": 498432.6078766886,
-  "remaining_minutes": 139,
-  "projected_tokens": 125037469,
-  "updated_at": "2026-05-08T19:41:01Z"
+  "burn_rate_tokens_per_min": 296481.67547224055,
+  "remaining_minutes": 156,
+  "projected_tokens": 77340487,
+  "updated_at": "2026-05-14T00:24:25Z"
 }

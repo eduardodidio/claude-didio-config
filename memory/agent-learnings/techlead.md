@@ -124,3 +124,11 @@
 **What to avoid (second pass):** Trusting `[x]` AC checkboxes on smoke tests without running the smoke live. F15 required three review cycles partly because a developer pre-checked a smoke AC before the smoke passed. Always run the smoke during review — `[x]` without attached output is not evidence.
 
 **Pattern to repeat:** When a smoke routes through a CLI dispatcher (`./bin/didio spawn-agent`), verify WHICH binary the dispatcher actually calls. If the feature changes a script that the dispatcher delegates to, the smoke must call the script directly (`./bin/didio-spawn-agent.sh`) or update the global install first. Check every smoke test: does it go through a dispatcher? If yes, add `diff ./bin/didio-spawn-agent.sh "${DIDIO_HOME:-$HOME/.claude-didio-config}/bin/didio-spawn-agent.sh" || echo "WARNING: local != installed"` before the smoke.
+
+## F24 — 2026-05-13
+
+**What worked:** Requiring a `grep -c '/Users/<author>/' <materialized file> == 0` check as part of the AC verified the end-to-end placeholder substitution story, not just individual sed lines.
+
+**What to avoid:** Accepting supplementary sections added in the same commit as the target task without applying the same scrutiny as to core task content. Cross-check every behavioral claim against the live binary — prose bullets and table rows can describe the same flag with contradicting semantics.
+
+**Pattern to repeat:** For templates with multiple placeholder categories (framework paths + MCP paths + user paths), write one AC that audits the materialized file for the author's username in total rather than per-placeholder. One `grep -c '/Users/author/'` catches them all.

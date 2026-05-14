@@ -335,11 +335,11 @@ trabalho. O comportamento é controlado pelo flag `--on-rate-limit`:
 - **`--on-rate-limit=schedule`** — marca a task como `pending`,
   escreve um stub em `_pending/`, e devolve exit=0 imediato. Use em
   CI ou orquestrações longas: o follow-up é feito por
-  `didio resume-pending` quando o reset ocorrer. **Default em CI**
-  (quando `DIDIO_CI=1`).
+  `didio resume-pending` quando o reset ocorrer. Para forçar schedule
+  em CI: `DIDIO_ON_RATE_LIMIT=schedule`.
 - **`--on-rate-limit=fail-fast`** — propaga o erro como exit=1 sem
-  espera. Use só quando você quer que o pipeline pare e te avise
-  (debugging, dry-runs).
+  espera. **Default em CI** (quando `DIDIO_CI=1` ou `CI=1`). Use
+  quando você quer que o pipeline pare e te avise (debugging, dry-runs).
 
 O número de retries antes de o flag tomar efeito é controlado por
 `--max-retries` (default 3). Veja
@@ -369,11 +369,13 @@ no hub second-brain para a decisão arquitetural completa.
 
 | Variável | Default | Descrição |
 |---|---|---|
-| `DIDIO_HOME` | `~/claude-didio-config` | Path para o repositório do framework. |
-| `DIDIO_CI` | `0` | Quando `1`, muda default de `--on-rate-limit` para `schedule`. |
+| `DIDIO_HOME` | `~/.claude-didio-config` | Path para o repositório do framework. |
+| `DIDIO_CI` | `0` | Quando `1` (ou `CI=1`), força `--on-rate-limit=fail-fast` — o pipeline para com exit 1 em rate-limit. |
 | `DIDIO_MAX_RETRIES` | `3` | Número de retries antes de aplicar `--on-rate-limit`. |
-| `DIDIO_ON_RATE_LIMIT` | `wait` (ou `schedule` se `DIDIO_CI=1`) | Default global do flag `--on-rate-limit`. |
+| `DIDIO_ON_RATE_LIMIT` | `wait` (ou `fail-fast` se `DIDIO_CI=1`) | Default global do flag `--on-rate-limit`. |
 | `DIDIO_PLAN_ONLY` | `0` | Quando `1`, Architect roda em planning-only (não spawna Developer). |
+| `DIDIO_SECOND_BRAIN_HOME` | (unset) | Path para o checkout local do `didio-second-brain-claude`. Toma precedência sobre heurísticas e `didio.config.json → second_brain.home`. |
+| `DIDIO_INSTALL_SB` | (unset) | Controla o auto-install no `install.sh`: `yes`/`auto` força clone sem prompt; `no` pula sem prompt. Útil em CI. |
 
 ### Snippet `didio spawn-agent --help` (referência inline)
 
@@ -448,22 +450,70 @@ o bloco `second_brain` — os helpers default pra `enabled=false`,
 
 ### Modo second-brain (opt-in, avançado)
 
-A partir da F06, o framework pode integrar com o MCP server do projeto
-irmão
+O framework integra-se ao MCP server irmão
+[`didio-second-brain-claude`](https://github.com/eduardodidio/didio-second-brain-claude),
+que centraliza "Prior Learnings" entre projetos e economiza tokens
+reutilizando conhecimento entre features. **Medição (F06-benchmark)**:
+~82 % de redução média no footprint de "Prior Learnings" por spawn
+(developer 79 %, techlead 87 %, qa 77 %). Ver
+`tests/F06-benchmark-results.md`. A integração é **opt-in** mas
+**recomendada**.
+
+#### Instalação automática
+
+Durante `install.sh` (a partir de F24):
+
+- Se `didio-second-brain-claude` ainda não estiver clonado, o instalador
+  pergunta `"Clone it from github.com/eduardodidio/didio-second-brain-claude? [Y/n]"`.
+  Default = `Y`.
+- Para CI / pipes (sem TTY), o instalador **pula** silenciosamente.
+  Force a instalação com `DIDIO_INSTALL_SB=yes`. Pule sem prompt com
+  `DIDIO_INSTALL_SB=no`.
+- Após o clone, o instalador escreve um bloco gerenciado no seu shell rc
+  (`~/.zshrc` ou `~/.bashrc`) exportando:
+
+  ```bash
+  export DIDIO_SECOND_BRAIN_HOME="$HOME/didio-second-brain-claude"
+  ```
+
+Esse bloco é idempotente: re-rodar `install.sh` substitui o conteúdo
+entre os markers (não duplica linhas).
+
+#### Instalação manual (depois do fato)
+
+Se você pulou no `install.sh` e mudou de ideia:
+
+```bash
+didio install-second-brain
+# ou explicitamente:
+bash ~/.claude-didio-config/bin/didio-install-second-brain.sh /path/where/i/want/it
+```
+
+O comando é idempotente — se o diretório já é um checkout git, ele faz
+`git pull --ff-only` e sai 0.
+
+#### Resolução de path (precedência)
+
+Toda a stack do framework (smoke check, install skill, hooks) usa a
+mesma ordem:
+
+1. `$DIDIO_SECOND_BRAIN_HOME` (env var)
+2. `didio.config.json → second_brain.home` (chave opcional)
+3. Heurística: `$HOME/didio-second-brain-claude` → `$HOME/.claude-second-brain`
+
+Vazio → second-brain é tratado como "não instalado".
+
+#### Registro como MCP no Claude Code (passo manual)
+
+Clonar o repo não registra a ferramenta no Claude Code automaticamente.
+Confirme que `claude mcp list` mostra `second-brain` ativo. Siga as
+instruções no README do
 [`didio-second-brain-claude`](https://github.com/eduardodidio/didio-second-brain-claude)
-pra substituir a leitura do arquivo inteiro por uma busca segmentada:
-cada spawn só carrega os ~10 snippets relevantes à feature atual.
-**Medição (F06-benchmark)**: ~82 % de redução média no footprint de
-"Prior Learnings" por spawn (developer 79 %, techlead 87 %, qa 77 %).
-Ver `tests/F06-benchmark-results.md`.
+para o `claude mcp add ...` final.
 
-**Pré-requisitos:**
+#### Configuração do `didio.config.json`
 
-1. Instalar e configurar o MCP server seguindo o README do
-   [`didio-second-brain-claude`](https://github.com/eduardodidio/didio-second-brain-claude).
-2. Confirmar que `claude mcp list` mostra `second-brain` ativo.
-
-**Adicione o bloco no `didio.config.json` do projeto:**
+Adicione o bloco no `didio.config.json` do projeto:
 
 ```json
 "second_brain": {
@@ -491,7 +541,23 @@ passo 3b), cada lesson é **espelhada** pro second-brain via `memory_add`
 — mantendo arquivo local + memória MCP em sync. A ADR
 `docs/adr/F06-memory-location.md` documenta a decisão.
 
-**Smoke / testes:**
+#### Aviso sobre o template `templates/.claude/settings.json`
+
+Esse arquivo é um **template** — não um arquivo de settings deployável.
+Os 3 hooks do second-brain contêm o placeholder
+`{{DIDIO_SECOND_BRAIN_HOME}}`, que é resolvido (ou removido) pela skill
+`/install-claude-didio-framework` na materialização. Não copie o arquivo
+diretamente pra `~/.claude/settings.json`.
+
+#### Opt-out
+
+- No fluxo do `/install-claude-didio-framework`, responda `no` à
+  pergunta "Habilitar second-brain MCP?" — a skill remove as 3 entradas
+  de hook do `.claude/settings.json` materializado.
+- Pra silenciar avisos do smoke check em projetos onde você não usa:
+  `"second_brain.enabled": false` no `didio.config.json`.
+
+#### Smoke / testes
 
 - `bin/didio-second-brain-smoke.sh` — preflight chamado por `run-wave`
 - `tests/F06-integration-test.sh` — 19 cenários cobrindo config, smoke,

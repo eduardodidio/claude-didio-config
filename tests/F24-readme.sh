@@ -28,13 +28,18 @@ fail() { echo "[FAIL] $*"; FAIL=1; }
   || fail "missing or duplicated '### Troubleshooting: agent spawn falhou com exit 1'"
 
 # 2. Env-vars table (5 rows).
-for v in DIDIO_HOME DIDIO_CI DIDIO_MAX_RETRIES DIDIO_ON_RATE_LIMIT DIDIO_PLAN_ONLY; do
+for v in DIDIO_HOME DIDIO_CI DIDIO_MAX_RETRIES DIDIO_ON_RATE_LIMIT DIDIO_PLAN_ONLY DIDIO_SECOND_BRAIN_HOME DIDIO_INSTALL_SB; do
   if grep -qE "^\| \`$v\`" "$README"; then
     pass "env var row: $v"
   else
     fail "env var row missing: $v"
   fi
 done
+
+# 2b. DIDIO_CI table row must describe fail-fast (not schedule).
+grep -qE '^\| `DIDIO_CI`.*fail-fast' "$README" \
+  && pass "DIDIO_CI table row describes fail-fast" \
+  || fail "DIDIO_CI table row should describe fail-fast (not schedule)"
 
 # 3. ADR-0014 link.
 grep -q '0014-rate-limit-auto-resume' "$README" \

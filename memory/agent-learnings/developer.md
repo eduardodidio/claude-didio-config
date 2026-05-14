@@ -98,3 +98,11 @@
 **What to avoid:** Config keys that are documentation-only — `install_timeout_secs` and `build_timeout_secs` were defined in `didio.config.json` but hardcoded in `poc_finalize.py`; changing the config had no effect. Rule: every key in a new config block must have a corresponding `cfg.get(...)` in the consuming code. Check at TechLead review time. Also: `Math.random()` as React key in generated JSX causes full-reconcile re-renders; always use record index or `item.id`. Also: dev server log (or any subprocess log) must go to `<dest>/_pipeline/`, not `/tmp/` — `/tmp/` paths create concurrency hazards and break the "all artifacts in dest" contract.
 
 **Pattern to repeat:** Commit a synthetic fixture for any test that requires a live API call to produce. The fixture validates the schema contract and unblocks structural tests in CI. Example: `tests/fixtures/F16-manifest-sample.json` committed by QA as a synthetic stand-in for T08's parser output.
+
+## F24 — 2026-05-13
+
+**What worked:** Single-responsibility helper with documented stdout contract (resolved path) and exit codes made the helper trivial to test in isolation and compose from both `install.sh` and the skill. Idempotency via `.git` detection was more robust than directory-existence checks.
+
+**What to avoid:** Partial placeholder audits — when introducing `{{PLACEHOLDER}}` for one category of dynamic path (e.g., second-brain paths), grep the entire template for *all* hardcoded author-machine strings before declaring done. A single `grep -r '/Users/<author>/'` across the templates dir catches the whole class in one pass.
+
+**Pattern to repeat:** When a feature introduces new env vars, include "update the `### Variáveis de ambiente` table in README.md" as an explicit checklist item in the docs task. When writing supplementary documentation in the same commit as the primary task, verify every behavioral claim against the live binary — especially env-var-to-flag mappings.

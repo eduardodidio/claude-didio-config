@@ -11,6 +11,9 @@ case "$SUBCMD" in
   spawn-agent)   exec "$DIDIO_HOME/bin/didio-spawn-agent.sh" "$@" ;;
   run-wave)      exec "$DIDIO_HOME/bin/didio-run-wave.sh" "$@" ;;
   dashboard)     exec "$DIDIO_HOME/bin/didio-dashboard.sh" "$@" ;;
+  install-second-brain)
+    exec "$DIDIO_HOME/bin/didio-install-second-brain.sh" "$@"
+    ;;
   log-watcher)   exec "$DIDIO_HOME/bin/didio-log-watcher.sh" "$@" ;;
   easter-egg)    exec "$DIDIO_HOME/bin/didio-easter-egg.sh" "$@" ;;
   sync-project)  exec "$DIDIO_HOME/bin/didio-sync-project.sh" "$@" ;;
@@ -38,6 +41,10 @@ Usage:
 
   didio dashboard [port]
       Start monitoring dashboard (default port 7777) and open in browser.
+
+  didio install-second-brain [PATH]
+      Clone or update didio-second-brain-claude (default: $HOME/didio-second-brain-claude).
+      Idempotent: re-running on an existing checkout does a git pull --ff-only.
 
   didio log-watcher
       Aggregate logs/agents/*.jsonl into logs/agents/state.json for the dashboard.

@@ -35,7 +35,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash /Users/eduardodidio/didio-second-brain-claude/patterns/hooks/stop-session-summary/hook.sh"
+            "command": "bash {{DIDIO_SECOND_BRAIN_HOME}}/patterns/hooks/stop-session-summary/hook.sh"
           }
         ]
       }
@@ -46,7 +46,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash /Users/eduardodidio/didio-second-brain-claude/patterns/hooks/subagent-stop-progress/hook.sh"
+            "command": "bash {{DIDIO_SECOND_BRAIN_HOME}}/patterns/hooks/subagent-stop-progress/hook.sh"
           }
         ]
       }
@@ -57,7 +57,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash /Users/eduardodidio/claude-didio-config/bin/hooks/didio-pre-tool.sh"
+            "command": "bash {{DIDIO_HOME}}/bin/hooks/didio-pre-tool.sh"
           }
         ]
       }
@@ -68,7 +68,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash /Users/eduardodidio/didio-second-brain-claude/patterns/hooks/post-tool-use-error/hook.sh"
+            "command": "bash {{DIDIO_SECOND_BRAIN_HOME}}/patterns/hooks/post-tool-use-error/hook.sh"
           }
         ]
       },
@@ -77,7 +77,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash /Users/eduardodidio/claude-didio-config/bin/hooks/didio-post-tool.sh"
+            "command": "bash {{DIDIO_HOME}}/bin/hooks/didio-post-tool.sh"
           }
         ]
       }

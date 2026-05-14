@@ -39,6 +39,8 @@ elif [[ -f "$HOME/.claude/mcp.json" ]] && grep -q '"second-brain"' "$HOME/.claud
   mcp_available=true
 elif [[ -f "$PROJECT_ROOT/.claude/mcp.json" ]] && grep -q '"second-brain"' "$PROJECT_ROOT/.claude/mcp.json" 2>/dev/null; then
   mcp_available=true
+elif [[ "$(didio_second_brain_installed 2>/dev/null)" == "true" ]]; then
+  mcp_available=true
 fi
 
 if $mcp_available; then
@@ -48,7 +50,9 @@ fi
 
 if [[ "$FALLBACK" == "true" ]]; then
   echo "[smoke] WARN: second-brain MCP not detected. Using local files (memory/agent-learnings/)." >&2
-  echo "[smoke]       To install MCP: https://github.com/eduardodidio/didio-second-brain-claude" >&2
+  echo "[smoke]       To install: didio install-second-brain" >&2
+  echo "[smoke]                   (or: bash \"${DIDIO_HOME:-$HOME/.claude-didio-config}/bin/didio-install-second-brain.sh\")" >&2
+  echo "[smoke]       Manual:     https://github.com/eduardodidio/didio-second-brain-claude" >&2
   echo "[smoke]       To silence this warning: set \"second_brain.enabled\": false in didio.config.json" >&2
   exit 0
 fi
