@@ -58,11 +58,11 @@ else
     *)
       if [[ -t 0 ]]; then
         printf '\033[1;36m[didio-install]\033[0m didio-second-brain-claude is not installed.\n'
-        printf '\033[1;36m[didio-install]\033[0m Clone it from github.com/eduardodidio/didio-second-brain-claude? [Y/n] '
+        printf '\033[1;36m[didio-install]\033[0m Clone it from github.com/eduardodidio/didio-second-brain-claude? [y/N] '
         read -r ans
-        case "${ans:-Y}" in
-          n|N|no|NO) SB_DECISION="skip" ;;
-          *)         SB_DECISION="install" ;;
+        case "${ans:-N}" in
+          y|Y|yes|YES) SB_DECISION="install" ;;
+          *)           SB_DECISION="skip" ;;
         esac
       else
         warn "no TTY and DIDIO_INSTALL_SB not set — skipping second-brain install (re-run interactively or set DIDIO_INSTALL_SB=yes)"

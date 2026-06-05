@@ -58,10 +58,10 @@ Use the **AskUserQuestion** tool with these questions (one batch is fine):
      projects without secrets."
 4. **Create ADR-0001** documenting framework adoption? — `yes` (default) / `no`
 5. **Habilitar second-brain MCP?** — single select:
-   - `yes` (recomendado) — Prior Learnings via MCP. Economiza tokens
+   - `no` (padrão) — Usar somente arquivos locais em `memory/agent-learnings/`.
+   - `yes` — Prior Learnings via MCP. Economiza tokens
      reusando learnings entre projetos.
-   - `no` — Usar somente arquivos locais em `memory/agent-learnings/`.
-   Default: `yes`.
+   Default: `no`.
 
 ## Materialization steps
 
