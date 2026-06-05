@@ -37,6 +37,14 @@
       "model": "sonnet",
       "fallback": "haiku",
       "effort": "medium"
+    },
+    "t800": {
+      "model": "opus",
+      "fallback": "sonnet"
+    },
+    "t1000": {
+      "model": "opus",
+      "fallback": "sonnet"
     }
   },
   "models_economy": {
@@ -66,6 +74,14 @@
     },
     "meeting-parser": {
       "model": "haiku",
+      "fallback": "haiku"
+    },
+    "t800": {
+      "model": "sonnet",
+      "fallback": "haiku"
+    },
+    "t1000": {
+      "model": "sonnet",
       "fallback": "haiku"
     }
   },
@@ -98,6 +114,10 @@
   },
   "tea": {
     "enabled": false
+  },
+  "meta_agents": {
+    "t800": { "enabled": false, "auto_governance": true },
+    "t1000": { "enabled": false, "review_mode": "post-decision", "escalation_blocks_pipeline": true }
   },
   "research": {
     "web_search_budget": 5,

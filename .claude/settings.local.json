@@ -1,7 +1,10 @@
 {
   "permissions": {
     "allow": [
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(chmod +x:*)",
+      "Bash(python3:*)",
+      "Bash(bash:*)"
     ]
   }
 }

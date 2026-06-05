@@ -15,6 +15,51 @@ Run ONLY the Architect. Do **not** invoke Developer, TechLead, or QA. Do
 (User Story + Dev Notes + Testing per task), ready for later execution via
 `/create-feature <FXX>`.
 
+## Step 0 — T-800 Strategic Gate (conditional)
+
+Before any agent runs, check if the T-800 strategic orchestrator is enabled:
+
+```bash
+T800_ENABLED=$(python3 -c "import json; c=json.load(open('didio.config.json')); print(c.get('meta_agents',{}).get('t800',{}).get('enabled', False))" 2>/dev/null || echo "False")
+```
+
+If `T800_ENABLED` is `False` (default): **skip this step silently** and proceed to Step 1.
+
+If `True`:
+1. Write a decision request file to `logs/decisions/_requests/<FXX>-<timestamp>.md`:
+   ```markdown
+   # Decision Request: <FXX>
+   **Type:** feature_start
+   **Feature:** <description from $ARGUMENTS>
+   **Requested at:** <ISO timestamp>
+   **Pipeline:** plan-feature (Architect only, PLAN_ONLY mode)
+   ```
+
+2. Run:
+   ```bash
+   didio t800 <FXX> logs/decisions/_requests/<FXX>-<timestamp>.md
+   ```
+
+3. Find the latest decision record in `logs/decisions/D-*.json`.
+
+4. Read its `status` field:
+   - If `escalated`: **STOP the pipeline.** Print:
+     > T-800/T-1000 escalated this decision. Human review required.
+     > Decision: logs/decisions/<id>.json
+     > Governance: logs/governance/G-<id>.json
+   - If `executed` or `reviewed` with governance verdict `agree`: **proceed** to Step 1.
+   - If governance verdict `challenge` was resolved: **proceed** to Step 1.
+
+5. Read the `actions` array. If the T-800 recommends a different action
+   than `plan-feature` or `create-feature` (e.g. `skip`, `research`),
+   **STOP** and inform the user:
+   > T-800 recommends: <action> instead of plan-feature.
+   > Rationale: <rationale from decision record>
+   > Run the recommended command or override with DIDIO_SKIP_T800=1.
+
+**Bypass:** if `DIDIO_SKIP_T800=1` is set, skip with a visible yellow warning:
+> Warning: T-800 gate bypassed via DIDIO_SKIP_T800=1
+
 ## Step 1 — Architect (PLAN_ONLY)
 
 Extract the feature ID (e.g. `F07`) and description from `$ARGUMENTS`. If
@@ -51,3 +96,5 @@ Summarize to the user:
 - NEVER run Developer/TechLead/QA in this flow.
 - NEVER run `didio run-wave` in this flow.
 - ALWAYS set `DIDIO_PLAN_ONLY=true` when spawning the Architect here.
+- NEVER skip the T-800 gate silently when enabled. The only valid bypass
+  is `DIDIO_SKIP_T800=1` set explicitly by the user, with a visible warning.

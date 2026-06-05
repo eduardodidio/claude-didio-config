@@ -55,6 +55,9 @@ print_menu() {
     8) ❓ Prompts prontos            (mostra o README cheat-sheet)
    14) 🗓️  Planejar feature           (Architect only, tasks BMad)
    15) 📋 Listar features planejadas (Status=planned)
+   16) 🤖 T-800 Orchestrate           [$(didio_t800_enabled | tr 'tf' 'TF' | sed 's/TRUE/ON/;s/FALSE/OFF/;s/true/ON/;s/false/OFF/')]
+   17) 🛡️  T-1000 Governance Review    [$(didio_t1000_enabled | tr 'tf' 'TF' | sed 's/TRUE/ON/;s/FALSE/OFF/;s/true/ON/;s/false/OFF/')]
+   18) 📋 Decision Log                (didio decisions)
    ──────────────────────────────────────────────────────────
     9) ⚡ Turbo Mode                  [$turbo_label]
    10) 💰 Economy Mode               [$economy_label]
@@ -429,6 +432,74 @@ print()
 PY
 }
 
+action_t800() {
+  local enabled
+  enabled="$(didio_t800_enabled)"
+  if [[ "$enabled" != "true" ]]; then
+    echo
+    echo "  T-800 esta DESABILITADO."
+    echo "  Para habilitar: set meta_agents.t800.enabled=true em didio.config.json"
+    echo
+    return
+  fi
+  read -r -p "  Feature ID (ex: F25): " F
+  [[ -z "$F" ]] && echo "  Feature id vazio. Cancelado." && return
+  read -r -p "  Arquivo de request/brief: " REQ
+  [[ -z "$REQ" ]] && echo "  Arquivo vazio. Cancelado." && return
+  cat <<EOF
+
+  Rodando T-800 para $F com $REQ...
+
+  Comando: didio t800 $F $REQ
+
+EOF
+  "$DIDIO_HOME/bin/didio-t800.sh" "$F" "$REQ"
+}
+
+action_t1000() {
+  local enabled
+  enabled="$(didio_t1000_enabled)"
+  if [[ "$enabled" != "true" ]]; then
+    echo
+    echo "  T-1000 esta DESABILITADO."
+    echo "  Para habilitar: set meta_agents.t1000.enabled=true em didio.config.json"
+    echo
+    return
+  fi
+  read -r -p "  Decision ID (ex: D-20260605-001) ou 'pending' para revisar todas: " DID
+  if [[ -z "$DID" ]]; then
+    echo "  Input vazio. Cancelado."; return
+  fi
+  if [[ "$DID" == "pending" ]]; then
+    "$DIDIO_HOME/bin/didio-t1000.sh" --pending
+  else
+    "$DIDIO_HOME/bin/didio-t1000.sh" --decision "$DID"
+  fi
+}
+
+action_decisions() {
+  echo
+  echo "  Opcoes:"
+  echo "    1) Ultimas 5 decisoes"
+  echo "    2) Filtrar por status"
+  echo "    3) Detalhe de uma decisao"
+  echo "    4) Cancelar"
+  echo
+  read -r -p "  Escolha [1-4]: " choice
+  case "$choice" in
+    1) "$DIDIO_HOME/bin/didio-decisions.sh" --recent 5 ;;
+    2)
+      read -r -p "  Status (pending|executed|reviewed|escalated): " st
+      [[ -n "$st" ]] && "$DIDIO_HOME/bin/didio-decisions.sh" --status "$st"
+      ;;
+    3)
+      read -r -p "  Decision ID: " did
+      [[ -n "$did" ]] && "$DIDIO_HOME/bin/didio-decisions.sh" --detail "$did"
+      ;;
+    *) echo "  Cancelado." ;;
+  esac
+}
+
 action_prompts() {
   cat <<'EOF'
 
@@ -480,6 +551,9 @@ main() {
       13) action_highlander ;;
       14) action_plan_feature ;;
       15) action_list_planned ;;
+      16) action_t800 ;;
+      17) action_t1000 ;;
+      18) action_decisions ;;
       0|q|Q|exit|quit) echo; echo "  Bye 👋"; exit 0 ;;
       *) echo "  Opção inválida: $choice" ;;
     esac

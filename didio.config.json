@@ -32,6 +32,14 @@
       "model": "sonnet",
       "fallback": "haiku",
       "effort": "medium"
+    },
+    "t800": {
+      "model": "opus",
+      "fallback": "sonnet"
+    },
+    "t1000": {
+      "model": "opus",
+      "fallback": "sonnet"
     }
   },
   "models_economy": {
@@ -57,6 +65,14 @@
     },
     "tea": {
       "model": "haiku",
+      "fallback": "haiku"
+    },
+    "t800": {
+      "model": "sonnet",
+      "fallback": "haiku"
+    },
+    "t1000": {
+      "model": "sonnet",
       "fallback": "haiku"
     }
   },
@@ -89,5 +105,26 @@
   },
   "tea": {
     "enabled": true
+  },
+  "meta_agents": {
+    "t800": {
+      "enabled": false,
+      "auto_governance": true
+    },
+    "t1000": {
+      "enabled": false,
+      "review_mode": "post-decision",
+      "escalation_blocks_pipeline": true
+    }
+  },
+  "research": {
+    "web_search_budget": 5,
+    "web_fetch_budget": 3
+  },
+  "poc": {
+    "default_style_ref": "/Users/eduardodidio/mellon-magic-maker",
+    "smoke_timeout_secs": 30,
+    "install_timeout_secs": 180,
+    "build_timeout_secs": 60
   }
 }

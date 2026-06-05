@@ -28,6 +28,59 @@ their output reproducible and auditable (via `logs/agents/*.jsonl`).
 5. QA          — didio spawn-agent qa <FXX> tasks/features/<FXX>-*/<FXX>-README.md
 ```
 
+## Meta-Agent Layer (opt-in)
+
+Above the standard pipeline sit two meta-agents that provide strategic
+decision-making and governance:
+
+```
+User -> T-800 (decision) -> T-1000 (governance) -> Pipeline
+                                                      |
+                                        Architect -> Waves -> TechLead -> QA
+```
+
+### T-800 — Strategic Orchestrator
+
+- **Role:** Takes strategic decisions (feature priority, sequencing,
+  go/no-go on quality gates, block resolution)
+- **Output:** Decision records in `logs/decisions/D-YYYYMMDD-NNN.json`
+- **Must always** consider 2+ options with pros/cons before deciding
+- **Does NOT** execute the pipeline — only decides what should be done
+- **Config:** `meta_agents.t800.enabled` (default: `false`)
+- **Models:** `models.t800` (default: Opus/Sonnet)
+
+### T-1000 — Governance Reviewer
+
+- **Role:** Independent reviewer with fresh eyes — catches blind spots
+  and cognitive biases in T-800 decisions
+- **Output:** Governance reports in `logs/governance/G-<decision-id>.json`
+- **Reading restricted to:** decision records, CLAUDE.md, didio.config.json
+- **Verdicts:** `agree` (proceed) | `challenge` (re-evaluate, max 1 round) |
+  `escalate` (block pipeline, notify human)
+- **Bias checklist:** sunk cost, anchoring, scope creep, optimism, recency
+- **Config:** `meta_agents.t1000.enabled` (default: `false`)
+
+### Decision Flow
+
+1. T-800 receives request -> analyzes options -> writes decision record
+2. T-1000 reads ONLY the decision record -> emits verdict
+3. If `agree`: pipeline executes as decided
+4. If `challenge`: T-800 re-evaluates (max 1 round)
+5. If `escalate`: pipeline blocked, user notified
+6. Pipeline executes normally per the approved decision
+
+Both meta-agents are **disabled by default** for backward compatibility.
+Enable via `didio.config.json`:
+
+```json
+{
+  "meta_agents": {
+    "t800": { "enabled": true, "auto_governance": true },
+    "t1000": { "enabled": true }
+  }
+}
+```
+
 ## Mandates
 
 - **Testing** — every Wave ends only when the stack's test command passes

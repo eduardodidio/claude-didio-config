@@ -38,7 +38,9 @@ RESET='\033[0m'
 # ---------------------------------------------------------------------------
 # Config
 # ---------------------------------------------------------------------------
-DIDIO_HOME="${DIDIO_HOME:-/Users/eduardodidio/claude-didio-config}"
+# Auto-detect: script lives in DIDIO_HOME/bin/
+_SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+DIDIO_HOME="${DIDIO_HOME:-$(dirname "$_SCRIPT_DIR")}"
 TEMPLATES="$DIDIO_HOME/templates"
 
 # ---------------------------------------------------------------------------
@@ -111,6 +113,12 @@ sync_dir() {
 
   if [[ ! -d "$src_dir" ]]; then
     echo -e "${YELLOW}[WARN]${RESET} Template dir missing: $src_dir — skipping" >&2
+    return 0
+  fi
+
+  # If dst_dir exists as a file (e.g. Claude Code symlink/reference), skip sync
+  if [[ -f "$dst_dir" && ! -d "$dst_dir" ]]; then
+    echo -e "${CYAN}[INFO]${RESET} $dst_dir exists as a file (symlink/reference) — skipping" >&2
     return 0
   fi
 
@@ -339,7 +347,7 @@ if [[ $DRY_RUN -eq 0 ]]; then
   mkdir -p "$TARGET_LEARNINGS"
 fi
 
-for role in architect developer techlead qa readiness tea; do
+for role in architect developer techlead qa readiness tea t800 t1000; do
   src="$TEMPLATE_LEARNINGS/$role.md"
   dst="$TARGET_LEARNINGS/$role.md"
 
@@ -391,6 +399,18 @@ else
   else
     log_action "NO_CHANGE" "logs/agents/.gitkeep (already exists)"
   fi
+  # T-800/T-1000 decision and governance log directories
+  for subdir in decisions decisions/_requests governance; do
+    if [[ ! -d "$TARGET/logs/$subdir" ]]; then
+      if [[ $DRY_RUN -eq 0 ]]; then
+        mkdir -p "$TARGET/logs/$subdir"
+        touch "$TARGET/logs/$subdir/.gitkeep"
+      fi
+      log_action "ADDED" "logs/$subdir/.gitkeep"
+    else
+      log_action "NO_CHANGE" "logs/$subdir/ (already exists)"
+    fi
+  done
 fi
 
 # ---------------------------------------------------------------------------
@@ -473,6 +493,9 @@ GITIGNORE_ENTRIES=(
   "logs/agents/*.jsonl"
   "logs/agents/*.meta.json"
   "logs/agents/state.json"
+  "logs/decisions/*.json"
+  "logs/decisions/_requests/"
+  "logs/governance/*.json"
   "archive/"
   "claude-didio-out/"
 )

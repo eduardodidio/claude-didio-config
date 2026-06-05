@@ -8,6 +8,10 @@
           {
             "type": "command",
             "command": "bash /Users/eduardodidio/didio-second-brain-claude/patterns/hooks/stop-session-summary/hook.sh"
+          },
+          {
+            "type": "command",
+            "command": "bash {{DIDIO_SECOND_BRAIN_HOME}}/patterns/hooks/stop-session-summary/hook.sh"
           }
         ]
       },
@@ -46,6 +50,10 @@
           {
             "type": "command",
             "command": "bash /Users/eduardodidio/didio-second-brain-claude/patterns/hooks/subagent-stop-progress/hook.sh"
+          },
+          {
+            "type": "command",
+            "command": "bash {{DIDIO_SECOND_BRAIN_HOME}}/patterns/hooks/subagent-stop-progress/hook.sh"
           }
         ]
       }
@@ -57,6 +65,10 @@
           {
             "type": "command",
             "command": "bash $CLAUDE_PROJECT_DIR/bin/hooks/didio-pre-tool.sh"
+          },
+          {
+            "type": "command",
+            "command": "bash {{DIDIO_HOME}}/bin/hooks/didio-pre-tool.sh"
           }
         ]
       }
@@ -68,6 +80,10 @@
           {
             "type": "command",
             "command": "bash /Users/eduardodidio/didio-second-brain-claude/patterns/hooks/post-tool-use-error/hook.sh"
+          },
+          {
+            "type": "command",
+            "command": "bash {{DIDIO_SECOND_BRAIN_HOME}}/patterns/hooks/post-tool-use-error/hook.sh"
           }
         ]
       },
@@ -77,6 +93,10 @@
           {
             "type": "command",
             "command": "bash $CLAUDE_PROJECT_DIR/bin/hooks/didio-post-tool.sh"
+          },
+          {
+            "type": "command",
+            "command": "bash {{DIDIO_HOME}}/bin/hooks/didio-post-tool.sh"
           }
         ]
       }
@@ -91,5 +111,33 @@
       ],
       "env": {}
     }
+  },
+  "permissions": {
+    "allow": [
+      "Bash(didio:*)",
+      "Bash(didio-spawn-agent*)",
+      "Bash(didio-run-wave*)",
+      "Bash(didio-dashboard*)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git init:*)",
+      "Bash(git -c user.name=*)",
+      "Bash(mkdir -p:*)",
+      "Bash(cp -r:*)",
+      "Bash(npm install:*)",
+      "Bash(npm run *)",
+      "Bash(curl:*)",
+      "Read(./**)",
+      "Write(tasks/**)",
+      "Write(docs/**)",
+      "Write(logs/**)",
+      "Edit(./**)",
+      "WebSearch",
+      "WebFetch",
+      "AskUserQuestion"
+    ]
   }
 }

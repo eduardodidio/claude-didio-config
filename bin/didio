@@ -20,6 +20,9 @@ case "$SUBCMD" in
   sync-all)        exec "$DIDIO_HOME/bin/didio-sync-all.sh" "$@" ;;
   poc-from-minutes) exec "$DIDIO_HOME/bin/didio-poc-from-minutes.sh" "$@" ;;
   resume-pending)  exec "$DIDIO_HOME/bin/didio-resume-pending.sh" "$@" ;;
+  t800)            exec "$DIDIO_HOME/bin/didio-t800.sh" "$@" ;;
+  t1000)           exec "$DIDIO_HOME/bin/didio-t1000.sh" "$@" ;;
+  decisions)       exec "$DIDIO_HOME/bin/didio-decisions.sh" "$@" ;;
   menu|"")         exec "$DIDIO_HOME/bin/didio-menu.sh" "$@" ;;
   version)       echo "didio $(cat "$DIDIO_HOME/VERSION" 2>/dev/null || echo dev)" ;;
   help|-h|--help)
@@ -32,7 +35,7 @@ Usage:
 
   didio spawn-agent <role> <feature-id> <task-file> [extra-prompt]
       Launch a single agent in a clean bash context via 'claude -p'.
-      Roles: architect | developer | techlead | qa | readiness | tea
+      Roles: architect | developer | techlead | qa | readiness | tea | t800 | t1000
       Logs streamed to logs/agents/<feature>-<role>-<taskid>-<ts>.jsonl
 
   didio run-wave <feature-id> <wave-number>
@@ -64,6 +67,20 @@ Usage:
       Default config: tasks/features/F04-sync-downstream/target-projects.json
 
   didio poc-from-minutes <ata>   Generate runnable POC from meeting minutes
+
+  didio t800 <feature-id> <brief-or-request-file> [extra-prompt]
+      Spawn T-800 strategic orchestrator. Produces decision records
+      in logs/decisions/. If auto_governance=true, spawns T-1000 after.
+      Disabled by default (meta_agents.t800.enabled).
+
+  didio t1000 --decision <id> | --pending
+      Spawn T-1000 governance reviewer on a T-800 decision.
+      Reviews the decision for biases and blind spots.
+      Disabled by default (meta_agents.t1000.enabled).
+
+  didio decisions --recent [N] | --status <s> | --detail <id>
+      View decision log. Lists, filters, or shows detail of T-800
+      decision records from logs/decisions/.
 
   didio resume-pending [--feature FXX] [--dry-run] [--max-retries N]
       Scan logs/agents/_pending/ and re-spawn rate-limited jobs whose

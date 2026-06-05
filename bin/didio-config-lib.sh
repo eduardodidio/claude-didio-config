@@ -211,6 +211,26 @@ else:
 PY
 }
 
+# Returns "true" or "false". Default false (opt-in).
+didio_t800_enabled() {
+  didio_read_config_path 'meta_agents.t800.enabled' 'false'
+}
+
+# Returns "true" or "false". Default false (opt-in).
+didio_t1000_enabled() {
+  didio_read_config_path 'meta_agents.t1000.enabled' 'false'
+}
+
+# Returns "true" or "false". Default true.
+didio_auto_governance() {
+  didio_read_config_path 'meta_agents.t800.auto_governance' 'true'
+}
+
+# Returns the review mode for T-1000. Default "post-decision".
+didio_governance_review_mode() {
+  didio_read_config_path 'meta_agents.t1000.review_mode' 'post-decision'
+}
+
 # Returns "true" or "false". Default true (if the config section exists but
 # the key is missing, assume fallback is safe).
 didio_second_brain_fallback() {
