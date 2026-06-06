@@ -101,3 +101,11 @@
 **What to avoid:** Relying solely on the `--help` snippet drift test to catch prose/binary divergence. The snippet test guards the inline fenced block but not the surrounding paragraphs or the env var table rows that describe the same behavior.
 
 **Pattern to repeat:** For each env var that appears in both a prose bullet and a table row, add a grep assertion that the table row description matches the binary's actual semantics — one `grep -qE '^\| \`VAR_NAME\`.*expected-value'` per var. Low cost, prevents silent behavioral misdescription that could break CI pipelines.
+
+## F25 — 2026-06-06
+
+**What worked:** Reading TechLead `## Retrospective Seeds` section before starting inspection eliminated re-discovery work — each seed had an exact role assignment and root cause. B1/B2 fixes were verified in under 2 minutes by reading the files directly.
+
+**What to avoid:** Assuming "AC5 = upstream committed" is satisfied if only downstream commits are verified. F25 had all 7 downstream committed but the upstream (claude-didio-config) T01/T02/T03 changes were unstaged. Pattern: always run `git status` on the framework root repo and check for modified/untracked files in scope before writing the QA report.
+
+**Pattern to repeat:** When the TechLead flags a missing test harness as IMPORTANT, create it during QA (don't just report it). `bin/tests/F25-unit.sh` was created by QA with 28 assertions covering all AC-relevant checks — this is the correct disposition. A test harness listed in the test plan is a required deliverable.

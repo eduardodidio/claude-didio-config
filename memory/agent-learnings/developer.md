@@ -106,3 +106,11 @@
 **What to avoid:** Partial placeholder audits — when introducing `{{PLACEHOLDER}}` for one category of dynamic path (e.g., second-brain paths), grep the entire template for *all* hardcoded author-machine strings before declaring done. A single `grep -r '/Users/<author>/'` across the templates dir catches the whole class in one pass.
 
 **Pattern to repeat:** When a feature introduces new env vars, include "update the `### Variáveis de ambiente` table in README.md" as an explicit checklist item in the docs task. When writing supplementary documentation in the same commit as the primary task, verify every behavioral claim against the live binary — especially env-var-to-flag mappings.
+
+## F25 — 2026-06-06
+
+**What worked:** Shell expansion convention (`${DIDIO_HOME:-$HOME/.claude-didio-config}`) as the portability pattern — same as `didio-spawn-agent.sh:100,121`. One decision, no substitution step at sync time.
+
+**What to avoid:** When translating `{{X}}` → resolved value in a downstream cleanup task, always collect existing hook commands into a set first, then skip if the resolved value is already present. T04 added resolved hooks without dedup-checking the destination → duplicate hooks in `didio-second-brain-claude` and `didio-second-brain-clean-starter`. The sync guard's `existing_cmds` pattern is the correct model.
+
+**Pattern to repeat:** For downstream cleanup scripts that write to repos with non-standard pre-existing state, run `git diff HEAD` as a sanity step before committing each file. Catches silent regressions that JSON lint won't flag (e.g., duplicate array entries). Commit upstream files (template + sync script) before QA pass — uncommitted upstream blocks AC5.

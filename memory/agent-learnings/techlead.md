@@ -132,3 +132,11 @@
 **What to avoid:** Accepting supplementary sections added in the same commit as the target task without applying the same scrutiny as to core task content. Cross-check every behavioral claim against the live binary — prose bullets and table rows can describe the same flag with contradicting semantics.
 
 **Pattern to repeat:** For templates with multiple placeholder categories (framework paths + MCP paths + user paths), write one AC that audits the materialized file for the author's username in total rather than per-placeholder. One `grep -c '/Users/author/'` catches them all.
+
+## F25 — 2026-06-06
+
+**What worked:** Flagging B1/B2 (duplicate hooks in second-brain repos) as IMPORTANT with exact before/after evidence (`×2` count per hook). QA could verify the fix directly without re-investigation.
+
+**What to avoid:** Approving a task as IMPORTANT (not BLOCKING) when its named test harness file is missing. Any harness path listed under a named section in `<FXX>-test-plan.md` is a required deliverable — `ls bin/tests/F25-*.sh` takes 1 second and should be part of every Wave review. Missing harness → BLOCKING, not IMPORTANT. This is the 4th+ instance (F09, F13, F15, F25).
+
+**Pattern to repeat:** For features that modify config files across multiple repos, check upstream commit status explicitly (`git status` on the root repo) — the AC for "all repos committed" applies to the framework repo itself, not just the downstream targets.
