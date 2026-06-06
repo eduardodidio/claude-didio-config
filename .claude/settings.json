@@ -7,53 +7,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash /Users/eduardodidio/didio-second-brain-claude/patterns/hooks/stop-session-summary/hook.sh"
-          },
-          {
-            "type": "command",
-            "command": "bash {{DIDIO_SECOND_BRAIN_HOME}}/patterns/hooks/stop-session-summary/hook.sh"
-          }
-        ]
-      },
-      {
-        "matcher": "*",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash /Users/eduardodidio/didio-second-brain-claude/patterns/hooks/no-pending-work-alert/hook.sh"
-          }
-        ]
-      },
-      {
-        "matcher": "*",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash /Users/eduardodidio/didio-second-brain-claude/patterns/hooks/rate-limit-alert/hook.sh"
-          }
-        ]
-      },
-      {
-        "matcher": "*",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash /Users/eduardodidio/claude-didio-config/patterns/hooks/feature-end-digest/hook.sh"
-          }
-        ]
-      }
-    ],
-    "SubagentStop": [
-      {
-        "matcher": "*",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash /Users/eduardodidio/didio-second-brain-claude/patterns/hooks/subagent-stop-progress/hook.sh"
-          },
-          {
-            "type": "command",
-            "command": "bash {{DIDIO_SECOND_BRAIN_HOME}}/patterns/hooks/subagent-stop-progress/hook.sh"
+            "command": "bash $CLAUDE_PROJECT_DIR/patterns/hooks/feature-end-digest/hook.sh"
           }
         ]
       }
@@ -65,38 +19,17 @@
           {
             "type": "command",
             "command": "bash $CLAUDE_PROJECT_DIR/bin/hooks/didio-pre-tool.sh"
-          },
-          {
-            "type": "command",
-            "command": "bash {{DIDIO_HOME}}/bin/hooks/didio-pre-tool.sh"
           }
         ]
       }
     ],
     "PostToolUse": [
       {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash /Users/eduardodidio/didio-second-brain-claude/patterns/hooks/post-tool-use-error/hook.sh"
-          },
-          {
-            "type": "command",
-            "command": "bash {{DIDIO_SECOND_BRAIN_HOME}}/patterns/hooks/post-tool-use-error/hook.sh"
-          }
-        ]
-      },
-      {
         "matcher": "*",
         "hooks": [
           {
             "type": "command",
             "command": "bash $CLAUDE_PROJECT_DIR/bin/hooks/didio-post-tool.sh"
-          },
-          {
-            "type": "command",
-            "command": "bash {{DIDIO_HOME}}/bin/hooks/didio-post-tool.sh"
           }
         ]
       }

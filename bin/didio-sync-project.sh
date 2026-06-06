@@ -238,6 +238,7 @@ if new_entries:
 src_hooks = src.get("hooks", {})
 dst_hooks = dst.get("hooks", {})
 hooks_added = 0
+skipped_ph = 0
 
 for event, src_matchers in src_hooks.items():
     dst_matchers = dst_hooks.setdefault(event, [])
@@ -257,6 +258,9 @@ for event, src_matchers in src_hooks.items():
         for hook in src_hook_list:
             cmd = hook.get("command")
             if not cmd or cmd in existing_cmds:
+                continue
+            if "{{" in cmd:
+                skipped_ph += 1
                 continue
             if target is None:
                 target = {"matcher": src_matcher_value, "hooks": []}
@@ -285,18 +289,26 @@ if new_entries or hooks_added or new_deny:
         with open(dst_path, "w") as f:
             json.dump(dst, f, indent=2)
             f.write("\n")
-    print(f"MERGED:perms={len(new_entries)},hooks={hooks_added},excl={exclusion_added}")
+    print(f"MERGED:perms={len(new_entries)},hooks={hooks_added},excl={exclusion_added},skipped_ph={skipped_ph}")
+elif skipped_ph:
+    print(f"MERGED:perms=0,hooks=0,excl=0,skipped_ph={skipped_ph}")
 else:
     print("NO_CHANGE")
 PY
     )
     if [[ "$MERGE_RESULT" == "NO_CHANGE" ]]; then
       log_action "NO_CHANGE" ".claude/settings.json"
-    elif [[ "$MERGE_RESULT" =~ ^MERGED:perms=([0-9]+),hooks=([0-9]+),excl=([0-9]+)$ ]]; then
+    elif [[ "$MERGE_RESULT" =~ ^MERGED:perms=([0-9]+),hooks=([0-9]+),excl=([0-9]+),skipped_ph=([0-9]+)$ ]]; then
       NP="${BASH_REMATCH[1]}"
       NH="${BASH_REMATCH[2]}"
       NE="${BASH_REMATCH[3]}"
-      log_action "MERGED" ".claude/settings.json ($NP permissions + $NH hooks + $NE deny-exclusions added)"
+      NPH="${BASH_REMATCH[4]}"
+      MSG=".claude/settings.json ($NP permissions + $NH hooks + $NE deny-exclusions added)"
+      if [[ "$NPH" -gt 0 ]]; then
+        MSG="$MSG; $NPH hook(s) with placeholder skipped"
+        echo -e "${YELLOW}[WARN]${RESET} settings.json: $NPH hook command(s) contain '{{' — skipped (resolve placeholders before sync)" >&2
+      fi
+      log_action "MERGED" "$MSG"
     fi
   else
     echo -e "${YELLOW}[WARN]${RESET} python3 not available — skipping settings.json merge" >&2

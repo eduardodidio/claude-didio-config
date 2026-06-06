@@ -29,55 +29,24 @@
     ]
   },
   "hooks": {
-    "Stop": [
-      {
-        "matcher": "*",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash {{DIDIO_SECOND_BRAIN_HOME}}/patterns/hooks/stop-session-summary/hook.sh"
-          }
-        ]
-      }
-    ],
-    "SubagentStop": [
-      {
-        "matcher": "*",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash {{DIDIO_SECOND_BRAIN_HOME}}/patterns/hooks/subagent-stop-progress/hook.sh"
-          }
-        ]
-      }
-    ],
     "PreToolUse": [
       {
         "matcher": "*",
         "hooks": [
           {
             "type": "command",
-            "command": "bash {{DIDIO_HOME}}/bin/hooks/didio-pre-tool.sh"
+            "command": "bash ${DIDIO_HOME:-$HOME/.claude-didio-config}/bin/hooks/didio-pre-tool.sh"
           }
         ]
       }
     ],
     "PostToolUse": [
       {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash {{DIDIO_SECOND_BRAIN_HOME}}/patterns/hooks/post-tool-use-error/hook.sh"
-          }
-        ]
-      },
-      {
         "matcher": "*",
         "hooks": [
           {
             "type": "command",
-            "command": "bash {{DIDIO_HOME}}/bin/hooks/didio-post-tool.sh"
+            "command": "bash ${DIDIO_HOME:-$HOME/.claude-didio-config}/bin/hooks/didio-post-tool.sh"
           }
         ]
       }
