@@ -1,0 +1,2 @@
+{"event":"rate_limit","role":"readiness","feature":"F25","task":"F25-README","reset_at_unix":1780699200,"retries":0,"mode":"wait","ts":"2026-06-05T19:40:34Z"}
+{"event":"resume","role":"readiness","feature":"F25","task":"F25-README","retries":1,"ts":"2026-06-05T22:41:00Z"}

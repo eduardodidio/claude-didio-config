@@ -1,0 +1,28 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git:*)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "{{DIDIO_HOME}}/bin/hooks/didio-pre-tool.sh"
+          },
+          {
+            "type": "command",
+            "command": "{{DIDIO_SECOND_BRAIN_HOME}}/hooks/check.sh"
+          },
+          {
+            "type": "command",
+            "command": "/usr/local/bin/valid-hook.sh"
+          }
+        ]
+      }
+    ]
+  }
+}

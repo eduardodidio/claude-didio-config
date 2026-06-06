@@ -1,0 +1,12 @@
+{
+  "run_id": "F25-readiness-F25-README-20260605-163629",
+  "feature": "F25",
+  "task": "F25-README",
+  "role": "readiness",
+  "updated_at": "2026-06-05T19:37:35Z",
+  "task_progress": "unknown",
+  "last_tool_result": "st_id\":\"req_011CbkgAgtYniVY912hJeCfr\"}\n{\"type\":\"assistant\",\"message\":{\"model\":\"claude-sonnet-4-6\",\"id\":\"msg_016ncQwyNQBvkBjXSx2CXccV\",\"type\":\"message\",\"role\":\"assistant\",\"content\":[{\"type\":\"tool_use\",\"id\":\"toolu_01NVjTm1y9fSLwpXMsTHpk93\",\"name\":\"Glob\",\"input\":{\"pattern\":\"docs/F10-readiness-report-spec.md\"},\"caller\":{\"type\":\"direct\"}}],\"stop_reason\":null,\"stop_sequence\":null,\"stop_details\":null,\"usage\":{\"input_tokens\":960,\"cache_creation_input_tokens\":2743,\"cache_read_input_tokens\":28829,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":2743},\"output_tokens\":32,\"service_tier\":\"standard\",\"inference_geo\":\"not_available\"},\"diagnostics\":null,\"context_management\":null},\"parent_tool_use_id\":null,\"session_id\":\"eefa3013-6477-47eb-994e-4a04cb146fb1\",\"uuid\":\"6ec684f8-3023-4156-8ffa-841f0c2c39b7\",\"request_id\":\"req_011CbkgAgtYniVY912hJeCfr\"}\n{\"type\":\"assistant\",\"message\":{\"model\":\"claude-sonnet-4-6\",\"id\":\"msg_016ncQwyNQBvkBjXSx2CXccV\",\"type\":\"message\",\"role\":\"assistant\",\"content\":[{\"type\":\"tool_use\",\"id\":\"toolu_01WWBxdayuhby8dv8FthgEa7\",\"name\":\"Glob\",\"input\":{\"pattern\":\"tasks/features/F25-hooks-fix/readiness-report.md\"},\"caller\":{\"type\":\"direct\"}}],\"stop_reason\":null,\"stop_sequence\":null,\"stop_details\":null,\"usage\":{\"input_tokens\":960,\"cache_creation_input_tokens\":2743,\"cache_read_input_tokens\":28829,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":2743},\"output_tokens\":32,\"service_tier\":\"standard\",\"inference_geo\":\"not_available\"},\"diagnostics\":null,\"context_management\":null},\"parent_tool_use_id\":null,\"session_id\":\"eefa3013-6477-47eb-994e-4a04cb146fb1\",\"uuid\":\"23996a03-f4c8-4ad2-9bb1-487b872f5921\",\"request_id\":\"req_011CbkgAgtYniVY912hJeCfr\"}\n{\"type\":\"rate_limit_event\",\"rate_limit_info\":{\"status\":\"allowed_warning\",\"resetsAt\":1780699200,\"rateLimitType\":\"five_hour\",\"utilization\":0.93,\"isUsingOverage\":false,\"surpassedThreshold\":0.9},\"uuid\":\"ddb452ba-7a66-44d6-b395-12da92463866\",\"session_id\":\"eefa3013-6477-47eb-994e-4a04cb146fb1\"}\n",
+  "todo_state": [],
+  "context_summary": "",
+  "next_action_hint": ""
+}
