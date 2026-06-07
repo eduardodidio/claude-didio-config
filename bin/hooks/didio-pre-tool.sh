@@ -54,21 +54,26 @@ fi
 #   Read/Grep/Glob/LS  — file inspection (diagnostic)
 #   TodoWrite          — task-list bookkeeping (no external effect)
 #   TaskGet/List/Output — subagent status (read-only)
+# Fast path: pull tool_name out of the raw JSON with a bash regex — no
+# subprocess, no python3 — so the common whitelisted path (Read/Grep/...)
+# never pays for a process spawn. If the regex can't find a tool name (odd
+# formatting, escaped chars), TOOL_NAME stays empty, the case below doesn't
+# match, and we simply fall through to the full evaluation below — same
+# observable behavior, just without the whitelist shortcut for that one call.
 STDIN_BUF="$(cat 2>/dev/null || true)"
-TOOL_NAME="$(printf '%s' "$STDIN_BUF" | python3 -c '
-import sys, json
-try:
-    d = json.load(sys.stdin)
-    print(d.get("tool_name", "") or d.get("tool", "") or "")
-except Exception:
-    print("")
-' 2>/dev/null || echo "")"
+TOOL_NAME=""
+if [[ "$STDIN_BUF" =~ \"tool_name\"[[:space:]]*:[[:space:]]*\"([^\"]*)\" ]]; then
+  TOOL_NAME="${BASH_REMATCH[1]}"
+elif [[ "$STDIN_BUF" =~ \"tool\"[[:space:]]*:[[:space:]]*\"([^\"]*)\" ]]; then
+  TOOL_NAME="${BASH_REMATCH[1]}"
+fi
 case "$TOOL_NAME" in
   Read|Grep|Glob|LS|TodoWrite|TaskGet|TaskList|TaskOutput|ToolSearch)
     exit 0
     ;;
 esac
 
+# requires python3 for stdin parse on the non-whitelisted path; absent → allow-silent
 # shellcheck disable=SC1090
 source "$DIDIO_HOME/bin/didio-config-lib.sh" 2>/dev/null || exit 0
 

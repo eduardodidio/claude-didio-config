@@ -51,13 +51,18 @@ second), the hook exits 0 without overwriting.
 
 ## Dependencies
 
-- `patterns/hooks/_lib/load-env.sh` — loads `.env` from hub root
-- `patterns/hooks/_lib/registry-match.sh` — filters to registered projects
 - `patterns/hooks/_lib/digest-context.sh` — `emit_drop_payload` and
   collection helpers
 
-All three are sourced with a `[ -f ... ]` guard; their absence causes a
-silent `exit 0`, never an error.
+It is sourced with a `[ -f ... ]` guard; its absence causes a silent
+`exit 0`, never an error.
+
+The hook gates only on `Status: done` + a recent QA report (see
+`## Detection logic` / drop conditions above) — it does not consult any
+project-registry allowlist or load hub env vars. Earlier revisions referenced
+`_lib/load-env.sh` and `_lib/registry-match.sh` for that purpose, but neither
+file ever existed, so the registry gate was a silent no-op (F26 finding 1).
+The dead references were removed rather than implemented.
 
 ## Files
 

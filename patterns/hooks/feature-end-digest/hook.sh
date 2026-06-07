@@ -8,17 +8,12 @@ set -u
 
 HOOK_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-if [ -f "$HOOK_DIR/../_lib/load-env.sh" ]; then
-  # shellcheck source=/dev/null
-  . "$HOOK_DIR/../_lib/load-env.sh"
-  load_hub_env
-fi
-
-if [ -f "$HOOK_DIR/../_lib/registry-match.sh" ]; then
-  # shellcheck source=/dev/null
-  . "$HOOK_DIR/../_lib/registry-match.sh"
-  if ! registry_match; then exit 0; fi
-fi
+# NOTE: this hook gates only on Status:done + a recent QA report (below).
+# It does NOT consult a project-registry allowlist — `_lib/load-env.sh` and
+# `_lib/registry-match.sh` were referenced here but never existed, making the
+# advertised registry gate a silent no-op (F26 finding 1). Removed rather than
+# implemented: Status:done + recent-QA already scopes the drop adequately, and
+# a dead gate erodes trust (architect learning F09).
 
 if [ ! -f "$HOOK_DIR/../_lib/digest-context.sh" ]; then
   exit 0

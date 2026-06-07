@@ -17,6 +17,7 @@ DIDIO_HOME="${DIDIO_HOME:-$(cd "$SCRIPT_DIR/../.." && pwd)}"
 PROJECT="${DIDIO_PROJECT_ROOT:-${CLAUDE_PROJECT_DIR:-$(pwd)}}"
 export DIDIO_PROJECT_ROOT="$PROJECT"
 
+# requires python3 for stdin parse; absent → empty transcript, exit 0
 # Extract transcript_path from stdin JSON (if present).
 TRANSCRIPT="$(
   printf '%s' "$STDIN" | python3 -c 'import sys,json

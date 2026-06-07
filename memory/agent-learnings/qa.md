@@ -109,3 +109,10 @@
 **What to avoid:** Assuming "AC5 = upstream committed" is satisfied if only downstream commits are verified. F25 had all 7 downstream committed but the upstream (claude-didio-config) T01/T02/T03 changes were unstaged. Pattern: always run `git status` on the framework root repo and check for modified/untracked files in scope before writing the QA report.
 
 **Pattern to repeat:** When the TechLead flags a missing test harness as IMPORTANT, create it during QA (don't just report it). `bin/tests/F25-unit.sh` was created by QA with 28 assertions covering all AC-relevant checks — this is the correct disposition. A test harness listed in the test plan is a required deliverable.
+
+## F26 — 2026-06-07
+**What worked:** Re-running a "claimed now N/N passing" test suite *inside the QA agent's own session* (not a clean shell) caught a real bug the ratification's own verification missed: `test-hook.sh` reported 14/14 only when `DIDIO_FEATURE` was unset, but every spawned agent session exports `DIDIO_FEATURE=<real-feature>`, which leaked into the suite's sandbox (built around a synthetic `F90-foo` fixture identity) and caused 4/10 false failures (`T1/T5/T6/T7:drop-count expected [1] got [0]`).
+
+**What to avoid:** Trusting a "suite now passes N/N" claim verified only in a context (clean shell / no `DIDIO_*` exported) that differs from the suite's actual real-world caller (an agent session with `DIDIO_FEATURE`/`DIDIO_RUN_ID`/etc. always set). The number can be true and still misleading.
+
+**Pattern to repeat:** For any test harness that builds a sandbox around a *synthetic* fixture identity (feature ID, project name, run ID), explicitly override every env var the code-under-test reads to resolve that identity (e.g. `DIDIO_FEATURE=""` in the invocation prefix) — don't assume `set -u` / sandboxed `$PROJ` paths are enough; inherited env vars bypass both. Verify by re-running the suite with the real session's env vars still set, not unset.

@@ -1,0 +1,43 @@
+%% F26 hooks-audit — user journey (BPMN-style) for the audit-then-fix flow.
+flowchart LR
+  subgraph Plan["Lane: Planner (this PLAN_ONLY output)"]
+    A["Read brief + inventory hooks"] --> B{"sharding thresholds met?"}
+    B -->|"≥6 tasks"| C["Shard brief into _brief/*"]
+    C --> D["Emit eval + fix tasks (Status: planned)"]
+  end
+
+  subgraph Eval["Lane: Wave 1 — evaluate each hook"]
+    D --> E1["Eval pre-tool"]
+    D --> E2["Eval post-tool"]
+    D --> E3["Eval digest + _lib"]
+    D --> E4["Eval resume-pending (F22)"]
+    D --> E5["Eval runtime deps"]
+    D --> E6["Eval 3 settings + fixture"]
+  end
+
+  subgraph Ledger["Lane: findings ledger"]
+    E1 --> F{"defect confirmed?"}
+    E2 --> F
+    E3 --> F
+    E4 --> F
+    E5 --> F
+    E6 --> F
+    F -->|"yes"| G["Classify BLOCKING / IMPORTANT / MINOR"]
+    F -->|"no"| OK["Record verified-OK"]
+  end
+
+  subgraph Fix["Lane: Wave 2 — corrections"]
+    G --> X1["digest _lib deps"]
+    G --> X2["settings parity"]
+    G --> X3["remove hardcoded paths"]
+    G --> X4["doc python3 contract"]
+    G --> X5["pre-tool perf"]
+  end
+
+  X1 --> R["Wave 3: F26-audit-report.md"]
+  X2 --> R
+  X3 --> R
+  X4 --> R
+  X5 --> R
+  OK --> R
+  R --> Z["User reviews → runs /create-feature F26"]

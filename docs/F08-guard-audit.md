@@ -19,6 +19,31 @@
 
 ---
 
+## Hook dependencies
+
+`bin/hooks/didio-pre-tool.sh` and `bin/hooks/didio-post-tool.sh` both parse
+the hook's stdin JSON (tool name, `transcript_path`) via **`python3`**. This
+is a hard dependency for that parsing step — there is no pure-bash fallback.
+
+Degrade behavior when `python3` is absent (or fails):
+- **`didio-pre-tool.sh`** — the tool-name extraction (and therefore the
+  read-only whitelist check and every guard step downstream) fails silently;
+  the hook **allows the tool call** (`exit 0`, no deny). This is the
+  allow-silent path — the guard simply does not evaluate that call, it does
+  not block it.
+- **`didio-post-tool.sh`** — `transcript_path` extraction fails, so the hook
+  proceeds with an **empty transcript** and exits 0; the budget probe and
+  checkpoint write run with no transcript-derived data (or are skipped),
+  but the session is never broken.
+
+Both paths are intentional fail-open behavior (consistent with the "every
+failure path must exit 0, never false-deny" rule audited above) — a missing
+`python3` degrades observability, not safety. Operators on a machine without
+`python3` should expect the guard to be effectively inert (silent allow on
+every call) rather than seeing errors.
+
+---
+
 ## Gaps a corrigir (Wave 2)
 
 ### Gap #1 (AC1/AC2): ccusage command mismatch — `FAIL` mandatório

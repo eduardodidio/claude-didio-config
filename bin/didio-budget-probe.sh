@@ -47,7 +47,7 @@ fi
 
 # shellcheck disable=SC1090
 source "$PROJECT_ROOT/bin/didio-config-lib.sh" 2>/dev/null \
-  || source "${DIDIO_HOME:-/Users/eduardodidio/claude-didio-config}/bin/didio-config-lib.sh" 2>/dev/null \
+  || source "${DIDIO_HOME:-$HOME/.claude-didio-config}/bin/didio-config-lib.sh" 2>/dev/null \
   || exit 0
 
 ENABLED="$(didio_read_config_path session_guard.enabled true 2>/dev/null || echo true)"

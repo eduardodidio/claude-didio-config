@@ -1,0 +1,44 @@
+%% F26 hooks-audit — architecture / wiring of every hook in the repo.
+%% Legend: ✅ present & wired · ⚠️ degraded/no-op · ❌ missing · ⛔ not propagated
+flowchart TB
+  subgraph harness["Claude Code harness events"]
+    PRE["PreToolUse (every tool call)"]
+    POST["PostToolUse (every tool call)"]
+    STOP["Stop (turn end)"]
+    SS["SessionStart / UserPromptSubmit"]
+  end
+
+  subgraph upstream[".claude/settings.json — upstream (active)"]
+    PRE --> H1["bin/hooks/didio-pre-tool.sh ✅"]
+    POST --> H2["bin/hooks/didio-post-tool.sh ✅"]
+    STOP --> H3["patterns/hooks/feature-end-digest/hook.sh ✅"]
+    MCP["mcpServers.second-brain → ${DIDIO_SECOND_BRAIN_HOME:-$HOME/didio-second-brain-claude} ✅"]
+  end
+
+  %% pre-tool deps — 3 safety valves (verified-OK, degrade-safe)
+  H1 -->|"valve1 DIDIO_BYPASS_GUARD · valve2 logs/.guard-bypass · valve3 read-only whitelist"| VALVES{{"allow (bypass / read-only)"}}
+  H1 -->|source| LIB["bin/didio-config-lib.sh ✅"]
+  H1 -->|reads + staleness 300s| BUD["logs/session-budget.json"]
+  H1 -->|"pct≥hard → deny exit2, bg"| PAUSE["bin/didio-budget-pause.sh ✅"]
+  PAUSE --> RES["bin/didio-resume-feature.sh ✅"]
+  PAUSE --> NOTIFY["bin/didio-notify.sh ✅"]
+
+  %% post-tool deps
+  H2 --> PROBE["bin/didio-budget-probe.sh ✅ (fallback uses ${DIDIO_HOME:-$HOME/.claude-didio-config})"]
+  H2 --> CKPT["bin/didio-checkpoint-write.sh ✅"]
+  PROBE -->|writes| BUD
+  PROBE --> LIB
+
+  %% digest deps
+  H3 -->|"source if exists"| DCTX["_lib/digest-context.sh ✅"]
+  H3 -->|"drops on Status:done + recent QA"| DIG["memory/_pending-digest/*.md"]
+  %% T09: removed dead `_lib/load-env.sh` + `_lib/registry-match.sh` source blocks (resolution A — never existed, silent no-op gate)
+
+  %% propagable templates
+  subgraph templates["Propagable templates"]
+    T1["templates/.claude/settings.json — Stop + Pre + Post ✅ · uses ${DIDIO_HOME}"]
+    T2["templates/.claude/settings.highlander.json — Stop + Pre + Post ✅ (parity decision: autonomous Waves need the guard too)"]
+    T3["templates/hooks/pre-prompt-resume-pending/hook.sh — F22 opt-in · unwired"]
+    FX["tests/F25-fixtures/placeholder-settings.json — intentional {{...}} negative test ✅"]
+  end
+  SS -.opt-in (manual).-> T3

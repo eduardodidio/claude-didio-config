@@ -29,5 +29,41 @@
       "Edit(./**)"
     ]
   },
-  "useAutoModeDuringPlan": true
+  "useAutoModeDuringPlan": true,
+  "hooks": {
+    "Stop": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ${DIDIO_HOME:-$HOME/.claude-didio-config}/patterns/hooks/feature-end-digest/hook.sh"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ${DIDIO_HOME:-$HOME/.claude-didio-config}/bin/hooks/didio-pre-tool.sh"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ${DIDIO_HOME:-$HOME/.claude-didio-config}/bin/hooks/didio-post-tool.sh"
+          }
+        ]
+      }
+    ]
+  },
+  "_hooks_decision": "Highlander runs Waves autonomously with no human watching the budget, so the session-guard (Pre/Post) and learning digest (Stop) hooks are wired here too — same ${DIDIO_HOME} convention as templates/.claude/settings.json. Parity intentional, not an oversight."
 }

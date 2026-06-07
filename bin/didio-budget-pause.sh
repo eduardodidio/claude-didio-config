@@ -71,9 +71,15 @@ NOW_ISO="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 TODAY="$(date -u +%Y-%m-%d)"
 
 # Anti-loop: count already-logged pauses today.
+# NOTE: `grep -c` prints 0 AND exits 1 on zero matches, so a trailing
+# `|| echo 0` would append a second line ("0\n0") and corrupt the arithmetic
+# (F26 finding 3c). Capture grep's output and normalize separately, then
+# sanitize to digits-only so the `(( ... ))` compare below can never throw.
 RESUMES_TODAY=0
 if [[ -f "$PAUSE_LOG" ]]; then
-  RESUMES_TODAY=$(grep -c "\"date\":\"$TODAY\"" "$PAUSE_LOG" 2>/dev/null || echo 0)
+  RESUMES_TODAY=$(grep -c "\"date\":\"$TODAY\"" "$PAUSE_LOG" 2>/dev/null) || RESUMES_TODAY=0
+  RESUMES_TODAY="${RESUMES_TODAY//[^0-9]/}"
+  [[ -z "$RESUMES_TODAY" ]] && RESUMES_TODAY=0
 fi
 
 # Extract feature + running agents. Source of truth: individual

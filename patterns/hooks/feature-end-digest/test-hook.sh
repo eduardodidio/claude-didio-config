@@ -100,6 +100,11 @@ count_drops() {
 }
 
 invoke_hook() {
+  # DIDIO_FEATURE="" (not unset) overrides any value exported by the
+  # spawning agent session (e.g. DIDIO_FEATURE=F26 when this suite runs
+  # under a Developer/TechLead/QA agent) so the hook falls through to its
+  # mtime-based detection of the sandbox's F90 fixture, as the test expects.
+  DIDIO_FEATURE="" \
   CLAUDE_PROJECT_DIR="$PROJ" \
   CLAUDE_PROJECT_NAME="test-proj" \
   SECOND_BRAIN_HUB="$HUB" \
@@ -114,6 +119,16 @@ invoke_hook() {
 echo "SMOKE: bash -n"
 bash -n "$HOOK" 2>/dev/null
 assert_eq "smoke:bash-n-hook" "0" "$?"
+
+# F26 finding 1 regression guard: hook.sh used to source `_lib/load-env.sh`
+# and `_lib/registry-match.sh`, neither of which existed — so the advertised
+# registry gate was a silent no-op. Resolution (A): the dead source blocks
+# were removed; the hook now honestly gates on Status:done + recent-QA only.
+# Assert the dead references stay gone so the no-op can't silently return.
+echo ""
+echo "SMOKE: no dead _lib registry-gate sources"
+assert_not_contains "smoke:no-load-hub-env-call" "$HOOK" "load_hub_env"
+assert_not_contains "smoke:no-registry-match-call" "$HOOK" "registry_match"
 
 # ---------------------------------------------------------------------------
 # TEST 1: done + recent QA → drop created
@@ -204,6 +219,7 @@ DATEEOF
 chmod +x "$SANDBOX/bin/date"
 
 PATH="$SANDBOX/bin:$PATH" \
+DIDIO_FEATURE="" \
 CLAUDE_PROJECT_DIR="$PROJ" \
 CLAUDE_PROJECT_NAME="test-proj" \
 SECOND_BRAIN_HUB="$HUB" \
@@ -211,6 +227,7 @@ HOME="$SANDBOX" \
 bash "$HOOK" 2>/dev/null
 
 PATH="$SANDBOX/bin:$PATH" \
+DIDIO_FEATURE="" \
 CLAUDE_PROJECT_DIR="$PROJ" \
 CLAUDE_PROJECT_NAME="test-proj" \
 SECOND_BRAIN_HUB="$HUB" \
