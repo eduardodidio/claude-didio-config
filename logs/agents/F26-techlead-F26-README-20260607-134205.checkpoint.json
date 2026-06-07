@@ -1,0 +1,12 @@
+{
+  "run_id": "F26-techlead-F26-README-20260607-134205",
+  "feature": "F26",
+  "task": "F26-README",
+  "role": "techlead",
+  "updated_at": "2026-06-07T16:45:28Z",
+  "task_progress": "unknown",
+  "last_tool_result": "isted in the working tree with no\\n  commits. The audit report itself caught and disclosed this, which\\n  prevented it from becoming a silent merge.\\n  **Role(s) affected:** architect, developer\\n  **Lesson:** PLAN_ONLY / planning-mode features need a structural guard,\\n  not just a textual one \u2014 e.g., the spawn harness should refuse to invoke\\n  Developer agents (or should invoke them in a strictly read-only sandbox)\\n  when the README's `Mode:` field says `PLAN_ONLY`. A textual instruction in\\n  a brief is not sufficient to prevent an agent chain from \\\"helpfully\\\"\\n  executing what it plans. This is the same class of problem as F07's\\n  sub-agent budget gap ([[project_f07_subagent_budget_gap]]) \u2014 a contract\\n  stated in prose that the harness does not structurally enforce.\\n\\n- **Pattern:** When an agent (T14 here) discovers that prior agents in the\\n  same chain violated an explicit constraint, the right move is exactly what\\n  happened: surface it prominently, verify it concretely (file-by-file diff\\n  cross-check), and let the human reviewer decide \u2014 rather than silently\\n  absorbing the deviation into a \\\"looks done\\\" report or unilaterally\\n  reverting it.\\n  **Role(s) affected:** techlead, qa, architect\\n  **Lesson:** Keep rewarding/propagating this behavior in future role\\n  prompts \u2014 \\\"if you find the plan and the reality disagree, report the\\n  disagreement as the headline, don't bury it in a footnote.\\\"\\n\"},\"caller\":{\"type\":\"direct\"}}],\"stop_reason\":null,\"stop_sequence\":null,\"stop_details\":null,\"usage\":{\"input_tokens\":2,\"cache_creation_input_tokens\":1117,\"cache_read_input_tokens\":65003,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":1117},\"output_tokens\":2,\"service_tier\":\"standard\",\"inference_geo\":\"not_available\"},\"diagnostics\":null,\"context_management\":null},\"parent_tool_use_id\":null,\"session_id\":\"051711c2-1705-4041-8e8b-8277fd5b4ae9\",\"uuid\":\"5b17a212-5e20-4912-bd6e-11cc1c32f229\",\"request_id\":\"req_011CbpEcpd6wfJnDJcCD1dcc\"}\n",
+  "todo_state": [],
+  "context_summary": "",
+  "next_action_hint": ""
+}

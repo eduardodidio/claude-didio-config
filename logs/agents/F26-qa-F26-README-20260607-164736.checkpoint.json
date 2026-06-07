@@ -1,0 +1,12 @@
+{
+  "run_id": "F26-qa-F26-README-20260607-164736",
+  "feature": "F26",
+  "task": "F26-README",
+  "role": "qa",
+  "updated_at": "2026-06-07T19:53:43Z",
+  "task_progress": "unknown",
+  "last_tool_result": "D_BRAIN_HOME:-$HOME/didio-second-brain-claude}` portability convention (already established in `didio-config-lib.sh`) was correctly reapplied to fix three independent hardcoded-path findings (3a, 3b, plus the settings template gaps) \u2014 one decision, reused everywhere, no new pattern invented.\\n\\n**What to avoid:** Building a test harness's sandbox around a *synthetic* fixture identity (e.g. a fake feature `F90-foo`) without overriding every env var the code-under-test uses to resolve that identity. `feature-end-digest/test-hook.sh` set up `$PROJ` with an `F90-foo` feature dir, but `hook.sh` resolves the active feature via `DIDIO_FEATURE` first (mtime-fallback only when unset) \u2014 and `DIDIO_FEATURE` is always exported by the spawn harness in real agent sessions. The result: the suite passed in a clean shell but failed 4/10 when run by an agent (the realistic caller), because the agent's real `DIDIO_FEATURE` leaked through and silently overrode the sandbox's fixture identity.\\n\\n**Pattern to repeat:** When a hermetic test sandbox simulates an identity that the code-under-test can also resolve from an inherited env var (`DIDIO_FEATURE`, `DIDIO_RUN_ID`, `CLAUDE_PROJECT_NAME`, ...), explicitly blank/override that var in every invocation of the code-under-test (`DIDIO_FEATURE=\\\"\\\"` in the env prefix), with a comment naming which inherited value it's guarding against.\\nEOF\\necho \\\"appended to qa.md, techlead.md, developer.md\\\"\"},\"caller\":{\"type\":\"direct\"}}],\"stop_reason\":null,\"stop_sequence\":null,\"stop_details\":null,\"usage\":{\"input_tokens\":2,\"cache_creation_input_tokens\":2534,\"cache_read_input_tokens\":90412,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":2534},\"output_tokens\":2,\"service_tier\":\"standard\",\"inference_geo\":\"not_available\"},\"diagnostics\":null,\"context_management\":null},\"parent_tool_use_id\":null,\"session_id\":\"55cb9197-d95b-4632-8249-5badfbef62fd\",\"uuid\":\"55053b0f-2b9c-4c15-b98a-7289d28e60db\",\"request_id\":\"req_011CbpV3Qe315g3zorNQQpGT\"}\n",
+  "todo_state": [],
+  "context_summary": "",
+  "next_action_hint": ""
+}

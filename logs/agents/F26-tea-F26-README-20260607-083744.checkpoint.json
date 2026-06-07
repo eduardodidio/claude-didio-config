@@ -1,0 +1,12 @@
+{
+  "run_id": "F26-tea-F26-README-20260607-083744",
+  "feature": "F26",
+  "task": "F26-README",
+  "role": "tea",
+  "updated_at": "2026-06-07T11:41:39Z",
+  "task_progress": "unknown",
+  "last_tool_result": "ean (no behavioral change). (F26-T12)\\n22. PreToolUse perf fix: whitelisted call takes the fast path with no `python3` spawn (verified by stubbing python3 to fail and confirming the whitelisted call still exits 0); non-whitelisted path and all valves/staleness/deny behave identically; benchmark delta recorded. (F26-T13)\\n23. consolidation: `audit/findings.md` has one row per finding (the six from the brief plus any new Wave-1 ones) with Verdict/Class/Fix-task; `F26-audit-report.md` exists, `Status: planned`, names the T09 open decision (A vs B) and the recommended fix order. (F26-T14)\\n\\n## Anota\u00e7\u00f5es para tasks\\n\\n- (F26-T03, session-budget-snapshots, tool-call-stdin)\\n- (F26-T04, tool-call-stdin)\\n- (F26-T13, session-budget-snapshots, tool-call-stdin)\\n- (F26-T01, _sem fixtures \u2014 scaffolding apenas_)\\n- (F26-T02, _sem fixtures \u2014 revis\u00e3o de diagramas apenas_)\\n- (F26-T05, _sem fixtures \u2014 gera o pr\u00f3prio output em /tmp/_)\\n- (F26-T06, _sem fixtures \u2014 usa o harness existente test-hook.sh_)\\n- (F26-T07, _sem fixtures \u2014 usa scratch /tmp/ para o pending dir_)\\n- (F26-T08, _sem fixtures novas \u2014 reusa tests/F25-fixtures/_)\\n- (F26-T09, _sem fixtures \u2014 fix de hook, valida via test-hook.sh_)\\n- (F26-T10, _sem fixtures \u2014 fix de settings, valida via json.tool + grep_)\\n- (F26-T11, _sem fixtures \u2014 fix de path, valida via grep + bash -n_)\\n- (F26-T12, _sem fixtures \u2014 docs only_)\\n- (F26-T14, _sem fixtures \u2014 consolida\u00e7\u00e3o de docs_)\\n\"},\"caller\":{\"type\":\"direct\"}}],\"stop_reason\":null,\"stop_sequence\":null,\"stop_details\":null,\"usage\":{\"input_tokens\":2,\"cache_creation_input_tokens\":4890,\"cache_read_input_tokens\":64673,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":4890},\"output_tokens\":3,\"service_tier\":\"standard\",\"inference_geo\":\"not_available\"},\"diagnostics\":null,\"context_management\":null},\"parent_tool_use_id\":null,\"session_id\":\"961fa90f-e520-4b2e-934b-256250f03448\",\"uuid\":\"37cf6e73-69b1-44e6-a2ae-dde1168eec61\",\"request_id\":\"req_011CboqTEBUxSm1xjXjQk3qP\"}\n",
+  "todo_state": [],
+  "context_summary": "",
+  "next_action_hint": ""
+}

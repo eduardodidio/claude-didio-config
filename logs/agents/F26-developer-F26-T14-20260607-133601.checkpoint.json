@@ -1,0 +1,12 @@
+{
+  "run_id": "F26-developer-F26-T14-20260607-133601",
+  "feature": "F26",
+  "task": "F26-T14",
+  "role": "developer",
+  "updated_at": "2026-06-07T16:40:58Z",
+  "task_progress": "unknown",
+  "last_tool_result": "CKING/IMPORTANT/MINOR) | \u26a0\ufe0f **Mostly satisfied, one gap** \u2014 7 of 8 fixable findings have a task (T09\u2013T13, all done); finding 3c (new, surfaced after task assignment) has none \u2014 see Open decision 3 |\\n| AC3 | `audit/findings.md` consolidates all eval verdicts + fix classifications | \u2705 **Satisfied** \u2014 table now has a row for all 6 seed findings + 2 new (3c, 7) + the F25-fixture record, each with Verdict/Class/Fix-task |\\n| AC4 | `F26-audit-report.md` summarizes results and recommends `/create-feature F26` scope | \u2705 **Satisfied** \u2014 this document (Summary, Per-hook verdicts, Confirmed findings, Verified-OK, Recommended scope, Open decisions) |\\n| AC5 | Plan reviewable; README + every task `Status: planned`; no Wave executed; no commits | \u274c **Not satisfied as written \u2014 see \u00a70.** README and this report carry `Status: planned`, but T01\u2013T13 carry `Status: done` with real, uncommitted working-tree changes (no commits were made, so the \\\"no commits\\\" half holds). This is the central fact the reviewer must reconcile \u2014 see Open decision 1. |\\n\\n---\\n\\n## References\\n\\n- Findings ledger: `audit/findings.md`\\n- Eval notes: `audit/eval/{01-pre-tool,02-post-tool,03-runtime-deps,04-digest,05-resume-pending,06-settings}.md`\\n- Seed findings + fix decisions: `_brief/05-findings.md`\\n- Diagrams: `docs/diagrams/F26-architecture.mmd`, `docs/diagrams/F26-journey.mmd`\\n- Fix task notes: `F26-T09.md` \u2026 `F26-T13.md` (`## Notes from Developer`)\\n\"},\"caller\":{\"type\":\"direct\"}}],\"stop_reason\":null,\"stop_sequence\":null,\"stop_details\":null,\"usage\":{\"input_tokens\":2,\"cache_creation_input_tokens\":208,\"cache_read_input_tokens\":96330,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":208},\"output_tokens\":2,\"service_tier\":\"standard\",\"inference_geo\":\"not_available\"},\"diagnostics\":null,\"context_management\":null},\"parent_tool_use_id\":null,\"session_id\":\"e665e62d-1795-493a-8dc2-8055d1e79257\",\"uuid\":\"be88e80e-c6de-4934-8543-22f1561e46cb\",\"request_id\":\"req_011CbpEFKwbeBQZDwgejetrG\"}\n",
+  "todo_state": [],
+  "context_summary": "",
+  "next_action_hint": ""
+}

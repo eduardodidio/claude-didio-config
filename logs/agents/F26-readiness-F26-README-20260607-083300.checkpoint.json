@@ -1,0 +1,12 @@
+{
+  "run_id": "F26-readiness-F26-README-20260607-083300",
+  "feature": "F26",
+  "task": "F26-README",
+  "role": "readiness",
+  "updated_at": "2026-06-07T11:37:13Z",
+  "task_progress": "unknown",
+  "last_tool_result": "on.tool` over all 3 settings files |\\n| T09  | PASS   | Framework / Command / Test files; `bash patterns/hooks/feature-end-digest/test-hook.sh` |\\n| T10  | PASS   | Framework / Command / Test files; `! grep -rn \\\"/Users/\\\" \u2026 && python3 -m json.tool \u2026 && echo OK` |\\n| T11  | PASS   | Framework / Command / Test files; `! grep -n \\\"/Users/eduardodidio\\\" \u2026 && bash -n \u2026 && echo OK` |\\n| T12  | PASS   | Framework / Command / Test files; `grep -ri \\\"python3\\\" docs/ bin/hooks/ | grep -i \\\"stdin|parse|degrade\\\" && bash -n \u2026` |\\n| T13  | PASS   | Framework / Command / Test files; `time (for i in $(seq 1 200); do \u2026 done)` benchmark |\\n| T14  | PASS   | Framework / Command / Test files; `test -f audit/findings.md && grep -q \\\"Status: planned\\\" F26-audit-report.md && echo OK` |\\n\\nNo placeholder (`_TODO_`/`TBD`/`N/A`-without-explanation) testing sections found.\\n\\n## Summary\\n- PASS: 5 (Check 1, Check 2, Check 3, Check 4, Check 5)\\n- FAIL: 0\\n\\nAll issues raised by the 2026-06-06 BLOCKED run are resolved:\\n- 14\u00d7 missing `**Maps to AC:**` \u2192 every task now carries the field (Check 2 all PASS, which also clears Check 1's AC1/AC2/AC5 FAILs).\\n- Wave-2 `docs/diagrams/F26-architecture.mmd` triple-ownership \u2192 T10 is now the explicit sole owner; T09/T11 explicitly defer.\\n- Wave-2 `bin/hooks/didio-pre-tool.sh` dual-ownership \u2192 T13 is now the explicit sole owner; T12 explicitly defers and folds its comment into T13.\\n\\n**Verdict:** READY\\n\"},\"caller\":{\"type\":\"direct\"}}],\"stop_reason\":null,\"stop_sequence\":null,\"stop_details\":null,\"usage\":{\"input_tokens\":2,\"cache_creation_input_tokens\":1095,\"cache_read_input_tokens\":73841,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":1095},\"output_tokens\":2,\"service_tier\":\"standard\",\"inference_geo\":\"not_available\"},\"diagnostics\":null,\"context_management\":null},\"parent_tool_use_id\":null,\"session_id\":\"90243e48-1e99-41bc-a9d1-904cc8c47499\",\"uuid\":\"981d51d2-e1f0-478d-a8b5-4218eea4d884\",\"request_id\":\"req_011Cboq8rTGrkedEBADTDFVz\"}\n",
+  "todo_state": [],
+  "context_summary": "",
+  "next_action_hint": ""
+}

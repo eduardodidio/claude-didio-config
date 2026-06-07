@@ -1,0 +1,12 @@
+{
+  "run_id": "F26-architect-F26-_tmp-brief-20260606-121218",
+  "feature": "F26",
+  "task": "F26-_tmp-brief",
+  "role": "architect",
+  "updated_at": "2026-06-06T15:19:02Z",
+  "task_progress": "unknown",
+  "last_tool_result": "ooks/didio-pre-tool.sh`.\\n- Move/duplicate the whitelist check to a python3-free fast path at the top\\n  (after the env/file valves), only falling through to python3 + config-lib for\\n  non-whitelisted tools.\\n- Benchmark before/after (e.g. `time` over N synthetic whitelisted calls).\\n\\n## Acceptance criteria\\n\\n- [ ] T03 measurement cited as the justification (material vs not).\\n- [ ] If changed: whitelisted tool calls no longer spawn python3 (verified via\\n      trace/strace or by stubbing python3 to fail and confirming whitelisted\\n      calls still exit 0).\\n- [ ] All 3 valves + staleness + deny logic behave identically for\\n      non-whitelisted tools.\\n- [ ] Benchmark delta recorded in `audit/eval/01-pre-tool.md` or the report.\\n\\n## Testing\\n\\n- Framework: bash benchmark + behavior parity tests.\\n- Command: `time (for i in $(seq 1 200); do echo '{\\\"tool_name\\\":\\\"Read\\\"}' | bash bin/hooks/didio-pre-tool.sh; done)`\\n- Test files: scratch `/tmp/`; results in the audit report.\\n\\n## Test scenarios\\n\\n- **Happy path** \u2014 whitelisted tool \u2192 fast exit 0, no python3 spawn.\\n- **Edge** \u2014 non-whitelisted tool \u2192 full path runs (python3 + lib + awk).\\n- **Error** \u2014 python3 missing \u2192 non-whitelisted call still allow-silent exit 0.\\n- **Boundary** \u2014 pct\u2265hard for a non-whitelisted tool still denies (exit 2)\\n  after the optimization.\\n\\n## Diagrams\\n\\nNone (behavior unchanged; architecture diagram already shows the valves).\\n\"},\"caller\":{\"type\":\"direct\"}}],\"stop_reason\":null,\"stop_sequence\":null,\"stop_details\":null,\"usage\":{\"input_tokens\":2,\"cache_creation_input_tokens\":2258,\"cache_read_input_tokens\":68858,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":2258},\"output_tokens\":54,\"service_tier\":\"standard\",\"inference_geo\":\"not_available\"},\"diagnostics\":null,\"context_management\":null},\"parent_tool_use_id\":null,\"session_id\":\"23d5a565-6e17-46dd-80b0-b91d574bc3d0\",\"uuid\":\"922fe478-3468-4905-ad65-879135f3c0fd\",\"request_id\":\"req_011CbnEHtFbfJK7VmBT1GxmJ\"}\n",
+  "todo_state": [],
+  "context_summary": "",
+  "next_action_hint": ""
+}

@@ -1,0 +1,12 @@
+{
+  "run_id": "F26-readiness-F26-README-20260606-194521",
+  "feature": "F26",
+  "task": "F26-README",
+  "role": "readiness",
+  "updated_at": "2026-06-06T22:48:49Z",
+  "task_progress": "unknown",
+  "last_tool_result": " 5)\\n- FAIL: 3 (Check 1, Check 2, Check 3)\\n\\n### Blocking issues to fix before Wave 0 runs\\n\\n**Check 2 (14 FAILs) \u2014 add `**Maps to AC:**` to every task file:**\\n\\nSuggested mappings (operator validates):\\n- T01 \u2192 `**Maps to AC:** AC1` (scaffold for the eval workspace AC1 requires)\\n- T02 \u2192 `**Maps to AC:** AC5` (diagrams are part of the reviewable plan artifact)\\n- T03 \u2192 `**Maps to AC:** AC1`\\n- T04 \u2192 `**Maps to AC:** AC1`\\n- T05 \u2192 `**Maps to AC:** AC1`\\n- T06 \u2192 `**Maps to AC:** AC1`\\n- T07 \u2192 `**Maps to AC:** AC1`\\n- T08 \u2192 `**Maps to AC:** AC1`\\n- T09 \u2192 `**Maps to AC:** AC2`\\n- T10 \u2192 `**Maps to AC:** AC2`\\n- T11 \u2192 `**Maps to AC:** AC2`\\n- T12 \u2192 `**Maps to AC:** AC2`\\n- T13 \u2192 `**Maps to AC:** AC2`\\n- T14 \u2192 `**Maps to AC:** AC3, AC4, AC5`\\n\\n**Check 3 (2 FAILs) \u2014 resolve Wave 2 file collisions:**\\n\\n1. `docs/diagrams/F26-architecture.mmd` owned by T09, T10, T11 simultaneously.\\n   Suggested fix: designate T10 as the sole owner of the diagram (it has the most\\n   changes: Stop hook + highlander + MCP path). Add a note to T09 and T11 deferring\\n   their diagram edit to T10 (\\\"T10 owns diagram updates for this Wave\\\").\\n\\n2. `bin/hooks/didio-pre-tool.sh` owned by T12 (optional) and T13.\\n   Suggested fix: merge the optional python3 comment from T12 into T13 (T13 already\\n   edits the file for the perf optimization). T12 then only touches documentation\\n   files and gains a clean file boundary.\\n\\n**Verdict:** BLOCKED\\n\"},\"caller\":{\"type\":\"direct\"}}],\"stop_reason\":null,\"stop_sequence\":null,\"stop_details\":null,\"usage\":{\"input_tokens\":56,\"cache_creation_input_tokens\":6707,\"cache_read_input_tokens\":45360,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":6707},\"output_tokens\":24,\"service_tier\":\"standard\",\"inference_geo\":\"not_available\"},\"diagnostics\":null,\"context_management\":null},\"parent_tool_use_id\":null,\"session_id\":\"42141aee-8c4b-435c-8b61-dc5f51e7051b\",\"uuid\":\"a2b6ba75-e094-4ab2-9c65-614625b6dac3\",\"request_id\":\"req_011CbnpXhqdW2XcrJQ4w9YFj\"}\n",
+  "todo_state": [],
+  "context_summary": "",
+  "next_action_hint": ""
+}

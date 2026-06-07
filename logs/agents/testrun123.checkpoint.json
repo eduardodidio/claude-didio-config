@@ -1,0 +1,12 @@
+{
+  "run_id": "testrun123",
+  "feature": "F26",
+  "task": "F26-T04",
+  "role": "developer",
+  "updated_at": "2026-06-07T11:46:52Z",
+  "task_progress": "unknown",
+  "last_tool_result": "",
+  "todo_state": [],
+  "context_summary": "",
+  "next_action_hint": ""
+}
