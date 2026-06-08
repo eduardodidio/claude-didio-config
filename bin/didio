@@ -69,17 +69,17 @@ Usage:
   didio poc-from-minutes <ata>   Generate runnable POC from meeting minutes
 
   didio t800 <feature-id> <brief-or-request-file> [extra-prompt]
-      Spawn T-800 strategic orchestrator. Produces decision records
-      in logs/decisions/. If auto_governance=true, spawns T-1000 after.
+      Spawn Gandalf strategic orchestrator. Produces decision records
+      in logs/decisions/. If auto_governance=true, spawns Saruman after.
       Disabled by default (meta_agents.t800.enabled).
 
   didio t1000 --decision <id> | --pending
-      Spawn T-1000 governance reviewer on a T-800 decision.
+      Spawn Saruman governance reviewer on a Gandalf decision.
       Reviews the decision for biases and blind spots.
       Disabled by default (meta_agents.t1000.enabled).
 
   didio decisions --recent [N] | --status <s> | --detail <id>
-      View decision log. Lists, filters, or shows detail of T-800
+      View decision log. Lists, filters, or shows detail of Gandalf
       decision records from logs/decisions/.
 
   didio resume-pending [--feature FXX] [--dry-run] [--max-retries N]

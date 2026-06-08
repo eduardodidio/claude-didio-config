@@ -226,7 +226,7 @@ didio_auto_governance() {
   didio_read_config_path 'meta_agents.t800.auto_governance' 'true'
 }
 
-# Returns the review mode for T-1000. Default "post-decision".
+# Returns the review mode for Saruman. Default "post-decision".
 didio_governance_review_mode() {
   didio_read_config_path 'meta_agents.t1000.review_mode' 'post-decision'
 }

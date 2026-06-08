@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# didio-t1000.sh — T-1000 Governance Reviewer launcher
+# didio-t1000.sh — Saruman Governance Reviewer launcher
 #
 # Usage:
 #   didio t1000 --decision <decision-id>
 #   didio t1000 --pending
 #
-# Spawns the T-1000 meta-agent to review a decision produced by T-800.
-# The T-1000 reads ONLY the decision record, CLAUDE.md, and didio.config.json.
+# Spawns the Saruman meta-agent to review a decision produced by Gandalf.
+# The Saruman reads ONLY the decision record, CLAUDE.md, and didio.config.json.
 
 set -euo pipefail
 
@@ -29,7 +29,7 @@ USAGE:
   didio t1000 --decision <decision-id>
   didio t1000 --pending
 
-Spawns the T-1000 governance reviewer to audit a T-800 decision.
+Spawns the Saruman governance reviewer to audit a Gandalf decision.
 
 OPTIONS:
   --decision <id>   Review a specific decision (e.g. D-20260605-001)
@@ -41,10 +41,10 @@ EOF
   exit 0
 fi
 
-# Check if T-1000 is enabled
+# Check if Saruman is enabled
 T1000_ENABLED="$(didio_t1000_enabled)"
 if [[ "$T1000_ENABLED" != "true" ]]; then
-  echo "[didio-t1000] T-1000 is disabled. Set meta_agents.t1000.enabled=true in didio.config.json" >&2
+  echo "[didio-t1000] Saruman is disabled. Set meta_agents.t1000.enabled=true in didio.config.json" >&2
   exit 1
 fi
 
@@ -80,13 +80,13 @@ review_decision() {
 
   echo "[didio-t1000] reviewing $decision_id..." >&2
 
-  # Spawn T-1000 with restricted context
+  # Spawn Saruman with restricted context
   "$DIDIO_HOME/bin/didio-spawn-agent.sh" t1000 "META" "$decision_file" \
     "RESTRICTED_CONTEXT=true — You may ONLY read: this decision record, CLAUDE.md, didio.config.json, and other files in logs/decisions/. Do NOT read any other files."
   local exit_code=$?
 
   if [[ $exit_code -ne 0 ]]; then
-    echo "[didio-t1000] T-1000 review failed for $decision_id (exit=$exit_code)" >&2
+    echo "[didio-t1000] Saruman review failed for $decision_id (exit=$exit_code)" >&2
     return $exit_code
   fi
 

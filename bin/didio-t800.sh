@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# didio-t800.sh — T-800 Strategic Orchestrator launcher
+# didio-t800.sh — Gandalf Strategic Orchestrator launcher
 #
 # Usage:
 #   didio t800 <feature-id> <brief-or-request-file> [extra-prompt]
 #   didio t800 --checkpoint <decision-id>
 #
-# Spawns the T-800 meta-agent to make a strategic decision. If
-# auto_governance is enabled, automatically spawns T-1000 after.
+# Spawns the Gandalf meta-agent to make a strategic decision. If
+# auto_governance is enabled, automatically spawns Saruman after.
 
 set -euo pipefail
 
@@ -29,10 +29,10 @@ USAGE:
   didio t800 <feature-id> <brief-or-request-file> [extra-prompt]
   didio t800 --checkpoint <decision-id>
 
-Spawns the T-800 strategic orchestrator to produce a decision record
+Spawns the Gandalf strategic orchestrator to produce a decision record
 in logs/decisions/D-YYYYMMDD-NNN.json.
 
-If meta_agents.t800.auto_governance is true, the T-1000 governance
+If meta_agents.t800.auto_governance is true, the Saruman governance
 reviewer is automatically spawned after the decision is produced.
 
 OPTIONS:
@@ -44,10 +44,10 @@ EOF
   exit 0
 fi
 
-# Check if T-800 is enabled
+# Check if Gandalf is enabled
 T800_ENABLED="$(didio_t800_enabled)"
 if [[ "$T800_ENABLED" != "true" ]]; then
-  echo "[didio-t800] T-800 is disabled. Set meta_agents.t800.enabled=true in didio.config.json" >&2
+  echo "[didio-t800] Gandalf is disabled. Set meta_agents.t800.enabled=true in didio.config.json" >&2
   exit 1
 fi
 
@@ -83,14 +83,14 @@ fi
 TS="$(date +%Y%m%d-%H%M%S)"
 cp "$REQUEST_FILE" "$REQUESTS_DIR/${FEATURE}-${TS}.md"
 
-echo "[didio-t800] spawning T-800 for $FEATURE..." >&2
+echo "[didio-t800] spawning Gandalf for $FEATURE..." >&2
 
-# Spawn T-800
+# Spawn Gandalf
 "$DIDIO_HOME/bin/didio-spawn-agent.sh" t800 "$FEATURE" "$REQUEST_FILE" "$EXTRA"
 T800_EXIT=$?
 
 if [[ $T800_EXIT -ne 0 ]]; then
-  echo "[didio-t800] T-800 failed (exit=$T800_EXIT)" >&2
+  echo "[didio-t800] Gandalf failed (exit=$T800_EXIT)" >&2
   exit $T800_EXIT
 fi
 
@@ -109,17 +109,17 @@ fi
 DECISION_ID="$(basename "$LATEST_DECISION" .json)"
 echo "[didio-t800] decision record: $LATEST_DECISION" >&2
 
-# Auto-governance: spawn T-1000 if enabled
+# Auto-governance: spawn Saruman if enabled
 AUTO_GOV="$(didio_auto_governance)"
 if [[ "$AUTO_GOV" == "true" ]]; then
   T1000_ENABLED="$(didio_t1000_enabled)"
   if [[ "$T1000_ENABLED" == "true" ]]; then
-    echo "[didio-t800] auto-governance: spawning T-1000 for $DECISION_ID..." >&2
+    echo "[didio-t800] auto-governance: spawning Saruman for $DECISION_ID..." >&2
     "$DIDIO_HOME/bin/didio-t1000.sh" --decision "$DECISION_ID"
     T1000_EXIT=$?
 
     if [[ $T1000_EXIT -ne 0 ]]; then
-      echo "[didio-t800] T-1000 governance review failed (exit=$T1000_EXIT)" >&2
+      echo "[didio-t800] Saruman governance review failed (exit=$T1000_EXIT)" >&2
     fi
 
     # Check governance verdict
@@ -136,10 +136,10 @@ with open('$GOV_FILE') as f:
           echo "[didio-t800] governance: AGREE — proceeding with pipeline" >&2
           ;;
         challenge)
-          echo "[didio-t800] governance: CHALLENGE — T-800 re-evaluating (max 1 round)..." >&2
-          # Re-spawn T-800 with governance feedback
+          echo "[didio-t800] governance: CHALLENGE — Gandalf re-evaluating (max 1 round)..." >&2
+          # Re-spawn Gandalf with governance feedback
           "$DIDIO_HOME/bin/didio-spawn-agent.sh" t800 "$FEATURE" "$LATEST_DECISION" \
-            "MODE=re-evaluate GOVERNANCE_FILE=$GOV_FILE — The T-1000 has challenged your decision. Read the governance report and reconsider. Update the decision record if warranted. This is the final round — no further challenges."
+            "MODE=re-evaluate GOVERNANCE_FILE=$GOV_FILE — The Saruman has challenged your decision. Read the governance report and reconsider. Update the decision record if warranted. This is the final round — no further challenges."
           ;;
         escalate)
           echo "[didio-t800] governance: ESCALATE — pipeline BLOCKED. Human review required." >&2
@@ -162,7 +162,7 @@ with open('$LATEST_DECISION', 'w') as f:
       esac
     fi
   else
-    echo "[didio-t800] auto-governance: T-1000 disabled, skipping governance review" >&2
+    echo "[didio-t800] auto-governance: Saruman disabled, skipping governance review" >&2
   fi
 fi
 

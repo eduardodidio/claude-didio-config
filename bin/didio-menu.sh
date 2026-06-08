@@ -55,8 +55,8 @@ print_menu() {
     8) ❓ Prompts prontos            (mostra o README cheat-sheet)
    14) 🗓️  Planejar feature           (Architect only, tasks BMad)
    15) 📋 Listar features planejadas (Status=planned)
-   16) 🤖 T-800 Orchestrate           [$(didio_t800_enabled | tr 'tf' 'TF' | sed 's/TRUE/ON/;s/FALSE/OFF/;s/true/ON/;s/false/OFF/')]
-   17) 🛡️  T-1000 Governance Review    [$(didio_t1000_enabled | tr 'tf' 'TF' | sed 's/TRUE/ON/;s/FALSE/OFF/;s/true/ON/;s/false/OFF/')]
+   16) 🤖 Gandalf Orchestrate           [$(didio_t800_enabled | tr 'tf' 'TF' | sed 's/TRUE/ON/;s/FALSE/OFF/;s/true/ON/;s/false/OFF/')]
+   17) 🛡️  Saruman Governance Review    [$(didio_t1000_enabled | tr 'tf' 'TF' | sed 's/TRUE/ON/;s/FALSE/OFF/;s/true/ON/;s/false/OFF/')]
    18) 📋 Decision Log                (didio decisions)
    ──────────────────────────────────────────────────────────
     9) ⚡ Turbo Mode                  [$turbo_label]
@@ -437,7 +437,7 @@ action_t800() {
   enabled="$(didio_t800_enabled)"
   if [[ "$enabled" != "true" ]]; then
     echo
-    echo "  T-800 esta DESABILITADO."
+    echo "  Gandalf esta DESABILITADO."
     echo "  Para habilitar: set meta_agents.t800.enabled=true em didio.config.json"
     echo
     return
@@ -448,7 +448,7 @@ action_t800() {
   [[ -z "$REQ" ]] && echo "  Arquivo vazio. Cancelado." && return
   cat <<EOF
 
-  Rodando T-800 para $F com $REQ...
+  Rodando Gandalf para $F com $REQ...
 
   Comando: didio t800 $F $REQ
 
@@ -461,7 +461,7 @@ action_t1000() {
   enabled="$(didio_t1000_enabled)"
   if [[ "$enabled" != "true" ]]; then
     echo
-    echo "  T-1000 esta DESABILITADO."
+    echo "  Saruman esta DESABILITADO."
     echo "  Para habilitar: set meta_agents.t1000.enabled=true em didio.config.json"
     echo
     return

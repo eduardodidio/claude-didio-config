@@ -1,11 +1,11 @@
 ---
-description: Orchestrate a strategic decision via T-800 meta-agent (with optional T-1000 governance)
+description: Orchestrate a strategic decision via Gandalf meta-agent (with optional Saruman governance)
 ---
 
-# /orchestrate — Strategic Decision via T-800
+# /orchestrate — Strategic Decision via Gandalf
 
-You are executing a strategic orchestration session using the T-800 and
-T-1000 meta-agents.
+You are executing a strategic orchestration session using the Gandalf and
+Saruman meta-agents.
 
 ## Input
 
@@ -19,7 +19,7 @@ Parse the arguments:
 
 1. Read `didio.config.json` and check `meta_agents.t800.enabled`.
    If `false` or missing, inform the user:
-   > T-800 is disabled. To enable: set `meta_agents.t800.enabled: true`
+   > Gandalf is disabled. To enable: set `meta_agents.t800.enabled: true`
    > in `didio.config.json`. This is opt-in to avoid unexpected token costs.
 
 2. Ensure `logs/decisions/` directory exists (create if needed).
@@ -47,7 +47,7 @@ exists, if there are planned tasks, recent decisions, etc.>
 What is the best approach to proceed with <FXX>?
 ```
 
-### Phase 2 — Spawn T-800
+### Phase 2 — Spawn Gandalf
 
 Run via Bash:
 
@@ -55,12 +55,12 @@ Run via Bash:
 didio t800 <FXX> <request-file-path>
 ```
 
-This spawns the T-800 agent which produces a decision record in
+This spawns the Gandalf agent which produces a decision record in
 `logs/decisions/D-YYYYMMDD-NNN.json`.
 
 ### Phase 3 — Report Results
 
-After T-800 completes:
+After Gandalf completes:
 1. Read the decision record from `logs/decisions/`
 2. If auto_governance ran, read the governance report from `logs/governance/`
 3. Present a summary to the user:
@@ -80,6 +80,6 @@ If the decision was approved (not escalated):
 
 ## Notes
 
-- The T-800 adds latency (~2-4 min) but provides structured decision-making
+- The Gandalf adds latency (~2-4 min) but provides structured decision-making
 - For simple, obvious decisions, the user may prefer `/create-feature` directly
 - Decision records serve as an audit trail in `logs/decisions/`

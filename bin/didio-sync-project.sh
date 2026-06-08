@@ -411,7 +411,7 @@ else
   else
     log_action "NO_CHANGE" "logs/agents/.gitkeep (already exists)"
   fi
-  # T-800/T-1000 decision and governance log directories
+  # Gandalf/Saruman decision and governance log directories
   for subdir in decisions decisions/_requests governance; do
     if [[ ! -d "$TARGET/logs/$subdir" ]]; then
       if [[ $DRY_RUN -eq 0 ]]; then

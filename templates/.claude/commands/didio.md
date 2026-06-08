@@ -16,13 +16,13 @@ tem 19 itens. Use **um menu em dois níveis**:
 
 **Passo 1 — pergunte a categoria** (5 categorias; mostre 4 + "Other" para Greenfield):
 
-1. **🚀 Trabalho** — criar feature, POC from meeting, criar PRD, corrigir bug, revisar branch, planejar feature, orchestrate (T-800)
+1. **🚀 Trabalho** — criar feature, POC from meeting, criar PRD, corrigir bug, revisar branch, planejar feature, orchestrate (Gandalf)
    _(opções 1, 2, 3, 14, 16, 20, 21)_ — Trabalho tem 7 itens; use 4 na pergunta + "Other" para ver mais
 2. **📊 Visibilidade** — status, dashboard, ver docs, listar features planejadas
    _(opções 4, 5, 6, 15)_
 3. **🎓 Aprendizado & ajuda** — retrospectiva manual, prompts prontos
    _(opções 7, 8)_
-4. **⚙️ Configurações** — turbo, economy, highlander, paralelismo, modelos, governance review (T-1000), decision log
+4. **⚙️ Configurações** — turbo, economy, highlander, paralelismo, modelos, governance review (Saruman), decision log
    _(opções 9, 10, 11, 12, 13, 22, 23)_
 5. **🌱 Greenfield** — brainstorm, research, product brief _(opções 17, 18, 19)_
    _(apresente como "Other / Greenfield" na chamada do Passo 1 — o modelo mapeia para esta categoria)_
@@ -42,8 +42,8 @@ opção mais próxima do menu numerado (1–19) abaixo.
 
    **OBRIGATÓRIO — execute as 4 fases sequencialmente, sem pular nenhuma:**
 
-   **Fase 0 — T-800 Strategic Gate (condicional):** Se
-   `meta_agents.t800.enabled=true` em `didio.config.json`, o T-800
+   **Fase 0 — Gandalf Strategic Gate (condicional):** Se
+   `meta_agents.t800.enabled=true` em `didio.config.json`, o Gandalf
    analisa o pedido antes do Architect. Se governance escala, pipeline
    para. Se disabled (default), esta fase nao existe.
 
@@ -153,8 +153,8 @@ opção mais próxima do menu numerado (1–19) abaixo.
 14. **🗓️ Planejar feature (BMad, sem executar)**
     Pergunte: id da feature (F0X) e descrição.
 
-    **Fase 0 — T-800 Strategic Gate (condicional):** Se
-    `meta_agents.t800.enabled=true` em `didio.config.json`, o T-800
+    **Fase 0 — Gandalf Strategic Gate (condicional):** Se
+    `meta_agents.t800.enabled=true` em `didio.config.json`, o Gandalf
     analisa o pedido antes do Architect. Se governance escala, pipeline
     para. Se disabled (default), esta fase nao existe.
 
@@ -265,22 +265,22 @@ opção mais próxima do menu numerado (1–19) abaixo.
 
     Equivale ao slash command `/poc-from-minutes <path>`.
 
-21. **🤖 T-800 Orchestrate — decisao estrategica**
+21. **🤖 Gandalf Orchestrate — decisao estrategica**
     Pergunte: id da feature (F0X) e descricao/contexto.
 
-    Execute o slash command `/orchestrate <FXX> <descricao>`. O T-800
+    Execute o slash command `/orchestrate <FXX> <descricao>`. O Gandalf
     analisa opcoes, produz um decision record em `logs/decisions/`,
-    e (se `auto_governance=true`) o T-1000 revisa automaticamente.
+    e (se `auto_governance=true`) o Saruman revisa automaticamente.
 
     **Pre-requisito:** `meta_agents.t800.enabled=true` em `didio.config.json`.
     Se desabilitado, informe o usuario e sugira habilitar.
 
     Equivale ao slash command `/orchestrate <FXX> <descricao>`.
 
-22. **🛡️ T-1000 Governance Review — revisao sob demanda**
+22. **🛡️ Saruman Governance Review — revisao sob demanda**
     Pergunte: decision-id (ou oferecer listar recentes).
 
-    Execute o slash command `/governance-review [decision-id]`. O T-1000
+    Execute o slash command `/governance-review [decision-id]`. O Saruman
     revisa a decisao com olhos frescos, verificando vieses cognitivos
     e blind spots.
 

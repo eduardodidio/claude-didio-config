@@ -33,13 +33,19 @@ their output reproducible and auditable (via `logs/agents/*.jsonl`).
 Above the standard pipeline sit two meta-agents that provide strategic
 decision-making and governance:
 
+> **Name ↔ identifier map:** the display names **Gandalf** and **Saruman**
+> map to the stable internal identifiers `t800` and `t1000` respectively —
+> used for config keys (`meta_agents.t800`), CLI subcommands (`didio t800`),
+> role prompts (`agents/prompts/t800.md`) and filenames. The rename is
+> display-only; identifiers are unchanged.
+
 ```
-User -> T-800 (decision) -> T-1000 (governance) -> Pipeline
+User -> Gandalf (decision) -> Saruman (governance) -> Pipeline
                                                       |
                                         Architect -> Waves -> TechLead -> QA
 ```
 
-### T-800 — Strategic Orchestrator
+### Gandalf — Strategic Orchestrator
 
 - **Role:** Takes strategic decisions (feature priority, sequencing,
   go/no-go on quality gates, block resolution)
@@ -49,10 +55,10 @@ User -> T-800 (decision) -> T-1000 (governance) -> Pipeline
 - **Config:** `meta_agents.t800.enabled` (default: `false`)
 - **Models:** `models.t800` (default: Opus/Sonnet)
 
-### T-1000 — Governance Reviewer
+### Saruman — Governance Reviewer
 
 - **Role:** Independent reviewer with fresh eyes — catches blind spots
-  and cognitive biases in T-800 decisions
+  and cognitive biases in Gandalf decisions
 - **Output:** Governance reports in `logs/governance/G-<decision-id>.json`
 - **Reading restricted to:** decision records, CLAUDE.md, didio.config.json
 - **Verdicts:** `agree` (proceed) | `challenge` (re-evaluate, max 1 round) |
@@ -62,10 +68,10 @@ User -> T-800 (decision) -> T-1000 (governance) -> Pipeline
 
 ### Decision Flow
 
-1. T-800 receives request -> analyzes options -> writes decision record
-2. T-1000 reads ONLY the decision record -> emits verdict
+1. Gandalf receives request -> analyzes options -> writes decision record
+2. Saruman reads ONLY the decision record -> emits verdict
 3. If `agree`: pipeline executes as decided
-4. If `challenge`: T-800 re-evaluates (max 1 round)
+4. If `challenge`: Gandalf re-evaluates (max 1 round)
 5. If `escalate`: pipeline blocked, user notified
 6. Pipeline executes normally per the approved decision
 
