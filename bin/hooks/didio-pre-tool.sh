@@ -24,6 +24,50 @@
 
 set -u
 
+# ── Read the hook payload once, up front ──────────────────────────────────────
+# Every decision below keys off the tool name and (for writes) the target path.
+# Read stdin exactly once here and reuse it; downstream branches must NOT
+# re-read stdin (it is already consumed). Bash-regex extraction keeps the
+# common path subprocess-free.
+STDIN_BUF="$(cat 2>/dev/null || true)"
+TOOL_NAME=""
+if [[ "$STDIN_BUF" =~ \"tool_name\"[[:space:]]*:[[:space:]]*\"([^\"]*)\" ]]; then
+  TOOL_NAME="${BASH_REMATCH[1]}"
+elif [[ "$STDIN_BUF" =~ \"tool\"[[:space:]]*:[[:space:]]*\"([^\"]*)\" ]]; then
+  TOOL_NAME="${BASH_REMATCH[1]}"
+fi
+
+# ── Sensitive-file lock for spawned agents (F15 AC8) — evaluated FIRST ─────────
+# Claude Code's built-in sensitive-file guard used to block any write under
+# .claude/ even with --dangerously-skip-permissions (confirmed by the F15-T01
+# spike, 2026-04-27). That CLI behavior has since changed: a spawned agent can
+# now freely Edit/Write .claude/settings.json, which controls hooks and
+# permissions — a privilege-escalation / persistence vector. Re-enforce the lock
+# here, where a PreToolUse deny IS honored under skip-permissions (same path the
+# session_guard budget-deny uses). This runs BEFORE the bypass valves on
+# purpose: the budget escape-hatches must never also unlock settings.json for an
+# agent. Scoped to DIDIO_AGENT=1 so the human's own interactive session can
+# still edit its settings (e.g. via /update-config).
+if [[ "${DIDIO_AGENT:-0}" == "1" ]]; then
+  case "$TOOL_NAME" in
+    Edit|Write|MultiEdit)
+      _TGT=""
+      if [[ "$STDIN_BUF" =~ \"file_path\"[[:space:]]*:[[:space:]]*\"([^\"]*)\" ]]; then
+        _TGT="${BASH_REMATCH[1]}"
+      elif [[ "$STDIN_BUF" =~ \"path\"[[:space:]]*:[[:space:]]*\"([^\"]*)\" ]]; then
+        _TGT="${BASH_REMATCH[1]}"
+      fi
+      case "$_TGT" in
+        */.claude/settings.json|.claude/settings.json|\
+        */.claude/settings.local.json|.claude/settings.local.json)
+          printf '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny","permissionDecisionReason":"SENSITIVE-FILE LOCK (didio): spawned agents may not edit .claude/settings*.json — it controls hooks and permissions and is operator-owned. Treat it as read-only; do NOT retry."}}\n' >&2
+          exit 2
+          ;;
+      esac
+      ;;
+  esac
+fi
+
 # ── Safety valve #1: explicit bypass ──────────────────────────────────────────
 if [[ "${DIDIO_BYPASS_GUARD:-0}" == "1" ]]; then
   exit 0
@@ -54,19 +98,10 @@ fi
 #   Read/Grep/Glob/LS  — file inspection (diagnostic)
 #   TodoWrite          — task-list bookkeeping (no external effect)
 #   TaskGet/List/Output — subagent status (read-only)
-# Fast path: pull tool_name out of the raw JSON with a bash regex — no
-# subprocess, no python3 — so the common whitelisted path (Read/Grep/...)
-# never pays for a process spawn. If the regex can't find a tool name (odd
-# formatting, escaped chars), TOOL_NAME stays empty, the case below doesn't
-# match, and we simply fall through to the full evaluation below — same
-# observable behavior, just without the whitelist shortcut for that one call.
-STDIN_BUF="$(cat 2>/dev/null || true)"
-TOOL_NAME=""
-if [[ "$STDIN_BUF" =~ \"tool_name\"[[:space:]]*:[[:space:]]*\"([^\"]*)\" ]]; then
-  TOOL_NAME="${BASH_REMATCH[1]}"
-elif [[ "$STDIN_BUF" =~ \"tool\"[[:space:]]*:[[:space:]]*\"([^\"]*)\" ]]; then
-  TOOL_NAME="${BASH_REMATCH[1]}"
-fi
+# Fast path: TOOL_NAME was already parsed from STDIN_BUF at the top of the
+# hook. If the regex couldn't find a tool name (odd formatting, escaped chars),
+# TOOL_NAME is empty, the case below doesn't match, and we fall through to the
+# full evaluation — same observable behavior, just no whitelist shortcut.
 case "$TOOL_NAME" in
   Read|Grep|Glob|LS|TodoWrite|TaskGet|TaskList|TaskOutput|ToolSearch)
     exit 0

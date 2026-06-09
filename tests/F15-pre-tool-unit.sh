@@ -204,6 +204,42 @@ assert_exit_zero \
   "missing file_path → exit 0 (bypass guard short-circuits)" \
   "$HOOK_EXIT"
 
+# ── Sensitive-file lock (F15 AC8): settings.json locked for spawned agents ────
+# Regression guard: Claude Code's built-in .claude/ guard no longer blocks
+# writes under --dangerously-skip-permissions, so the hook must deny
+# .claude/settings*.json edits for DIDIO_AGENT=1. Captures the real exit code
+# directly (run_hook's `|| true` masks it).
+echo ""
+echo "=== Hook: sensitive-file lock (DIDIO_AGENT=1) ==="
+
+lock_case() {
+  local label="$1" want="$2" json="$3"; shift 3
+  local err rc errf
+  errf="$(mktemp)"
+  # `&& rc=0 || rc=$?` keeps a non-zero hook exit (deny=2) from tripping set -e.
+  printf '%s' "$json" | env "$@" bash "$HOOK" >/dev/null 2>"$errf" && rc=0 || rc=$?
+  err="$(cat "$errf")"; rm -f "$errf"
+  if [[ "$rc" -eq "$want" ]]; then
+    pass "$label (exit $rc)"
+  else
+    fail "$label — expected exit $want, got $rc"
+  fi
+  if [[ "$want" -eq 2 ]]; then
+    assert_contains "$label — emits sensitive-file deny" 'SENSITIVE-FILE LOCK' "$err"
+  fi
+}
+
+lock_case "agent + settings.json → deny" 2 \
+  '{"tool_name":"Edit","tool_input":{"file_path":"/x/.claude/settings.json"}}' DIDIO_AGENT=1
+lock_case "agent + settings.json + BYPASS still deny (hardened)" 2 \
+  '{"tool_name":"Edit","tool_input":{"file_path":"/x/.claude/settings.json"}}' DIDIO_AGENT=1 DIDIO_BYPASS_GUARD=1
+lock_case "agent + settings.local.json → deny" 2 \
+  '{"tool_name":"Write","tool_input":{"file_path":"/x/.claude/settings.local.json"}}' DIDIO_AGENT=1
+lock_case "human (no DIDIO_AGENT) + settings.json → allow" 0 \
+  '{"tool_name":"Edit","tool_input":{"file_path":"/x/.claude/settings.json"}}' DIDIO_BYPASS_GUARD=1
+lock_case "agent + templates/commands → allow (F15 positive path)" 0 \
+  '{"tool_name":"Edit","tool_input":{"file_path":"/x/templates/commands/foo.md"}}' DIDIO_AGENT=1 DIDIO_BYPASS_GUARD=1
+
 # ── summary ───────────────────────────────────────────────────────────────────
 
 echo ""

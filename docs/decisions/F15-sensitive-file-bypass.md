@@ -45,3 +45,43 @@ F15-T01 spike confirmed that `--dangerously-skip-permissions` does **NOT** bypas
 - Future expansions of the allowlist (e.g., allowing agents to edit `.claude/agents/**`) require a new ADR amendment and a review of the blast radius of the change.
 - Spawn-agent's exit-code semantics are now "any tool error fails the run." Workflows that need to tolerate benign tool errors (e.g., a file-not-found that the agent handles gracefully) may need a `DIDIO_TOLERATE_TOOL_ERRORS=1` env var in a future follow-up.
 - The `DIDIO_AGENT=1` sentinel is exported on every spawn-agent invocation. Future hooks or scripts can branch on this variable to distinguish spawned-agent context from interactive context without adding new infrastructure.
+
+---
+
+## Addendum — 2026-06-09: CLI behavior changed, settings.json lock re-implemented
+
+**Regression discovered.** The F15-T01 spike (2026-04-27) established that
+Claude Code's built-in sensitive-file guard blocks any `Edit`/`Write` under
+`.claude/` *unconditionally*, even with `--dangerously-skip-permissions`. The
+"Consequences" section above relied on that: "`.claude/settings.json` remains
+locked … protected by the sensitive-file guard."
+
+Re-running `tests/F15-sensitive-edit.sh` on 2026-06-09 proved that behavior
+**no longer holds**. A spawned agent (`--dangerously-skip-permissions`)
+successfully wrote `"_f15_should_be_denied": true` into `.claude/settings.json`
+(md5 changed, `is_error:false`, spawn exit 0) — and even retried with a second
+key. The CLI now lets skip-permissions bypass the `.claude/` guard, so AC8 was
+silently failing. Because `.claude/settings.json` defines hooks and
+permissions, a spawned agent could rewrite it → privilege-escalation /
+persistence vector.
+
+**Decision.** Stop relying on the CLI's emergent guard. Enforce the lock
+ourselves in `bin/hooks/didio-pre-tool.sh`: when `DIDIO_AGENT=1` and the tool
+is `Edit`/`Write`/`MultiEdit` targeting `.claude/settings.json` or
+`.claude/settings.local.json`, emit a PreToolUse `permissionDecision:"deny"`
+and exit 2. A hook deny **is** honored under `--dangerously-skip-permissions`
+(it's the same mechanism the F07 session-guard budget-deny uses). The check
+runs **before** the guard's bypass valves (`DIDIO_BYPASS_GUARD`, the
+`.guard-bypass` kill-switch) so the budget escape-hatches can never also unlock
+settings.json for an agent. It is scoped to `DIDIO_AGENT=1`, so the operator's
+interactive session can still edit its own settings (e.g. via `/update-config`).
+
+**Verification.** `tests/F15-sensitive-edit.sh` AC4+AC8 now pass end-to-end
+(settings.json byte-identical, spawn exits 2). `tests/F15-pre-tool-unit.sh`
+gains 5 lock cases (deny for agent, allow for human, allow for
+`templates/commands/`, deny-under-bypass hardening). All 25 unit assertions
+pass.
+
+**Propagation.** The hook is referenced by absolute / `${DIDIO_HOME}` path from
+each downstream `.claude/settings.json`, so all 5 downstreams inherit the fix
+with no copy to sync.
