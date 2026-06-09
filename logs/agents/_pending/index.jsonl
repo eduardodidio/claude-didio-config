@@ -12,3 +12,7 @@
 {"event":"resume","role":"developer","feature":"F26","task":"F26-T11","retries":1,"ts":"2026-06-07T16:31:00Z"}
 {"event":"resume","role":"developer","feature":"F26","task":"F26-T10","retries":1,"ts":"2026-06-07T16:31:00Z"}
 {"event":"resume","role":"developer","feature":"F26","task":"F26-T09","retries":1,"ts":"2026-06-07T16:31:00Z"}
+{"event":"rate_limit","role":"developer","feature":"F17","task":"F17-T05","reset_at_unix":1780961400,"retries":0,"mode":"wait","ts":"2026-06-08T19:07:05Z"}
+{"event":"resume","role":"developer","feature":"F17","task":"F17-T05","retries":1,"ts":"2026-06-08T23:30:59Z"}
+{"event":"rate_limit","role":"techlead","feature":"F17","task":"F17-README","reset_at_unix":1780979400,"retries":0,"mode":"wait","ts":"2026-06-08T23:57:47Z"}
+{"event":"resume","role":"techlead","feature":"F17","task":"F17-README","retries":1,"ts":"2026-06-09T04:31:00Z"}

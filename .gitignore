@@ -12,6 +12,11 @@ dashboard/.vite/
 /logs/agents/*.jsonl
 /logs/agents/*.meta.json
 /logs/agents/state.json
+# F17 — meta-agent per-run runtime artifacts (checkpoints, metrics)
+/logs/agents/*.ckpt.at
+/logs/agents/*.checkpoint.json
+/logs/agents/meta-metrics.json
+/logs/decisions/*-decision-ids.md
 
 # F09 — output isolation + archived features
 archive/
