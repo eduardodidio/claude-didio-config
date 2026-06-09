@@ -1,13 +1,15 @@
 #!/usr/bin/env bash
-# tests/F24-skill-materialization.sh — simulates the
-# install-claude-didio-framework skill's substitution step against
-# templates/.claude/settings.json, then asserts AC3/AC4 from F24-README.
+# tests/F24-skill-materialization.sh — validates the
+# install-claude-didio-framework skill's second-brain wiring against
+# templates/.claude/settings.json under the F25 model.
 #
-# We don't run the full skill (it's prompt-driven). We replicate exactly the
-# two substitution operations the skill performs:
-#   yes-branch: sed s|{{DIDIO_HOME}}|$DIDIO_HOME_RESOLVED|g
-#               sed s|{{DIDIO_SECOND_BRAIN_HOME}}|$SB_HOME_RESOLVED|g
-#   no-branch:  same DIDIO_HOME sub + python3 strip of {{DIDIO_SECOND_BRAIN_HOME}} hook entries
+# F25 retired the {{DIDIO_HOME}}/{{DIDIO_SECOND_BRAIN_HOME}} mustache
+# placeholders: hook commands now use runtime ${DIDIO_HOME:-…} expansion and
+# the generic template ships with NO second-brain hooks. So:
+#   - default ("no")  → settings.json is copied verbatim (no second-brain).
+#   - opt-in ("yes")  → the skill APPENDS env-style second-brain hooks.
+# We don't run the prompt-driven skill; we replicate the exact append step
+# (SKILL.md step 4.5) and assert the result.
 #
 # Hermetic: mktemp sandbox; no real $HOME mutation.
 
@@ -26,111 +28,117 @@ pass() { echo "[PASS] $*"; }
 fail() { echo "[FAIL] $*"; FAIL=1; }
 
 # ---------------------------------------------------------------------------
-# Pre-flight: the source template itself MUST NOT contain author paths.
+# Pre-flight: the source template must be F25-shaped.
 # ---------------------------------------------------------------------------
 if [ "$(grep -c '/Users/eduardodidio/' "$TEMPLATE")" -eq 0 ]; then
   pass "template has no hardcoded author paths"
 else
-  fail "templates/.claude/settings.json still contains /Users/eduardodidio/ literals"
+  fail "template still contains /Users/eduardodidio/ literals"
 fi
 
-# Both placeholders must be present in the template.
-grep -q '{{DIDIO_HOME}}' "$TEMPLATE" \
-  && pass "template has {{DIDIO_HOME}} placeholder" \
-  || fail "template missing {{DIDIO_HOME}} placeholder"
-grep -q '{{DIDIO_SECOND_BRAIN_HOME}}' "$TEMPLATE" \
-  && pass "template has {{DIDIO_SECOND_BRAIN_HOME}} placeholder" \
-  || fail "template missing {{DIDIO_SECOND_BRAIN_HOME}} placeholder"
+if grep -qE '\{\{DIDIO_(HOME|SECOND_BRAIN_HOME)\}\}' "$TEMPLATE"; then
+  fail "template still has retired {{DIDIO_*}} mustache placeholders (F25 removed them)"
+else
+  pass "template has no mustache placeholders (F25 model)"
+fi
+
+grep -q 'bash ${DIDIO_HOME:-' "$TEMPLATE" \
+  && pass "template hooks use runtime \${DIDIO_HOME:-…} expansion" \
+  || fail "template hooks missing \${DIDIO_HOME:-…} expansion"
+
+if grep -q 'DIDIO_SECOND_BRAIN_HOME' "$TEMPLATE"; then
+  fail "generic template should NOT ship second-brain hooks (F25)"
+else
+  pass "generic template ships no second-brain hooks"
+fi
+
+# Exact append the skill performs (SKILL.md step 4.5, yes-branch, point 3).
+append_sb_hooks() {
+  python3 - "$1" <<'PY'
+import json, sys
+p = sys.argv[1]
+CMD = ('bash ${DIDIO_SECOND_BRAIN_HOME:-$HOME/didio-second-brain-claude}'
+       '/patterns/hooks/stop-session-summary/hook.sh')
+with open(p) as f: s = json.load(f)
+hooks = s.setdefault('hooks', {})
+for key in ('Stop', 'SubagentStop'):
+    entries = hooks.setdefault(key, [])
+    if any('DIDIO_SECOND_BRAIN_HOME' in h.get('command', '')
+           for e in entries for h in e.get('hooks', [])):
+        continue
+    entries.append({'matcher': '*',
+                    'hooks': [{'type': 'command', 'command': CMD}]})
+with open(p, 'w') as f:
+    json.dump(s, f, indent=2); f.write('\n')
+PY
+}
+
+sb_hook_count() {
+  python3 -c "import json;s=json.load(open('$1'));print(sum(1 for k in s.get('hooks',{}) for e in s['hooks'][k] for h in e.get('hooks',[]) if 'DIDIO_SECOND_BRAIN_HOME' in h.get('command','')))"
+}
 
 # ---------------------------------------------------------------------------
-# Scenario A — yes-branch (user opts in to second-brain).
-#   Simulates: skill sets DIDIO_HOME_RESOLVED + SB_HOME_RESOLVED and runs both
-#   sed substitutions on the materialized copy.
+# Scenario A — "yes" branch: skill appends env-style second-brain hooks.
 # ---------------------------------------------------------------------------
 SCENARIO_A="$SANDBOX/yes/.claude"
 mkdir -p "$SCENARIO_A"
 cp "$TEMPLATE" "$SCENARIO_A/settings.json"
+append_sb_hooks "$SCENARIO_A/settings.json"
 
-FAKE_DIDIO_HOME="/opt/fake/didio-framework"
-FAKE_SB_HOME="/opt/fake/didio-second-brain-claude"
-
-sed -i.bak "s|{{DIDIO_HOME}}|$FAKE_DIDIO_HOME|g" "$SCENARIO_A/settings.json"
-sed -i.bak "s|{{DIDIO_SECOND_BRAIN_HOME}}|$FAKE_SB_HOME|g" "$SCENARIO_A/settings.json"
-rm -f "$SCENARIO_A/settings.json.bak"
-
-# AC3.a — no /Users/eduardodidio/ literal anywhere.
-count_a="$(grep -c '/Users/eduardodidio/' "$SCENARIO_A/settings.json" || true)"
-[ "$count_a" -eq 0 ] \
+[ "$(grep -c '/Users/eduardodidio/' "$SCENARIO_A/settings.json" || true)" -eq 0 ] \
   && pass "yes-branch: no /Users/eduardodidio/ literal" \
-  || fail "yes-branch: /Users/eduardodidio/ still present ($count_a occurrences)"
+  || fail "yes-branch: /Users/eduardodidio/ present"
 
-# AC3.b — no leftover placeholders.
-if grep -qE '\{\{DIDIO_(HOME|SECOND_BRAIN_HOME)\}\}' "$SCENARIO_A/settings.json"; then
-  fail "yes-branch: leftover placeholder in materialized file"
+grep -q 'DIDIO_SECOND_BRAIN_HOME:-' "$SCENARIO_A/settings.json" \
+  && pass "yes-branch: env-style second-brain hook appended" \
+  || fail "yes-branch: env-style second-brain hook missing"
+
+if grep -qE '\{\{' "$SCENARIO_A/settings.json"; then
+  fail "yes-branch: leftover mustache placeholder"
 else
-  pass "yes-branch: no leftover placeholders"
+  pass "yes-branch: no mustache placeholders"
 fi
 
-# AC3.c — resolved paths actually present.
-grep -q "$FAKE_DIDIO_HOME/bin/hooks/didio-pre-tool.sh" "$SCENARIO_A/settings.json" \
-  && grep -q "$FAKE_SB_HOME/patterns/hooks/stop-session-summary/hook.sh" "$SCENARIO_A/settings.json" \
-  && pass "yes-branch: both resolved paths present" \
-  || fail "yes-branch: expected resolved paths missing"
+grep -q 'bash ${DIDIO_HOME:-.*}/bin/hooks/didio-pre-tool.sh' "$SCENARIO_A/settings.json" \
+  && pass "yes-branch: didio framework hooks intact" \
+  || fail "yes-branch: didio framework hooks altered"
 
-# AC3.d — JSON still valid.
 python3 -c "import json; json.load(open('$SCENARIO_A/settings.json'))" 2>/dev/null \
   && pass "yes-branch: JSON valid" \
-  || fail "yes-branch: JSON invalid after substitution"
+  || fail "yes-branch: JSON invalid after append"
+
+# Idempotency: a second append must not add a duplicate.
+before="$(sb_hook_count "$SCENARIO_A/settings.json")"
+append_sb_hooks "$SCENARIO_A/settings.json"
+after="$(sb_hook_count "$SCENARIO_A/settings.json")"
+[ "$before" = "$after" ] \
+  && pass "yes-branch: append is idempotent ($before second-brain hooks)" \
+  || fail "yes-branch: append not idempotent (before=$before after=$after)"
 
 # ---------------------------------------------------------------------------
-# Scenario B — no-branch (user declines second-brain).
-#   Simulates: skill substitutes DIDIO_HOME, then strips hook entries that
-#   still contain {{DIDIO_SECOND_BRAIN_HOME}} via python3.
+# Scenario B — "no" branch: settings.json copied verbatim.
 # ---------------------------------------------------------------------------
 SCENARIO_B="$SANDBOX/no/.claude"
 mkdir -p "$SCENARIO_B"
 cp "$TEMPLATE" "$SCENARIO_B/settings.json"
 
-sed -i.bak "s|{{DIDIO_HOME}}|$FAKE_DIDIO_HOME|g" "$SCENARIO_B/settings.json"
-rm -f "$SCENARIO_B/settings.json.bak"
-
-python3 - "$SCENARIO_B/settings.json" <<'PY'
-import json, sys
-p = sys.argv[1]
-with open(p) as f: s = json.load(f)
-for key in ('Stop', 'SubagentStop', 'PostToolUse'):
-    for entry in s.get('hooks', {}).get(key, []):
-        entry['hooks'] = [
-            h for h in entry.get('hooks', [])
-            if '{{DIDIO_SECOND_BRAIN_HOME}}' not in h.get('command', '')
-        ]
-with open(p, 'w') as f:
-    json.dump(s, f, indent=2)
-PY
-
-# AC4.a — no /Users/eduardodidio/ literal.
-count_b="$(grep -c '/Users/eduardodidio/' "$SCENARIO_B/settings.json" || true)"
-[ "$count_b" -eq 0 ] \
+[ "$(grep -c '/Users/eduardodidio/' "$SCENARIO_B/settings.json" || true)" -eq 0 ] \
   && pass "no-branch: no /Users/eduardodidio/ literal" \
-  || fail "no-branch: /Users/eduardodidio/ still present ($count_b)"
+  || fail "no-branch: /Users/eduardodidio/ present"
 
-# AC4.b — no SECOND_BRAIN hook commands left.
 if grep -q 'DIDIO_SECOND_BRAIN_HOME' "$SCENARIO_B/settings.json"; then
-  fail "no-branch: SECOND_BRAIN reference remained after strip"
+  fail "no-branch: unexpected second-brain hook present"
 else
-  pass "no-branch: SECOND_BRAIN hook entries stripped"
+  pass "no-branch: no second-brain hooks (verbatim)"
 fi
 
-# AC4.c — DIDIO_HOME framework hooks ARE preserved.
-grep -q "$FAKE_DIDIO_HOME/bin/hooks/didio-pre-tool.sh" "$SCENARIO_B/settings.json" \
-  && grep -q "$FAKE_DIDIO_HOME/bin/hooks/didio-post-tool.sh" "$SCENARIO_B/settings.json" \
-  && pass "no-branch: didio framework hooks preserved" \
-  || fail "no-branch: didio framework hooks accidentally stripped"
+grep -q 'bash ${DIDIO_HOME:-.*}/bin/hooks/didio-post-tool.sh' "$SCENARIO_B/settings.json" \
+  && pass "no-branch: didio framework hooks present" \
+  || fail "no-branch: didio framework hooks missing"
 
-# AC4.d — JSON still valid.
 python3 -c "import json; json.load(open('$SCENARIO_B/settings.json'))" 2>/dev/null \
   && pass "no-branch: JSON valid" \
-  || fail "no-branch: JSON invalid after strip"
+  || fail "no-branch: JSON invalid"
 
 if [ "$FAIL" -ne 0 ]; then
   echo "----"

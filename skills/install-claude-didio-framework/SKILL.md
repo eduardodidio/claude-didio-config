@@ -92,51 +92,30 @@ and `sed` for substitution, or Write/Edit tools as appropriate.
    - `{{DATE}}` → today's date (YYYY-MM-DD)
    - `{{PROJECT_OWNER}}` → the current git user.name (fallback to "TBD")
    - `{{EXTRA_PROJECT_NOTES}}` → empty
-   - `{{DIDIO_HOME}}` → resolved absolute path of the framework install,
-     i.e. `$DIDIO_HOME` (or `$HOME/.claude-didio-config` if unset). Applied
-     to `./.claude/settings.json` (PreToolUse + PostToolUse didio hooks) so
-     the materialized file is portable across machines.
-     Example sed:
-     ```bash
-     DIDIO_HOME_RESOLVED="${DIDIO_HOME:-$HOME/.claude-didio-config}"
-     sed -i.bak "s|{{DIDIO_HOME}}|$DIDIO_HOME_RESOLVED|g" .claude/settings.json
-     rm -f .claude/settings.json.bak
-     ```
+
+   > **Note (F25):** do **not** substitute anything in
+   > `./.claude/settings.json`. Its hook commands use the shell form
+   > `bash ${DIDIO_HOME:-$HOME/.claude-didio-config}/bin/hooks/...`, which the
+   > shell resolves at hook-execution time. The file is portable across
+   > machines as-copied — leave it verbatim. (Earlier versions used a
+   > `{{DIDIO_HOME}}` mustache placeholder substituted here; that approach was
+   > retired in F25 in favor of runtime `${DIDIO_HOME:-…}` expansion.)
 
 4. **Highlander mode**: if the user said yes, overwrite
    `./.claude/settings.json` with the contents of
    `./.claude/settings.highlander.json`. Leave both files in place so the
    choice is reversible.
 
-4.5. **Second-brain hook substitution**: based on the answer to question 5.
+4.5. **Second-brain wiring** (F25 model): based on the answer to question 5.
 
-   **If user answered `no`**:
+   Background: the generic `templates/.claude/settings.json` ships with **no**
+   second-brain hooks (F25 removed them). The default install is second-brain
+   off. So "no" is a no-op on settings.json, and "yes" *adds* env-style hooks.
+   Nothing here uses mustache placeholders anymore.
 
-   - Strip the three hook entries whose `command` contains
-     `{{DIDIO_SECOND_BRAIN_HOME}}` from `./.claude/settings.json` using
-     `python3 -c` (do NOT use Edit/sed — the targets live in nested arrays):
+   **If user answered `no`** (default):
 
-     ```bash
-     python3 - <<'PY'
-     import json
-     p = '.claude/settings.json'
-     with open(p) as f: s = json.load(f)
-     for key in ('Stop', 'SubagentStop', 'PostToolUse'):
-         entries = s.get('hooks', {}).get(key, [])
-         for entry in entries:
-             entry['hooks'] = [
-                 h for h in entry.get('hooks', [])
-                 if '{{DIDIO_SECOND_BRAIN_HOME}}' not in h.get('command', '')
-             ]
-         s['hooks'][key] = [e for e in entries if e.get('hooks')]
-         if not s['hooks'][key]:
-             del s['hooks'][key]
-     with open(p, 'w') as f:
-         json.dump(s, f, indent=2)
-         f.write('\n')
-     PY
-     ```
-
+   - Leave `./.claude/settings.json` as copied (it has no second-brain hooks).
    - In `./didio.config.json`, set `second_brain.enabled = false`:
 
      ```bash
@@ -153,31 +132,55 @@ and `sed` for substitution, or Write/Edit tools as appropriate.
 
    **If user answered `yes`**:
 
-   1. Resolve `DIDIO_SECOND_BRAIN_HOME` via the helper lib:
+   1. Resolve `DIDIO_SECOND_BRAIN_HOME` via the helper lib; if empty, clone
+      with the helper script:
 
       ```bash
       RESOLVED=$(bash -c 'source "$DIDIO_HOME/bin/didio-config-lib.sh"; didio_second_brain_home')
+      [ -n "$RESOLVED" ] || RESOLVED=$("$DIDIO_HOME/bin/didio-install-second-brain.sh") || RESOLVED=""
       ```
 
-   2. If `$RESOLVED` is empty, invoke the helper script to clone:
+      If the helper exits non-zero / `$RESOLVED` stays empty, ask the user
+      whether to retry or fall through to the "no" branch above.
+
+   2. Persist the env var so `${DIDIO_SECOND_BRAIN_HOME}` resolves in future
+      shells (append to the user's shell-rc if not already present):
 
       ```bash
-      RESOLVED=$("$DIDIO_HOME/bin/didio-install-second-brain.sh") || RESOLVED=""
+      LINE="export DIDIO_SECOND_BRAIN_HOME=\"$RESOLVED\""
+      RC="$HOME/.zshrc"; [ -n "${ZSH_VERSION:-}" ] || RC="$HOME/.bashrc"
+      grep -qF 'DIDIO_SECOND_BRAIN_HOME' "$RC" 2>/dev/null || echo "$LINE" >> "$RC"
       ```
 
-      If the helper exits non-zero, ask the user whether to retry or
-      fall through to the "no" branch above.
-
-   3. Substitute the placeholder in `./.claude/settings.json`:
+   3. **Append** the second-brain hooks to `./.claude/settings.json` using
+      **env-style** commands (`${DIDIO_SECOND_BRAIN_HOME:-$HOME/didio-second-brain-claude}`),
+      matching F25's runtime-expansion convention. Use `python3` (the targets
+      are nested arrays); the append is idempotent:
 
       ```bash
-      sed -i.bak "s|{{DIDIO_SECOND_BRAIN_HOME}}|$RESOLVED|g" ./.claude/settings.json
-      rm ./.claude/settings.json.bak
+      python3 - <<'PY'
+      import json
+      p = '.claude/settings.json'
+      CMD = ('bash ${DIDIO_SECOND_BRAIN_HOME:-$HOME/didio-second-brain-claude}'
+             '/patterns/hooks/stop-session-summary/hook.sh')
+      with open(p) as f: s = json.load(f)
+      hooks = s.setdefault('hooks', {})
+      for key in ('Stop', 'SubagentStop'):
+          entries = hooks.setdefault(key, [])
+          # idempotent: skip if a second-brain hook is already wired
+          if any('DIDIO_SECOND_BRAIN_HOME' in h.get('command', '')
+                 for e in entries for h in e.get('hooks', [])):
+              continue
+          entries.append({'matcher': '*',
+                          'hooks': [{'type': 'command', 'command': CMD}]})
+      with open(p, 'w') as f:
+          json.dump(s, f, indent=2)
+          f.write('\n')
+      PY
       ```
 
    4. In `./didio.config.json`, set `second_brain.home = "$RESOLVED"` and
-      `second_brain.enabled = true`. Use `python3 -c` with double-quoted
-      string so `$RESOLVED` expands via the shell:
+      `second_brain.enabled = true` (double-quoted so `$RESOLVED` expands):
 
       ```bash
       python3 -c "
@@ -196,7 +199,7 @@ and `sed` for substitution, or Write/Edit tools as appropriate.
 
       ```bash
       python3 -c "import json; json.load(open('.claude/settings.json'))" \
-        || { echo "ERROR: settings.json corrupted after substitution"; exit 1; }
+        || { echo "ERROR: settings.json corrupted after appending hooks"; exit 1; }
       ```
 
 5. **ADR-0001**: if the user said no, delete
@@ -238,16 +241,20 @@ and `sed` for substitution, or Write/Edit tools as appropriate.
    ```
 
    ```bash
-   # If user said "no" to second-brain, confirm hook entries were stripped:
+   # Second-brain wiring matches the chosen branch:
+   #   - "no"  → no DIDIO_SECOND_BRAIN_HOME hook anywhere
+   #   - "yes" → at least one DIDIO_SECOND_BRAIN_HOME hook present
    python3 -c "
    import json
    s = json.load(open('.claude/settings.json'))
    hooks = s.get('hooks', {})
-   for k in ('Stop','SubagentStop','PostToolUse'):
-       for e in hooks.get(k, []):
-           for h in e.get('hooks', []):
-               assert 'DIDIO_SECOND_BRAIN_HOME' not in h.get('command',''), f'leftover hook in {k}'
-   print('ok')
+   present = any('DIDIO_SECOND_BRAIN_HOME' in h.get('command','')
+                for k in hooks for e in hooks[k] for h in e.get('hooks', []))
+   # set WANT='yes' or 'no' to the user's answer to question 5:
+   want = '${WANT:-no}'
+   assert (present if want == 'yes' else not present), \
+       f'second-brain wiring ({present=}) does not match answer ({want})'
+   print('ok:', 'second-brain hook present' if present else 'no second-brain hook')
    "
    ```
 
