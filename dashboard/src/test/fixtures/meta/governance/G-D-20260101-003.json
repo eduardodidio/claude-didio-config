@@ -1,0 +1,21 @@
+{
+  "decision_id": "D-20260101-003",
+  "verdict": "challenge",
+  "bias_check": {
+    "sunk_cost": false,
+    "anchoring": false,
+    "scope_creep": false,
+    "optimism": true,
+    "recency": false
+  },
+  "blind_spots": [
+    "Blocking may stall downstream teams",
+    "Root cause not yet confirmed"
+  ],
+  "risks": [
+    "Release slip",
+    "Reputation impact if delay is prolonged"
+  ],
+  "recommendation": "Confirm root cause before committing to a full block.",
+  "confidence": 0.6
+}

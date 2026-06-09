@@ -1,0 +1,18 @@
+{
+  "decision_id": "D-20260101-002",
+  "type": "wave_proceed",
+  "options_considered": [
+    "Proceed to Wave 2",
+    "Hold for QA review"
+  ],
+  "decision": "Proceed to Wave 2",
+  "rationale": "Wave 1 acceptance criteria are met.",
+  "actions": [
+    "Notify developer pool",
+    "Update task statuses",
+    "Refresh dashboard",
+    "Log decision"
+  ],
+  "status": "partial",
+  "governance": { "auto": true }
+}

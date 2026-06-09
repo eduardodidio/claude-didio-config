@@ -1,0 +1,21 @@
+{
+  "decision_id": "D-20260101-004",
+  "verdict": "escalate",
+  "bias_check": {
+    "sunk_cost": true,
+    "anchoring": false,
+    "scope_creep": false,
+    "optimism": false,
+    "recency": true
+  },
+  "blind_spots": [
+    "Author may not have full CI context",
+    "Revert could break dependents"
+  ],
+  "risks": [
+    "Repeated reverts erode trust in CI signal",
+    "Escalation delay extends outage"
+  ],
+  "recommendation": "Escalate to lead before reverting; impact spans multiple teams.",
+  "confidence": 0.4
+}

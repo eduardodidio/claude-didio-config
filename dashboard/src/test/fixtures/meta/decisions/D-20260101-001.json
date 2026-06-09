@@ -1,0 +1,17 @@
+{
+  "decision_id": "D-20260101-001",
+  "type": "feature_start",
+  "options_considered": [
+    "Build in-house",
+    "Adopt off-the-shelf",
+    "Defer to next quarter"
+  ],
+  "decision": "Build in-house",
+  "rationale": "Existing tools don't fit our latency requirements.",
+  "actions": [
+    "Spin up Wave 0",
+    "Draft architecture brief"
+  ],
+  "status": "executed",
+  "governance": { "auto": true }
+}

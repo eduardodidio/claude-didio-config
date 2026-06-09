@@ -121,3 +121,10 @@
 **What to avoid:** Building a test harness's sandbox around a *synthetic* fixture identity (e.g. a fake feature `F90-foo`) without overriding every env var the code-under-test uses to resolve that identity. `feature-end-digest/test-hook.sh` set up `$PROJ` with an `F90-foo` feature dir, but `hook.sh` resolves the active feature via `DIDIO_FEATURE` first (mtime-fallback only when unset) — and `DIDIO_FEATURE` is always exported by the spawn harness in real agent sessions. The result: the suite passed in a clean shell but failed 4/10 when run by an agent (the realistic caller), because the agent's real `DIDIO_FEATURE` leaked through and silently overrode the sandbox's fixture identity.
 
 **Pattern to repeat:** When a hermetic test sandbox simulates an identity that the code-under-test can also resolve from an inherited env var (`DIDIO_FEATURE`, `DIDIO_RUN_ID`, `CLAUDE_PROJECT_NAME`, ...), explicitly blank/override that var in every invocation of the code-under-test (`DIDIO_FEATURE=""` in the env prefix), with a comment naming which inherited value it's guarding against.
+
+## F17 — 2026-06-09
+**What worked:** Browser-safe / Node-only layering (metaTypes → metaSources → metaMetrics) made Vitest coverage clean — pure compute with synthetic fixtures, no mocking required. Wave dependency ordering across 11 parallel-safe tasks produced zero shared-file conflicts.
+
+**What to avoid:** Authoring a status/verdict type enum from the brief before running the live pipeline — values the real agents produce (e.g., `ratified`) won't appear in the brief and will diverge from the type. Also: forgetting `docs/diagrams/INDEX.md` entry on diagram tasks (5th consecutive occurrence).
+
+**Pattern to repeat:** For any task that creates `docs/diagrams/F<NN>-*.mmd`, include this as a literal AC: `grep -q "F<NN>" docs/diagrams/INDEX.md`. At the Wave 2 → Wave 3 hand-off for features that define a status/verdict enum, run `jq '.[].status' logs/decisions/*.json | sort -u` and reconcile against the type union before closing the feature.

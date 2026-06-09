@@ -1,0 +1,22 @@
+{
+  "decision_id": "D-20260101-002",
+  "verdict": "agree",
+  "bias_check": {
+    "sunk_cost": false,
+    "anchoring": true,
+    "scope_creep": true,
+    "optimism": false,
+    "recency": false
+  },
+  "blind_spots": [
+    "Partial completion may mask a hidden blocker",
+    "Wave 2 readiness not yet confirmed"
+  ],
+  "risks": [
+    "Carrying partial work into Wave 2 compounds risk",
+    "QA backlog may grow",
+    "Dashboard refresh could lag"
+  ],
+  "recommendation": "Proceed but flag the partial item for follow-up.",
+  "confidence": 0.8
+}

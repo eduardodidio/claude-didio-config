@@ -68,3 +68,10 @@
 **What to avoid:** New config blocks without synthetic fixture placeholders. When Wave 0 adds a config block, Wave 0 should also commit a synthetic test fixture for any Wave 3+ test that reads live-API output. Otherwise the test can only run with an API key — breaks structural CI.
 
 **Pattern to repeat:** Wave 0 checklist addition: (1) every subprocess log goes to `<dest>/_pipeline/`, not `/tmp/`; (2) every key in a new config block has a `cfg.get(...)` in the consuming code; (3) if any Wave 3+ test reads output from a live-API call, Wave 0 commits a synthetic fixture validated against the schema.
+
+## F17 — 2026-06-09
+**What worked:** Sharded brief with named sections (00-overview through 05-smoke) and a task-by-task shard citation list kept each developer agent's context narrow and relevant. Clear dependency graph in the README made wave assignment unambiguous.
+
+**What to avoid:** Writing an AC that says "all N variants represented" when the feature has a non-intervention constraint (e.g., "do not change agent behavior"). The live corpus may only produce a subset of variants, making the AC aspirationally unmet.
+
+**Pattern to repeat:** When an AC says "all variants represented" and the feature has a non-intervention constraint, annotate it at planning time: "(synthetic fixture must cover remaining variants that the live corpus cannot produce)". This flags the intent without requiring live corpus coverage and prevents a re-review cycle at TechLead time.

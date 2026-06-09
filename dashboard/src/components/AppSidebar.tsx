@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Boxes, Activity, Sparkles } from 'lucide-react';
+import { LayoutDashboard, Boxes, Activity, Sparkles, Brain } from 'lucide-react';
 import {
   Sidebar,
   SidebarContent,
@@ -17,6 +17,7 @@ const navItems = [
   { to: '/', label: 'Overview', icon: LayoutDashboard, end: true },
   { to: '/features', label: 'Features', icon: Boxes, end: false },
   { to: '/agents', label: 'Agents', icon: Activity, end: false },
+  { to: '/meta-agents', label: 'Meta-Agents', icon: Brain, end: false },
   { to: '/phrases', label: 'Phrases', icon: Sparkles, end: false },
 ];
 

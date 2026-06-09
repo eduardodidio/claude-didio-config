@@ -1,0 +1,5 @@
+{
+  "decision_id": "D-bad",
+  "type": "feature_start",
+  "options_considered": ["truncated mid-array"
+  "decision": missing comma and unterminated string above — intentionally invalid JSON for the loader skip test

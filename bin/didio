@@ -23,6 +23,7 @@ case "$SUBCMD" in
   t800)            exec "$DIDIO_HOME/bin/didio-t800.sh" "$@" ;;
   t1000)           exec "$DIDIO_HOME/bin/didio-t1000.sh" "$@" ;;
   decisions)       exec "$DIDIO_HOME/bin/didio-decisions.sh" "$@" ;;
+  meta-metrics)    exec "$DIDIO_HOME/bin/didio-meta-metrics.sh" "$@" ;;
   menu|"")         exec "$DIDIO_HOME/bin/didio-menu.sh" "$@" ;;
   version)       echo "didio $(cat "$DIDIO_HOME/VERSION" 2>/dev/null || echo dev)" ;;
   help|-h|--help)
@@ -81,6 +82,10 @@ Usage:
   didio decisions --recent [N] | --status <s> | --detail <id>
       View decision log. Lists, filters, or shows detail of Gandalf
       decision records from logs/decisions/.
+
+  didio meta-metrics [--root <path>]
+      Compute meta-agent KPI report from live logs (Gandalf + Saruman).
+      Writes logs/agents/meta-metrics.json and prints a text report.
 
   didio resume-pending [--feature FXX] [--dry-run] [--max-retries N]
       Scan logs/agents/_pending/ and re-spawn rate-limited jobs whose

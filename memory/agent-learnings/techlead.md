@@ -145,3 +145,10 @@
 **What worked:** TechLead's REJECTED verdict on the PLAN_ONLY/EXECUTED mismatch didn't just block — it framed the reviewer's actual choice as two concrete paths ("(a) ratify the de facto delivery" vs "(b) revert and re-run Wave 2 deliberately") and required whichever path was chosen to be *explicitly recorded*, not silently accepted. The resulting README "Ratification decision" section (choice + rationale + enumerated list of follow-ups closed as a condition of ratifying) is a clean worked example of how to resolve this class of mismatch — it converts "scope creep that happened" into "a conscious choice with an audit trail," and QA could verify the closed follow-ups (finding 3c, fixture gap) against the recorded claims directly.
 
 **Pattern to repeat:** When a PLAN_ONLY/EXECUTED (or any plan/reality) mismatch is found, frame the verdict as a reviewer decision with named paths and required closure conditions, rather than a flat block — this produces an auditable resolution instead of a stuck feature. Reinforces the existing F26 seed ("report the disagreement as the headline") with the next step: "and give the reviewer a structured choice, not just a red flag."
+
+## F17 — 2026-06-09
+**What worked:** Structuring the REJECTED review with a numbered fix checklist (BLOCKING / IMPORTANT / MINOR) made the re-review a mechanical verification pass — each item was confirmed resolved line-by-line. Retrospective Seeds section with Role(s) affected gave QA a clear action list.
+
+**What to avoid:** Reading diagram files before checking `docs/diagrams/INDEX.md` — by the time you've read and verified the diagram content, the INDEX gap is easily missed. INDEX.md staleness has now occurred in F03, F05, F09, F13, F17 (5 consecutive features).
+
+**Pattern to repeat:** `grep -q "F<NN>" docs/diagrams/INDEX.md` must be the FIRST check in any review that touches diagram files, before verifying diagram content or Mermaid syntax. If the grep fails, mark BLOCKING immediately.

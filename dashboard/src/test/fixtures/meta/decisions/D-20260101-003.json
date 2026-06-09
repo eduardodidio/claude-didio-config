@@ -1,0 +1,16 @@
+{
+  "decision_id": "D-20260101-003",
+  "type": "quality_gate",
+  "options_considered": [
+    "Block release"
+  ],
+  "decision": "Block release pending fix",
+  "rationale": "Critical regression found in smoke test.",
+  "actions": [
+    "File blocker ticket",
+    "Notify QA",
+    "Schedule re-review"
+  ],
+  "status": "blocked",
+  "governance": { "auto": true }
+}

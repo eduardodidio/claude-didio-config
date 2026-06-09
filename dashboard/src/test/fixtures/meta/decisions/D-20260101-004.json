@@ -1,0 +1,19 @@
+{
+  "decision_id": "D-20260101-004",
+  "type": "block",
+  "options_considered": [
+    "Block merge",
+    "Allow merge with caveat",
+    "Escalate to lead",
+    "Defer decision"
+  ],
+  "decision": "Block merge until tests pass",
+  "rationale": "CI failures observed across three consecutive runs.",
+  "actions": [
+    "Revert offending commit",
+    "Re-run CI",
+    "Notify author"
+  ],
+  "status": "executed",
+  "governance": { "auto": true }
+}

@@ -115,6 +115,13 @@ All diagrams are [Mermaid](https://mermaid.js.org/) `.mmd` files.
 | [F16-architecture.mmd](F16-architecture.mmd) | F16-T01 | `flowchart LR`: 7-step pipeline data-flow — `ata.md` → meeting-parser (LLM) → `manifest.json` → scaffold (cp template) → mock_gen → ui_gen → style_step → npm install → smoke (HTTP 200) → git commit → POC; side-inputs: `manifest.schema.json`, `templates/poc-vite-react/`, `--style-ref`; error exits 4/5/6/7 |
 | [F16-journey.mmd](F16-journey.mmd) | F16-T01 | `flowchart TD` with 4 swimlanes (User, Slash command, Pipeline, meeting-parser); user journey from meeting end → write ata → `/poc-from-minutes` → AskUserQuestion → pipeline → POC; decision branches for invalid manifest (exit 4), npm install fail (exit 5), smoke fail (exit 6), git fail (exit 7) |
 
+## F17 — Meta-Agent Performance Monitoring Harness
+
+| File | Owner task | What it shows |
+|---|---|---|
+| [F17-architecture.mmd](F17-architecture.mmd) | F17-T09 | Data-flow: enabled meta-agents → log sources → metaSources loader → metaMetrics compute → CLI report + dashboard panel |
+| [F17-journey.mmd](F17-journey.mmd) | F17-T11 | BPMN-style user journey: Gandalf→Saruman→Decision-Log→Harness loop; happy path + challenge/escalate branches |
+
 ## F24 — auto-install second-brain
 
 | File | Owner task | What it shows |

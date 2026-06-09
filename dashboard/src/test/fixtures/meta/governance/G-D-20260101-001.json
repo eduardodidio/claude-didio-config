@@ -1,0 +1,20 @@
+{
+  "decision_id": "D-20260101-001",
+  "verdict": "agree",
+  "bias_check": {
+    "sunk_cost": true,
+    "anchoring": false,
+    "scope_creep": false,
+    "optimism": false,
+    "recency": false
+  },
+  "blind_spots": [
+    "No fallback if in-house build slips",
+    "Team capacity not yet validated"
+  ],
+  "risks": [
+    "Schedule risk if Wave 0 underestimates scope"
+  ],
+  "recommendation": "Proceed; track Wave 0 velocity closely.",
+  "confidence": 1.0
+}

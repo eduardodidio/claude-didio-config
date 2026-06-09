@@ -1,0 +1,65 @@
+%% F17 — Meta-Agent Performance Monitoring — User Journey (BPMN-style swimlanes)
+%% Owner: F17-T11. Full Gandalf→Saruman→Decision-Log→Harness loop.
+%% Happy path (solid arrows) + challenge branch + escalate branch (dashed).
+flowchart TD
+  subgraph OWNER["Lane: Dogfood owner"]
+    A["Pose a strategic question\n(request or brief file)"]
+    MANUAL["./didio t1000 --decision ID\n(manual governance trigger)"]
+    ESCALATE_HND["Review blocking escalation\nhuman decision required"]
+    Z["Read KPIs: CLI report\nor dashboard panel"]
+  end
+
+  subgraph GANDALF["Lane: Gandalf — Orchestrator (t800)"]
+    B["./didio t800 FXX request"]
+    C["Weigh options_considered[]\npros / cons per option"]
+    D["Write D-*.json\nstatus=pending\nlogs/decisions/"]
+    AUTO{"auto_governance\n= true?"}
+    REEVAL["Accept / reject\nchallenge points\nwrite re_evaluation block\nstatus=ratified"]
+  end
+
+  subgraph SARUMAN["Lane: Saruman — Governance Reviewer (t1000)"]
+    S_LOAD["Load DecisionRecord\nfrom D-*.json"]
+    S_BIAS["5-axis bias check\nsunk_cost · anchoring\nscope_creep · optimism · recency"]
+    S_BLIND["Enumerate blind_spots[]\nand risks[]"]
+    S_VRD{"Governance verdict?"}
+    S_WRITE["Write G-decision-id.json\nlogs/governance/\n(verdict, confidence, recommendation)"]
+    S_REREV["Re-review updated\nDecisionRecord"]
+    S_VRD2{"Second-round verdict?"}
+  end
+
+  subgraph DISK["Log sources — disk = ground truth"]
+    DEC[("logs/decisions/\nD-YYYYMMDD-NNN.json")]
+    GOV[("logs/governance/\nG-decision-id.json")]
+    STATE[("logs/agents/state.json\nstarted_at / finished_at\nexit_code (ignored for validity)")]
+  end
+
+  subgraph HARNESS["Lane: Monitoring Harness"]
+    H_LOAD["metaSources.ts\nglob + load artifacts\nskips exit_code\nvalid JSON = success (AC3)"]
+    H_KPI["metaMetrics.ts\npure KPI compute\nGandalf · Saruman · Loop health"]
+    H_CLI["scripts/meta-metrics.ts\n./bin/didio meta-metrics\nprints report + writes JSON"]
+    H_DASH["views/MetaAgents.tsx\n/meta-agents dashboard panel"]
+  end
+
+  A --> B --> C --> D --> AUTO
+  AUTO -->|yes — auto spawn| S_LOAD
+  AUTO -->|no — manual| MANUAL --> S_LOAD
+
+  S_LOAD --> S_BIAS --> S_BLIND --> S_VRD
+
+  S_VRD -->|agree| S_WRITE
+  S_VRD -->|challenge| S_WRITE
+  S_WRITE --> DEC
+  S_WRITE --> GOV
+
+  S_VRD -->|challenge| REEVAL
+  REEVAL --> S_REREV --> S_VRD2
+  S_VRD2 -->|agree| GOV
+  S_VRD2 -.->|escalate| ESCALATE_HND
+
+  S_VRD -.->|escalate| ESCALATE_HND
+
+  DEC --> H_LOAD
+  GOV --> H_LOAD
+  STATE --> H_LOAD
+
+  H_LOAD --> H_KPI --> H_CLI --> H_DASH --> Z

@@ -51,7 +51,7 @@ describe('MainLayout', () => {
     expect(screen.getByText('HI')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /Overview/i })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /Features/i })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /Agents/i })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /^Agents$/i })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /Phrases/i })).toBeInTheDocument();
   });
 

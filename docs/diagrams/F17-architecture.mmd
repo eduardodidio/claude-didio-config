@@ -1,0 +1,53 @@
+%% F17 — Meta-Agent Performance Monitoring Harness — architecture / data flow
+%% Owner: F17-T09. Shows the three log sources flowing through the loader +
+%% pure compute into the CLI report and the dashboard panel.
+flowchart LR
+  subgraph META["Meta-agents (instrumented, enabled=true)"]
+    GANDALF["Gandalf / t800\nbin/didio-t800.sh"]
+    SARUMAN["Saruman / t1000\nbin/didio-t1000.sh"]
+    GANDALF -->|auto_governance| SARUMAN
+  end
+
+  subgraph SOURCES["Log sources (disk = ground truth)"]
+    DEC["logs/decisions/D-*.json"]
+    GOV["logs/governance/G-*.json"]
+    STATE["logs/agents/state.json\n(started/finished, exit_code, role)"]
+  end
+
+  GANDALF --> DEC
+  SARUMAN --> GOV
+  META --> STATE
+
+  subgraph HARNESS["Monitoring harness"]
+    LOADER["metaSources.ts\n(node:fs glob; skips exit_code,\nvalid JSON = success)"]
+    COMPUTE["metaMetrics.ts\n(pure compute KPIs)\nGandalf · Saruman · Loop health"]
+    TYPES["metaTypes.ts\n(DecisionRecord · GovernanceReport\n· MetaMetricsReport)"]
+    LOADER --> COMPUTE
+    TYPES -.types.-> LOADER
+    TYPES -.types.-> COMPUTE
+  end
+
+  DEC --> LOADER
+  GOV --> LOADER
+  STATE --> LOADER
+
+  subgraph CLI["CLI (vite-node)"]
+    SCRIPT["scripts/meta-metrics.ts\nbin/didio-meta-metrics.sh"]
+    TXT["stdout text report"]
+    JSON["logs/agents/meta-metrics.json"]
+  end
+  COMPUTE --> SCRIPT
+  SCRIPT --> TXT
+  SCRIPT --> JSON
+
+  subgraph DASH["Dashboard (Vite/React)"]
+    SYMLINK["dist/meta-metrics.json\n(symlink via didio-dashboard.sh)"]
+    FETCH["fetchMetaMetrics.ts → useMetaMetrics.ts"]
+    VIEW["views/MetaAgents.tsx\n(/meta-agents route + sidebar)"]
+    SYMLINK --> FETCH --> VIEW
+  end
+  JSON --> SYMLINK
+
+  FIX["dashboard/src/test/fixtures/meta/\n(synthetic D-/G-/state)"]
+  FIX -.Vitest only.-> COMPUTE
+  FIX -.Vitest only.-> LOADER

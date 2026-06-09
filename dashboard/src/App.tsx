@@ -4,6 +4,7 @@ import { Overview } from '@/views/Overview';
 import { Features } from '@/views/Features';
 import { Agents } from '@/views/Agents';
 import EasterEggs from '@/views/EasterEggs';
+import { MetaAgents } from '@/views/MetaAgents';
 
 export default function App() {
   return (
@@ -12,6 +13,7 @@ export default function App() {
         <Route index element={<Overview />} />
         <Route path="features" element={<Features />} />
         <Route path="agents" element={<Agents />} />
+        <Route path="meta-agents" element={<MetaAgents />} />
         <Route path="phrases" element={<EasterEggs />} />
         <Route path="easter-eggs" element={<Navigate to="/phrases" replace />} />
       </Route>

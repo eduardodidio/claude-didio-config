@@ -31,16 +31,17 @@ const renderAt = (path: string) =>
   );
 
 describe('AppSidebar', () => {
-  it('happy: renders all 4 nav items with correct hrefs', () => {
+  it('happy: renders all 5 nav items with correct hrefs', () => {
     renderAt('/');
     const expected: Array<[string, string]> = [
       ['Overview', '/'],
       ['Features', '/features'],
       ['Agents', '/agents'],
+      ['Meta-Agents', '/meta-agents'],
       ['Phrases', '/phrases'],
     ];
     for (const [label, href] of expected) {
-      const link = screen.getByRole('link', { name: new RegExp(label, 'i') });
+      const link = screen.getByRole('link', { name: new RegExp(`^${label}$`, 'i') });
       expect(link).toBeInTheDocument();
       expect(link).toHaveAttribute('href', href);
     }
@@ -48,7 +49,7 @@ describe('AppSidebar', () => {
 
   it('edge: navigating to /agents marks that link active with didio-glow', () => {
     renderAt('/agents');
-    const link = screen.getByRole('link', { name: /Agents/i });
+    const link = screen.getByRole('link', { name: /^Agents$/i });
     expect(link).toHaveClass('didio-glow');
     expect(link.className).toMatch(/didio-glow|active/);
   });
@@ -58,9 +59,9 @@ describe('AppSidebar', () => {
     expect(screen.getByText('Didio Agents Dash')).toBeInTheDocument();
   });
 
-  it('boundary: all 4 nav icons render even in collapsed-style stub', () => {
+  it('boundary: all 5 nav icons render even in collapsed-style stub', () => {
     const { container } = renderAt('/');
     const svgs = container.querySelectorAll('a svg');
-    expect(svgs.length).toBe(4);
+    expect(svgs.length).toBe(5);
   });
 });

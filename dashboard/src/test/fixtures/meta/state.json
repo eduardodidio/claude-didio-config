@@ -1,0 +1,86 @@
+{
+  "generated_at": "2026-01-01T01:00:00Z",
+  "agents": [
+    {
+      "feature": "F17",
+      "role": "t800",
+      "task": "D-20260101-001",
+      "task_file": "logs/decisions/D-20260101-001.json",
+      "started_at": "2026-01-01T00:00:00Z",
+      "finished_at": "2026-01-01T00:02:00Z",
+      "status": "completed",
+      "exit_code": 0
+    },
+    {
+      "feature": "F17",
+      "role": "t1000",
+      "task": "D-20260101-001",
+      "task_file": "logs/governance/G-D-20260101-001.json",
+      "started_at": "2026-01-01T00:02:30Z",
+      "finished_at": "2026-01-01T00:03:00Z",
+      "status": "completed",
+      "exit_code": 0
+    },
+    {
+      "feature": "F17",
+      "role": "t800",
+      "task": "D-20260101-002",
+      "task_file": "logs/decisions/D-20260101-002.json",
+      "started_at": "2026-01-01T00:10:00Z",
+      "finished_at": "2026-01-01T00:13:00Z",
+      "status": "completed",
+      "exit_code": 0
+    },
+    {
+      "feature": "F17",
+      "role": "t1000",
+      "task": "D-20260101-002",
+      "task_file": "logs/governance/G-D-20260101-002.json",
+      "started_at": "2026-01-01T00:13:30Z",
+      "finished_at": "2026-01-01T00:14:00Z",
+      "status": "completed",
+      "exit_code": 0
+    },
+    {
+      "feature": "F17",
+      "role": "t800",
+      "task": "D-20260101-003",
+      "task_file": "logs/decisions/D-20260101-003.json",
+      "started_at": "2026-01-01T00:20:00Z",
+      "finished_at": "2026-01-01T00:24:00Z",
+      "status": "completed",
+      "exit_code": 0
+    },
+    {
+      "feature": "F17",
+      "role": "t1000",
+      "task": "D-20260101-003",
+      "task_file": "logs/governance/G-D-20260101-003.json",
+      "started_at": "2026-01-01T00:24:20Z",
+      "finished_at": "2026-01-01T00:25:00Z",
+      "status": "completed",
+      "exit_code": 0
+    },
+    {
+      "feature": "F17",
+      "role": "t800",
+      "task": "D-20260101-004",
+      "task_file": "logs/decisions/D-20260101-004.json",
+      "started_at": "2026-01-01T00:30:00Z",
+      "finished_at": "2026-01-01T00:32:00Z",
+      "status": "completed",
+      "exit_code": 2,
+      "_note": "AC3 fixture: spawn-agent recorded exit=2 (false failure), but D-20260101-004.json is a valid on-disk artifact and MUST still be counted — disk is ground truth, not exit_code."
+    },
+    {
+      "feature": "F17",
+      "role": "t1000",
+      "task": "D-20260101-004",
+      "task_file": "logs/governance/G-D-20260101-004.json",
+      "started_at": "2026-01-01T00:32:20Z",
+      "finished_at": "2026-01-01T00:33:00Z",
+      "status": "completed",
+      "exit_code": 0
+    }
+  ]
+}

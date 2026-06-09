@@ -108,11 +108,11 @@
   },
   "meta_agents": {
     "t800": {
-      "enabled": false,
+      "enabled": true,
       "auto_governance": true
     },
     "t1000": {
-      "enabled": false,
+      "enabled": true,
       "review_mode": "post-decision",
       "escalation_blocks_pipeline": true
     }
