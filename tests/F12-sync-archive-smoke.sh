@@ -65,7 +65,12 @@ cat > "$TGT_B/didio.config.json" <<'EOF'
     "enabled": true,
     "brief_lines_threshold": 150,
     "task_count_threshold": 6
-  }
+  },
+  "second_brain": { "enabled": false },
+  "tea": { "enabled": false },
+  "meta_agents": { "t800": { "enabled": false } },
+  "research": { "web_search_budget": 5 },
+  "poc": { "smoke_timeout_secs": 30 }
 }
 EOF
 bash bin/didio-sync-project.sh --dry-run "$TGT_B" > /tmp/f12-sync-B.out 2>&1 || true

@@ -480,6 +480,22 @@ for k, v in src.items():
     if k not in dst:
         dst[k] = v
         added.append(k)
+# F08: targeted merge of models[*].effort. The "models" block already exists
+# in every downstream, so the block-level loop above never reaches it and the
+# effort sub-key (added in F08) never propagates. Add effort per role ONLY
+# where the user hasn't set one — surgical on purpose, never overwriting.
+src_models = src.get("models", {})
+dst_models = dst.get("models", {})
+effort_added = []
+if isinstance(src_models, dict) and isinstance(dst_models, dict):
+    for role, rolecfg in src_models.items():
+        if isinstance(rolecfg, dict) and "effort" in rolecfg:
+            drole = dst_models.get(role)
+            if isinstance(drole, dict) and "effort" not in drole:
+                drole["effort"] = rolecfg["effort"]
+                effort_added.append(role)
+if effort_added:
+    added.append("models.effort[" + ",".join(effort_added) + "]")
 if added:
     if not dry_run:
         with open(dst_path, "w") as f:
