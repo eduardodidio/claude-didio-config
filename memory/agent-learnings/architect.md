@@ -75,3 +75,7 @@
 **What to avoid:** Writing an AC that says "all N variants represented" when the feature has a non-intervention constraint (e.g., "do not change agent behavior"). The live corpus may only produce a subset of variants, making the AC aspirationally unmet.
 
 **Pattern to repeat:** When an AC says "all variants represented" and the feature has a non-intervention constraint, annotate it at planning time: "(synthetic fixture must cover remaining variants that the live corpus cannot produce)". This flags the intent without requiring live corpus coverage and prevents a re-review cycle at TechLead time.
+
+## F27 — 2026-06-11
+**What worked:** Thin alias-delegation pattern (marker line + delegates-to target + identical mirror in `.claude/commands/`) made structural ACs trivially testable with grep-based tests. Marker conventions (`<!-- bmad-new: persona=<...> phase=<...> -->`) for a generated-file family enable cheap structural tests across the whole family.
+**What to avoid:** When a Wave-0 decision skips a planned task (here T03), other tasks/docs drafted independently can still describe the skipped behavior as shipped — grep docs for the skipped task's filenames/permissions before final review. Also: reference/planning images can land at repo root under a different filename than the brief uses and go untracked — place them under `docs/` with the brief's filename or gitignore explicitly.

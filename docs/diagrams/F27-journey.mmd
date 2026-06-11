@@ -1,0 +1,24 @@
+%% F27 — Modo BMAD: user journey (selector /bmad gf|bf)
+%% Owner task: F27-T11 (refine/validate). Seeded by Architect.
+%% Happy path with phase gate (readiness) + confirmation pause between
+%% UPSTREAM and DOWNSTREAM. (opt) steps are offered, not forced.
+flowchart LR
+  Start([/bmad gf|bf]) --> Choice{greenfield ou brownfield?}
+
+  subgraph UP[UPSTREAM]
+    direction LR
+    Choice -->|greenfield| G1[generate-project-context] --> G2[brainstorm] --> G3[research opt] --> G4[create-product-brief] --> G5[create-prd] --> G6[create-ux-design] --> G7[create-architecture] --> G8[testarch-test-design] --> G9[create-epics-and-stories]
+    Choice -->|brownfield| B1[generate-project-context] --> B2[create-prd] --> B3[create-ux-design] --> B4[create-architecture] --> B5[testarch-test-design] --> B6[create-epics-and-stories]
+  end
+
+  G9 --> RG{check-impl-readiness opt}
+  B6 --> RG
+  RG -->|BLOCKED| Stop([para — corrigir plano])
+  RG -->|READY| Pause[/PAUSA: confirmar início do downstream/]
+
+  subgraph DOWN[DOWNSTREAM compartilhado]
+    direction LR
+    Pause --> D1[testarch-framework] --> D2[testarch-ci] --> D3[sprint-planning] --> D4[create-story] --> D5[testarch-atdd] --> D6[dev-story] --> D7[code-review] --> D8[correct-course] --> D9[testarch-automate opt] --> D10[retrospective]
+  end
+
+  D10 --> End([feature pronta])

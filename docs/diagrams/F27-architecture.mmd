@@ -1,0 +1,78 @@
+%% F27 — Modo BMAD: component / data-flow
+%% Owner task: F27-T02 (refine/validate). Seeded by Architect.
+%% Aliases delegate to existing didio base commands; new commands produce
+%% artifacts. NO new agents — personas map onto current agents.
+flowchart TD
+  subgraph Aliases["/bmad-* (aliases finos — delegam, sem lógica própria)"]
+    A1[bmad-brainstorm]
+    A2[bmad-create-prd]
+    A3[bmad-check-impl-readiness]
+    A4[bmad-create-architecture]
+    A5[bmad-testarch-test-design]
+    A6[bmad-dev-story]
+    A7[bmad-code-review]
+    A8[bmad-retrospective]
+  end
+
+  subgraph New["comandos novos /bmad-* (lógica própria, sem subprocess)"]
+    N1[generate-project-context]
+    N2[create-ux-design]
+    N3[testarch-framework / ci / atdd / automate]
+    N4[sprint-planning]
+    N5[correct-course]
+  end
+
+  subgraph Selector["/bmad gf|bf (orquestrador)"]
+    S1[encadeia upstream -> pausa -> downstream]
+  end
+
+  subgraph Base["comandos didio base (existentes F09-F14)"]
+    B1[/brainstorm/]
+    B2[/elicit-prd/]
+    B3[/check-readiness/]
+    B4[/plan-feature/]
+    B5[/check-tests/]
+    B6[run-wave]
+    B7[/code-review/]
+    B8[qa retro]
+  end
+
+  subgraph Agents["agentes didio (NENHUM novo)"]
+    AG1[architect = PB/AIE]
+    AG2[developer = AIE]
+    AG3[tea = QE]
+    AG4[qa = QE]
+  end
+
+  ARTo[(claude-didio-out/)]
+  ARTt[(tasks/features/)]
+
+  A1 --> B1
+  A2 --> B2
+  A3 --> B3
+  A4 --> B4
+  A5 --> B5
+  A6 --> B6
+  A7 --> B7
+  A8 --> B8
+
+  S1 -.encadeia.-> Aliases
+  S1 -.encadeia.-> New
+
+  B1 --> AG1
+  B2 --> AG1
+  B3 --> AG1
+  B4 --> AG1
+  B5 --> AG3
+  B6 --> AG2
+  B7 --> AG3
+  B8 --> AG4
+
+  N1 --> ARTo
+  N2 --> ARTo
+  N3 --> ARTo
+  N4 --> ARTo
+  N5 --> ARTo
+  AG1 --> ARTt
+  AG2 --> ARTt
+  AG1 --> ARTo

@@ -152,3 +152,7 @@
 **What to avoid:** Reading diagram files before checking `docs/diagrams/INDEX.md` — by the time you've read and verified the diagram content, the INDEX gap is easily missed. INDEX.md staleness has now occurred in F03, F05, F09, F13, F17 (5 consecutive features).
 
 **Pattern to repeat:** `grep -q "F<NN>" docs/diagrams/INDEX.md` must be the FIRST check in any review that touches diagram files, before verifying diagram content or Mermaid syntax. If the grep fails, mark BLOCKING immediately.
+
+## F27 — 2026-06-11
+**What worked:** Marker-line conventions on a family of generated/templated files (aliases + new commands) made AC checks via grep-based structural tests fast and high-confidence.
+**What to avoid:** When a Wave-0 decision skips a planned task (e.g. a settings.json permission task), check whether docs written by other tasks still describe the skipped behavior as shipped — flag as a follow-up if so, since it's an easy miss for the architect/developer.
