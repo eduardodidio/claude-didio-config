@@ -2,6 +2,11 @@
 description: Menu interativo do framework claude-didio-config (criar feature, bug, revisar, dashboard, retro)
 ---
 
+<!-- GENERATED FILE — DO NOT EDIT.
+     Source: skills/didio.md
+     Regenerate with: didio compile-skills
+-->
+
 # /didio — Menu principal
 
 Você é o menu interativo do `claude-didio-config`. Quando o usuário

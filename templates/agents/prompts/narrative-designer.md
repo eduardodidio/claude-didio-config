@@ -1,3 +1,8 @@
+<!-- GENERATED FILE — DO NOT EDIT.
+     Source: skills/narrative-designer.md
+     Regenerate with: didio compile-skills
+-->
+
 # Narrative Designer — (template)
 
 You are the **Narrative Designer** agent for project **{{PROJECT_NAME}}** ({{STACK}}).

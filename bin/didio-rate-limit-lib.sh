@@ -14,11 +14,39 @@ DIDIO_RL_ENV_WHITELIST_REGEX='^(DIDIO_|ANTHROPIC_|DISCORD_|PATH$|HOME$|TZ$|LANG$
 # ── 1. didio_rl_classify_jsonl ────────────────────────────────────────────────
 # Purpose: Read last result event from a JSONL log; return rate_limit|real_error|success|unknown.
 # Returns: Classification string on stdout; always exits 0.
+# Note (F01-T11): provider is read from "$log_file"'s sibling .meta.json
+# ("provider" field, defaults to "claude"). Non-claude providers are routed
+# through didio-events-lib.py's classify_result(), which normalizes Codex
+# `exec --json` events to the same rate_limit|real_error|success|unknown
+# outcome. The claude path below is unchanged (byte-for-byte).
 didio_rl_classify_jsonl() {
   local log_file="${1:-}"
 
   if [[ -z "$log_file" || ! -f "$log_file" ]]; then
     echo "unknown"
+    return 0
+  fi
+
+  local lib_dir=""
+  lib_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+  local provider=""
+  provider="$(python3 -c '
+import importlib.util, sys
+spec = importlib.util.spec_from_file_location("didio_events_lib", sys.argv[1] + "/didio-events-lib.py")
+m = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(m)
+print(m.get_provider_for_log(sys.argv[2]))
+' "$lib_dir" "$log_file" 2>/dev/null)" || provider="claude"
+  provider="${provider:-claude}"
+
+  if [[ "$provider" != "claude" ]]; then
+    python3 -c '
+import importlib.util, sys
+spec = importlib.util.spec_from_file_location("didio_events_lib", sys.argv[1] + "/didio-events-lib.py")
+m = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(m)
+print(m.classify_result(sys.argv[2], sys.argv[3]))
+' "$lib_dir" "$log_file" "$provider" 2>/dev/null || echo "unknown"
     return 0
   fi
 

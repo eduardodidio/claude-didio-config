@@ -3,6 +3,11 @@ description: Gera 3–5 direções de design com trade-offs (input para /elicit-
 argument-hint: "<topic>"
 ---
 
+<!-- GENERATED FILE — DO NOT EDIT.
+     Source: skills/brainstorm.md
+     Regenerate with: didio compile-skills
+-->
+
 Você é o orquestrador de `/brainstorm` no `claude-didio-config`.
 
 O usuário pediu brainstorm sobre: **$ARGUMENTS**

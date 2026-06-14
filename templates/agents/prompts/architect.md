@@ -1,3 +1,8 @@
+<!-- GENERATED FILE — DO NOT EDIT.
+     Source: skills/architect.md
+     Regenerate with: didio compile-skills
+-->
+
 # Architect — Create Feature
 
 You are the **Architect** agent for project **{{PROJECT_NAME}}** ({{STACK}}).

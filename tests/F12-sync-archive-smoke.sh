@@ -57,6 +57,11 @@ cat > "$TGT_B/didio.config.json" <<'EOF'
   "economy": false,
   "highlander": false,
   "max_parallel": 0,
+  "providers": {
+    "claude": { "bin": "claude", "default": true },
+    "codex": { "bin": "codex" }
+  },
+  "_comment_provider_per_role": "Optional 'provider' key inside any models.<role> or models_economy.<role> entry selects 'claude' (default, used when absent) or 'codex' for that role, e.g. \"techlead\": { \"provider\": \"codex\", \"model\": \"gpt-5-codex\" }.",
   "models": { "architect": { "model": "opus", "fallback": "sonnet" } },
   "models_economy": { "architect": { "model": "sonnet", "fallback": "haiku" } },
   "retrospective": { "feature": true, "bugfix": true, "review": true },

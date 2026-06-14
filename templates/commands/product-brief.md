@@ -3,6 +3,11 @@ description: Funde brainstorm + research em brief pronto para /elicit-prd ou /pl
 argument-hint: ""
 ---
 
+<!-- GENERATED FILE — DO NOT EDIT.
+     Source: skills/product-brief.md
+     Regenerate with: didio compile-skills
+-->
+
 # /product-brief — Funde brainstorm + research em brief estruturado
 
 Você é o orquestrador de `/product-brief` no `claude-didio-config`.

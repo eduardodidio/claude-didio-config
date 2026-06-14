@@ -569,3 +569,82 @@ diretamente pra `~/.claude/settings.json`.
 > com second-brain ligado. **Novos installs** recebem um config sem o
 > bloco (via `templates/didio.config.json`) e caem no modo padrão
 > automaticamente.
+
+---
+
+## Multi-provider (Claude + Codex)
+
+Cada papel de agente (architect, developer, techlead, qa, ...) pode rodar
+em **Claude Code** ou na **OpenAI Codex CLI** (`codex exec`, headless). O
+provider default é `claude`, e projetos Claude-only continuam funcionando
+com **zero mudança de config** — o fluxo default é byte-for-byte idêntico
+ao anterior.
+
+### Atribuindo um provider a um papel
+
+Em `didio.config.json`, defina o provider por papel em `models`:
+
+```json
+{
+  "providers": {
+    "claude": { "bin": "claude" },
+    "codex": { "bin": "codex" }
+  },
+  "models": {
+    "developer": { "provider": "codex" },
+    "techlead": { "provider": "claude" }
+  }
+}
+```
+
+Um papel sem `provider` explícito usa `claude`.
+
+### Compilando skills para os dois providers
+
+Skills (slash commands + role prompts) são escritas uma única vez em
+`skills/` e compiladas para o formato nativo de cada provider:
+
+```bash
+didio compile-skills                # compila para todos os providers configurados
+didio compile-skills --target claude
+didio compile-skills --target codex
+didio compile-skills --dry-run      # preview sem escrever arquivos
+```
+
+Saída Claude vai para `.claude/commands/` + `.claude/agents/` +
+`agents/prompts/`; saída Codex vai para `~/.codex/prompts/` + `AGENTS.md`.
+
+### Verificando os CLIs dos providers
+
+```bash
+didio providers list       # lista cada provider configurado + resolução do binário
+didio providers validate   # sai com erro se um provider usado por algum papel estiver faltando
+```
+
+`providers validate` só checa providers de fato referenciados pela config
+ativa — um projeto Claude-only nunca exige `codex` instalado.
+
+### Pré-requisitos do Codex
+
+Para usar `provider: "codex"` em um papel:
+
+1. Instale a Codex CLI e garanta que `codex` está no `PATH`.
+2. Autentique: rode `codex` uma vez e complete o login.
+3. Confirme que `~/.codex/config.toml` existe (criado pelo Codex no
+   primeiro auth).
+4. Rode `didio providers validate` pra confirmar binário e config.
+
+### Gaps documentados
+
+- **Sem fallback/effort no Codex** — as flags de `effort` / fallback model
+  que existem para papéis Claude não são suportadas em
+  `provider: "codex"`.
+- **Subagents são Claude-only** — papéis que disparam subagents Claude são
+  pulados (não traduzidos) ao compilar para Codex.
+- **Reset de rate-limit pode ser `n/a` no Codex** — dashboard e tratamento
+  de rate-limit degradam graciosamente: se o Codex não reporta horário de
+  reset, o campo aparece como `n/a` em vez de erro.
+
+Veja `docs/adr/0002-multi-provider-driver-architecture.md` e
+`docs/adr/0003-neutral-skill-compile-model.md` para as decisões de
+arquitetura.

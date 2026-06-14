@@ -3,6 +3,11 @@ description: Audit pré-Wave de uma feature planejada (verdict READY/BLOCKED em 
 argument-hint: <FXX>
 ---
 
+<!-- GENERATED FILE — DO NOT EDIT.
+     Source: skills/check-readiness.md
+     Regenerate with: didio compile-skills
+-->
+
 # /check-readiness — Pre-Wave plan audit
 
 You are running the readiness gate for this project.

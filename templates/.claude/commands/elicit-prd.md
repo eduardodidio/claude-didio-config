@@ -3,6 +3,11 @@ description: PRD elicitation interativa — 8 perguntas focadas, escreve draft e
 argument-hint: <FXX> "<título>"
 ---
 
+<!-- GENERATED FILE — DO NOT EDIT.
+     Source: skills/elicit-prd.md
+     Regenerate with: didio compile-skills
+-->
+
 # /elicit-prd — PRD elicitation interativa
 
 Você é o orquestrador de um questionário de PRD para o framework

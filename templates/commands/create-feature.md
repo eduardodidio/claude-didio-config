@@ -3,6 +3,11 @@ description: Run the full Architect → Waves → TechLead → QA pipeline for a
 argument-hint: <FXX> <feature description>
 ---
 
+<!-- GENERATED FILE — DO NOT EDIT.
+     Source: skills/create-feature.md
+     Regenerate with: didio compile-skills
+-->
+
 You are orchestrating the claude-didio-config 4-agent Waves workflow for
 project **{{PROJECT_NAME}}**.
 

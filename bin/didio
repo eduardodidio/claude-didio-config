@@ -19,6 +19,8 @@ case "$SUBCMD" in
   sync-project)  exec "$DIDIO_HOME/bin/didio-sync-project.sh" "$@" ;;
   sync-all)        exec "$DIDIO_HOME/bin/didio-sync-all.sh" "$@" ;;
   poc-from-minutes) exec "$DIDIO_HOME/bin/didio-poc-from-minutes.sh" "$@" ;;
+  compile-skills)  exec "$DIDIO_HOME/bin/didio-compile-skills.sh" "$@" ;;
+  providers)       exec "$DIDIO_HOME/bin/didio-providers.sh" "$@" ;;
   resume-pending)  exec "$DIDIO_HOME/bin/didio-resume-pending.sh" "$@" ;;
   t800)            exec "$DIDIO_HOME/bin/didio-t800.sh" "$@" ;;
   t1000)           exec "$DIDIO_HOME/bin/didio-t1000.sh" "$@" ;;
@@ -68,6 +70,17 @@ Usage:
       Default config: tasks/features/F04-sync-downstream/target-projects.json
 
   didio poc-from-minutes <ata>   Generate runnable POC from meeting minutes
+
+  didio compile-skills [--target claude] [--dry-run]
+      Compile skills/*.md (neutral format, see skills/SPEC.md) into
+      .claude/commands, .claude/agents, agents/prompts. --dry-run prints
+      what would change without writing.
+
+  didio providers [list|validate]
+      list      Show configured providers (didio.config.json 'providers')
+                and whether their CLI binary is found on PATH.
+      validate  Check only the providers actually used by roles in the
+                active config; exits 1 listing any missing CLI binaries.
 
   didio t800 <feature-id> <brief-or-request-file> [extra-prompt]
       Spawn Gandalf strategic orchestrator. Produces decision records

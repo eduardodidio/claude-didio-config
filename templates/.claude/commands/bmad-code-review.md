@@ -1,0 +1,20 @@
+---
+description: "[alias bmad] Revisão de código da branch (TechLead) — delega a /code-review"
+argument-hint: "[ultra | <PR#>]"
+---
+
+<!-- GENERATED FILE — DO NOT EDIT.
+     Source: skills/bmad-code-review.md
+     Regenerate with: didio compile-skills
+-->
+
+<!-- bmad-alias: delegates-to=/code-review persona=QE -->
+
+# /bmad-code-review — alias de /code-review
+
+Este é um **alias fino** do modo BMAD. Ele delega integralmente ao comando
+`/code-review` do didio. Persona BMAD: **QE**.
+
+Execute exatamente o que `/code-review $ARGUMENTS` faria — não reimplemente
+a lógica. O TechLead revisa a implementação seguindo
+`agents/prompts/review-tasks.md` com os mesmos argumentos.

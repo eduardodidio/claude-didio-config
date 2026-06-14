@@ -79,6 +79,17 @@ fi
 
 echo "[didio-run-wave] feature=$FEATURE wave=$WAVE role=$ROLE max_parallel=$MAX_PARALLEL_LABEL tasks=$(echo $TASK_IDS | tr '\n' ' ')" >&2
 
+# Preflight (F01-T13): abort before spawning if the role's configured
+# provider CLI is missing/unauthed. Scoped to $ROLE only, so Claude-only
+# projects are never blocked by an unused codex config.
+PROVIDERS_SH="${DIDIO_HOME:-$HOME/.claude-didio-config}/bin/didio-providers.sh"
+if [[ -x "$PROVIDERS_SH" ]]; then
+  if ! "$PROVIDERS_SH" validate-roles "$ROLE" >&2; then
+    echo "[didio-run-wave] preflight failed: aborting Wave $WAVE without spawning" >&2
+    exit 1
+  fi
+fi
+
 PROGRESS_LIB="${DIDIO_HOME:-$HOME/.claude-didio-config}/bin/didio-progress-lib.sh"
 if [[ -f "$PROGRESS_LIB" ]]; then
   # shellcheck disable=SC1090

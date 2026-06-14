@@ -120,6 +120,32 @@ else
   # shellcheck disable=SC1090
   source "${DIDIO_HOME:-$HOME/.claude-didio-config}/bin/didio-config-lib.sh"
 fi
+
+# F01-T07 — resolve the provider for this role and the driver that runs it.
+# Project-local drivers win over the framework install. Done BEFORE the
+# preflight so an unsupported provider (no driver script) yields the precise
+# exit 2 below, while a supported provider whose CLI binary is missing is
+# caught by the preflight (exit 1).
+PROVIDER="$(didio_provider_for_role "$ROLE")"
+[[ -z "$PROVIDER" ]] && PROVIDER="claude"
+DRIVER="${DIDIO_HOME:-$HOME/.claude-didio-config}/drivers/${PROVIDER}-driver.sh"
+if [[ -f "$PROJECT_ROOT/drivers/${PROVIDER}-driver.sh" ]]; then
+  DRIVER="$PROJECT_ROOT/drivers/${PROVIDER}-driver.sh"
+fi
+if [[ ! -x "$DRIVER" ]]; then
+  echo "[didio-spawn-agent] unknown/unsupported provider '$PROVIDER'" >&2
+  exit 2
+fi
+
+# Preflight (F01-T13): lightweight single-role check, scoped to $ROLE only.
+PROVIDERS_SH="${DIDIO_HOME:-$HOME/.claude-didio-config}/bin/didio-providers.sh"
+if [[ -x "$PROVIDERS_SH" ]]; then
+  if ! "$PROVIDERS_SH" validate-roles "$ROLE" >&2; then
+    echo "[didio-spawn-agent] preflight failed: aborting without spawning" >&2
+    exit 1
+  fi
+fi
+
 AGENT_MODEL=$(didio_model_for_role "$ROLE")
 AGENT_FALLBACK=$(didio_fallback_for_role "$ROLE")
 AGENT_EFFORT=""
@@ -138,6 +164,7 @@ cat > "$META_FILE" <<EOF
   "log": "$LOG_FILE",
   "status": "running",
   "pid": $$,
+  "provider": "$PROVIDER",
   "model": "${AGENT_MODEL:-default}",
   "fallback_model": "${AGENT_FALLBACK:-none}",
   "effort": "${AGENT_EFFORT:-none}"
@@ -202,6 +229,12 @@ export DIDIO_META_FILE="$META_FILE"
 export DIDIO_LOG_FILE="$LOG_FILE"
 export DIDIO_PROJECT_ROOT="$PROJECT_ROOT"
 export DIDIO_AGENT=1
+# F01-T07 — driver contract env vars (see drivers/DRIVER_CONTRACT.md)
+export DIDIO_PROMPT="$FULL_PROMPT"
+export DIDIO_MODEL="$AGENT_MODEL"
+export DIDIO_FALLBACK="$AGENT_FALLBACK"
+export DIDIO_EFFORT="$AGENT_EFFORT"
+export DIDIO_TASK_ID="$TASK_ID"
 
 echo "[didio-spawn-agent] role=$ROLE feature=$FEATURE task=$TASK_ID model=$AGENT_MODEL log=$LOG_FILE" >&2
 
@@ -209,28 +242,31 @@ echo "[didio-spawn-agent] role=$ROLE feature=$FEATURE task=$TASK_ID model=$AGENT
 # inherit PATH so the user's claude CLI is findable, but we deliberately do
 # not pass any other state — the agent's context is ONLY the prompt.
 if [[ "${DIDIO_DRY_RUN:-0}" == "1" ]]; then
-  printf '[DRY_RUN] claude -p <prompt_omitted>\n'
-  printf '[DRY_RUN]   --output-format stream-json\n'
-  printf '[DRY_RUN]   --verbose\n'
-  [[ -n "$AGENT_MODEL" ]]    && printf '[DRY_RUN]   --model %s\n' "$AGENT_MODEL"
-  [[ -n "$AGENT_FALLBACK" ]] && printf '[DRY_RUN]   --fallback-model %s\n' "$AGENT_FALLBACK"
-  [[ -n "$AGENT_EFFORT" ]]   && printf '[DRY_RUN]   --effort %s\n' "$AGENT_EFFORT"
-  printf '[DRY_RUN]   --dangerously-skip-permissions\n'
-  printf '[DRY_RUN]   --allowedTools "Edit Write MultiEdit Read Bash Glob Grep"\n'
+  printf '[DRY_RUN] provider=%s driver=%s\n' "$PROVIDER" "$DRIVER"
+  if [[ "$PROVIDER" == "claude" ]]; then
+    # Preview the exact flags claude-driver.sh will pass (matches reality).
+    printf '[DRY_RUN] claude -p <prompt_omitted>\n'
+    printf '[DRY_RUN]   --output-format stream-json\n'
+    printf '[DRY_RUN]   --verbose\n'
+    [[ -n "$AGENT_MODEL" ]]    && printf '[DRY_RUN]   --model %s\n' "$AGENT_MODEL"
+    [[ -n "$AGENT_FALLBACK" ]] && printf '[DRY_RUN]   --fallback-model %s\n' "$AGENT_FALLBACK"
+    [[ -n "$AGENT_EFFORT" ]]   && printf '[DRY_RUN]   --effort %s\n' "$AGENT_EFFORT"
+    printf '[DRY_RUN]   --dangerously-skip-permissions\n'
+    printf '[DRY_RUN]   --allowedTools "Edit Write MultiEdit Read Bash Glob Grep"\n'
+  else
+    [[ -n "$AGENT_MODEL" ]]    && printf '[DRY_RUN]   model=%s\n' "$AGENT_MODEL"
+    [[ -n "$AGENT_FALLBACK" ]] && printf '[DRY_RUN]   fallback=%s\n' "$AGENT_FALLBACK"
+    [[ -n "$AGENT_EFFORT" ]]   && printf '[DRY_RUN]   effort=%s\n' "$AGENT_EFFORT"
+  fi
   [[ -n "$EXTRA" ]] && printf '[DRY_RUN]   EXTRA: %s\n' "$EXTRA"
   exit 0
 fi
+# F01-T07 — dispatch through the resolved provider driver. The driver owns the
+# exact CLI invocation: claude-driver.sh reproduces today's `claude -p` call
+# byte-for-byte (AC3); codex-driver.sh maps the contract to `codex exec`. The
+# driver writes the run log to $DIDIO_LOG_FILE (exported above as $LOG_FILE).
 set +e
-claude \
-  -p "$FULL_PROMPT" \
-  --output-format stream-json \
-  --verbose \
-  ${AGENT_MODEL:+--model "$AGENT_MODEL"} \
-  ${AGENT_FALLBACK:+--fallback-model "$AGENT_FALLBACK"} \
-  ${AGENT_EFFORT:+--effort "$AGENT_EFFORT"} \
-  --dangerously-skip-permissions \
-  --allowedTools "Edit Write MultiEdit Read Bash Glob Grep" \
-  > "$LOG_FILE" 2>&1
+"$DRIVER"
 EXIT_CODE=$?
 set -e
 

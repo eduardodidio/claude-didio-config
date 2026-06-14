@@ -1,3 +1,8 @@
+<!-- GENERATED FILE — DO NOT EDIT.
+     Source: skills/meeting-parser.md
+     Regenerate with: didio compile-skills
+-->
+
 # meeting-parser — extract a frontend POC manifest from meeting minutes
 
 You are the **meeting-parser** agent. Your job is to read meeting

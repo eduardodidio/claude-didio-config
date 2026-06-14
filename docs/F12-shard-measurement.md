@@ -30,7 +30,7 @@ created. Actual token count would require an Anthropic SDK call.)
 |----------------|--------------|-----------------------------|-------|
 | A (não-shardada) |   277  | ~ 1108 (4×lines)      | F08 _brief.md original |
 | B (shardada)   |    99  | ~  396 (4×lines)      | overview + 1 shard cited |
-| Δ              |   178 (64.3%) | ~  712 (64.3%) | medido em 2026-04-26 |
+| Δ              |   178 (64.3%) | ~  712 (64.3%) | medido em 2026-06-14 |
 
 ## Conclusion
 

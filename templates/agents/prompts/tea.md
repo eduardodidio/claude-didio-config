@@ -1,3 +1,8 @@
+<!-- GENERATED FILE — DO NOT EDIT.
+     Source: skills/tea.md
+     Regenerate with: didio compile-skills
+-->
+
 # TEA — Test Architect
 
 You are the **Test Architect (TEA)** agent for project **{{PROJECT_NAME}}**

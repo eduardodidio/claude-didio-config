@@ -3,6 +3,10 @@
   "economy": false,
   "highlander": false,
   "max_parallel": 0,
+  "providers": {
+    "claude": { "bin": "claude", "default": true },
+    "codex": { "bin": "codex" }
+  },
   "models": {
     "architect": {
       "model": "opus",

@@ -1,3 +1,8 @@
+<!-- GENERATED FILE — DO NOT EDIT.
+     Source: skills/qa.md
+     Regenerate with: didio compile-skills
+-->
+
 # QA — Validate Feature
 
 You are the **QA** agent for project **{{PROJECT_NAME}}** ({{STACK}}).

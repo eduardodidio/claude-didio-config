@@ -1,3 +1,8 @@
+<!-- GENERATED FILE — DO NOT EDIT.
+     Source: skills/techlead.md
+     Regenerate with: didio compile-skills
+-->
+
 # Tech Lead — Review Tasks
 
 You are the **Tech Lead** agent for project **{{PROJECT_NAME}}** ({{STACK}}).

@@ -1,0 +1,35 @@
+%% F01 — User journey (BPMN-style) for running a Wave on a chosen provider.
+%% Swimlanes: User / didio CLI / Provider CLI. Includes preflight error branch.
+
+flowchart TD
+    subgraph UserLane["👤 User"]
+        U_START(["Wants a role on Codex (or Claude)"])
+        U_AUTHOR["Author/edit skill in skills/*.md"]
+        U_SETCFG["Set models.&lt;role&gt;.provider = codex"]
+        U_RUN["didio run-wave F01 1"]
+        U_END(["Sees logs + dashboard"])
+    end
+
+    subgraph CLILane["🛠️ didio CLI"]
+        C_COMPILE["didio compile-skills<br/>emit .claude/* + ~/.codex/*"]
+        C_PREFLIGHT{"provider binary<br/>installed & authed?"}
+        C_ABORT["Abort Wave: name missing binary<br/>+ install/auth hint"]
+        C_RESOLVE["resolve provider + model per role"]
+        C_DISPATCH["spawn-agent -> drivers/&lt;provider&gt;-driver.sh"]
+        C_NORM["normalize NDJSON -> meta/state.json"]
+    end
+
+    subgraph ProvLane["🌐 Provider CLI"]
+        P_CLAUDE["claude -p (stream-json)"]
+        P_CODEX["codex exec --json --yolo"]
+    end
+
+    U_START --> U_AUTHOR --> C_COMPILE
+    C_COMPILE --> U_SETCFG --> U_RUN --> C_PREFLIGHT
+    C_PREFLIGHT -->|missing/unauthed| C_ABORT --> U_END
+    C_PREFLIGHT -->|ok| C_RESOLVE --> C_DISPATCH
+    C_DISPATCH -->|claude| P_CLAUDE
+    C_DISPATCH -->|codex| P_CODEX
+    P_CLAUDE --> C_NORM
+    P_CODEX --> C_NORM
+    C_NORM --> U_END

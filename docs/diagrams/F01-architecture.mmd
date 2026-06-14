@@ -1,0 +1,46 @@
+%% F01 — Multi-model provider architecture (component / data-flow).
+%% Living doc — keep in sync with bin/didio-spawn-agent.sh, drivers/, skills/.
+
+flowchart LR
+    subgraph Config["Config"]
+        CFG["didio.config.json<br/>models.&lt;role&gt;.provider + providers{}"]
+        LIB["didio-config-lib.sh<br/>didio_provider_for_role / model namespace"]
+    end
+
+    subgraph Exec["Execution layer"]
+        SPAWN["didio-spawn-agent.sh<br/>(compose prompt, write .meta.json)"]
+        DISPATCH{"provider?"}
+        CLD["drivers/claude-driver.sh<br/>claude -p --output-format stream-json"]
+        CDX["drivers/codex-driver.sh<br/>codex exec --json --yolo"]
+    end
+
+    subgraph Skills["Skill layer"]
+        SRC["skills/*.md<br/>(neutral source + override blocks)"]
+        COMPILE["didio-compile-skills.sh"]
+        CLOUT[".claude/commands + .claude/agents + agents/prompts"]
+        CXOUT["~/.codex/prompts + AGENTS.md"]
+    end
+
+    subgraph Obs["Observability"]
+        LOG[("logs/agents/*.jsonl + .meta.json")]
+        NORM["per-provider event normalizer<br/>(common internal shape)"]
+        META["progress.py / log-watcher -> state.json"]
+        DASH["dashboard (AgentRunDialog)"]
+        ERR["error-detection + rate-limit parsing"]
+    end
+
+    CFG --> LIB --> SPAWN --> DISPATCH
+    DISPATCH -->|claude default| CLD
+    DISPATCH -->|codex| CDX
+    CLD --> LOG
+    CDX --> LOG
+    LOG --> NORM
+    NORM --> META --> DASH
+    NORM --> ERR
+
+    SRC --> COMPILE
+    COMPILE -->|target claude| CLOUT
+    COMPILE -->|target codex| CXOUT
+    CLOUT -.consumed by.-> CLD
+    CXOUT -.consumed by.-> CDX
+    COMPILE -.wired into.-> SYNC["didio-sync-project.sh"]

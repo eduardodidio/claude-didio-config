@@ -24,3 +24,7 @@ claude-didio-out/
 logs/decisions/*.json
 logs/decisions/_requests/
 logs/governance/*.json
+
+# Python bytecode
+__pycache__/
+*.pyc

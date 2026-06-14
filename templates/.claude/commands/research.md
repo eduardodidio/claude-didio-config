@@ -1,77 +1,96 @@
 ---
-description: Pesquisa web estruturada com WebSearch + WebFetch — gera relatório sintetizado em docs/research/
-argument-hint: <tópico ou pergunta de pesquisa>
+description: Compila precedentes/blog posts/docs sobre um topic, com budget de WebSearch+WebFetch
+argument-hint: "<topic>"
 ---
 
-Você é um pesquisador especializado para o projeto **{{PROJECT_NAME}}**.
+<!-- GENERATED FILE — DO NOT EDIT.
+     Source: skills/research.md
+     Regenerate with: didio compile-skills
+-->
 
-O usuário quer pesquisar: **$ARGUMENTS**
+Você é o orquestrador de `/research` no `claude-didio-config`.
 
-## Sua missão
+O usuário pediu pesquisa sobre: **$ARGUMENTS**
 
-Realize pesquisa web estruturada e sintetize os achados em um documento acionável. Foco em informação técnica, de produto ou de mercado relevante para o projeto.
+## Sua tarefa
 
-## Configuração
+1. **Leia o budget.** `Read didio.config.json` (ou
+   `~/.claude-didio/didio.config.json` em downstream — preferir o do
+   projeto). Extraia `research.web_search_budget` (default 5 se ausente)
+   e `research.web_fetch_budget` (default 3 se ausente). Se o bloco
+   `research` inteiro estiver ausente, use os defaults e siga.
 
-Leia `didio.config.json` para obter os limites:
-- `research.max_searches` (padrão: 5) — máximo de chamadas WebSearch
-- `research.max_fetches` (padrão: 3) — máximo de chamadas WebFetch
-- `research.output_dir` (padrão: `docs/research`) — onde salvar
+2. **Calcule slug e data.** Igual a `/brainstorm` — kebab-case do
+   $ARGUMENTS, `date +%Y%m%d`.
 
-## Passo 1 — Planejar a pesquisa
+3. **Busque com budget rígido.** Mantenha contadores `n_search` e
+   `n_fetch`. Pare de chamar `WebSearch` quando
+   `n_search >= web_search_budget`; pare de chamar `WebFetch` quando
+   `n_fetch >= web_fetch_budget`. **Conte cada chamada antes de fazer**
+   (não depois).
 
-Antes de buscar, defina:
-1. **Queries principais** (máx 3): frases de busca exatas que vão gerar os resultados mais relevantes
-2. **Queries de refinamento** (máx 2): buscas complementares para gaps
-3. **Ângulo de interesse**: técnico? produto? mercado? acessibilidade?
+   Estratégia sugerida (não obrigatória):
+   - 1–2 `WebSearch` para queries amplas (precedentes / "X in
+     production")
+   - 1–2 `WebSearch` para queries técnicas (blog post,
+     RFC, documentação)
+   - 1–3 `WebFetch` em URLs mais promissoras dos resultados acima
 
-## Passo 2 — Executar pesquisa
+4. **Crie o diretório.** `Bash: mkdir -p claude-didio-out/research`.
 
-1. Execute WebSearch para cada query planejada (respeitando `max_searches`)
-2. Para os 2-3 resultados mais promissores de cada busca, use WebFetch para ler o conteúdo completo (respeitando `max_fetches` no total)
-3. Registre as fontes consultadas (URL + título + data de acesso)
+5. **Escreva o arquivo.** Caminho:
+   `claude-didio-out/research/<slug>-<YYYYMMDD>.md`. Conteúdo
+   obrigatório (formato literal):
 
-## Passo 3 — Sintetizar
+   ```markdown
+   # Research — <topic original>
 
-Produza um relatório estruturado:
+   _Gerado em <YYYY-MM-DD> por /research._
 
-### 📋 Sumário Executivo
-2-3 parágrafos com os achados mais importantes.
+   ## Sources
 
-### 🔍 Achados por Tema
-Organize os achados em temas, não por fonte. Cada tema: o que foi encontrado, implicações para o projeto.
+   - [<título>](url) — <1 linha sobre por que é relevante>
+   - [<título>](url) — ...
+   - [<título>](url) — ...
+   <... mínimo 3 entradas ...>
 
-### 🏗️ Implicações Técnicas
-O que isso muda na arquitetura, stack ou abordagem do projeto (se aplicável)?
+   ## Key findings
 
-### ♿ Implicações de Acessibilidade
-Considerações para os padrões de acessibilidade do projeto (sempre incluir se relevante).
+   - <achado 1>
+   - <achado 2>
+   ...
 
-### 🔗 Fontes Consultadas
-Lista completa de fontes com URL e data de acesso.
+   ## Open questions
 
-### ❓ Gaps e Próximas Perguntas
-O que esta pesquisa não respondeu? O que investigar a seguir?
+   - <pergunta que ficou em aberto 1>
+   ...
 
-### 🚀 Recomendações
-- [ ] O que fazer com esses achados
-- [ ] Próximo passo sugerido: `/product-brief <FXX> docs/research/research-<slug>.md`
+   ---
+   _Budget used: <N> WebSearch, <M> WebFetch_
+   ```
 
-## Passo 4 — Salvar output
+   **Se WebSearch/WebFetch indisponível** (erro repetido / negação de
+   permissão), escreva o arquivo mesmo assim: deixe `## Sources` com
+   o literal `- _(WebSearch indisponível neste run)_`, popule `## Key
+   findings` e `## Open questions` com o que o modelo já sabe sobre o
+   topic, e registre o motivo em `## Open questions`. Rodapé:
+   `_Budget used: 0 WebSearch, 0 WebFetch (web indisponível)_`.
 
-Salve em `docs/research/research-<slug>.md` com cabeçalho:
-```
----
-feature: research
-topic: <tópico original>
-date: <data atual YYYY-MM-DD>
-sources: <número de fontes consultadas>
-status: complete
----
-```
+6. **Reporte ao usuário.** Mensagem final:
 
-Informe ao usuário o path do arquivo e sugira `/product-brief` para formalizar os achados.
+   ```
+   ✅ Research escrito: claude-didio-out/research/<slug>-<YYYYMMDD>.md
+      Budget: <N>/<budget_search> WebSearch, <M>/<budget_fetch> WebFetch
+   Próximo passo sugerido:
+     • /product-brief  — para fundir com brainstorm existente
+   ```
 
----
+## Regras (não-negociáveis)
 
-(c) 2026 Blind Studios. Todos os direitos reservados.
+- **NUNCA** dispare agentes externos via didio (run-wave/subprocess).
+- **NUNCA** ultrapasse `web_search_budget` ou `web_fetch_budget`.
+- **SEMPRE** ≥3 entradas em `## Sources` (a menos que web inteiramente
+  indisponível — ver passo 5).
+- **SEMPRE** as 3 seções literais (`## Sources`, `## Key findings`,
+  `## Open questions`) presentes — mesmo que vazias.
+- **SEMPRE** rodapé `_Budget used: ...`.

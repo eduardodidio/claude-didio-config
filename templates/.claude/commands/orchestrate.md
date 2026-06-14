@@ -2,6 +2,11 @@
 description: Orchestrate a strategic decision via Gandalf meta-agent (with optional Saruman governance)
 ---
 
+<!-- GENERATED FILE — DO NOT EDIT.
+     Source: skills/orchestrate.md
+     Regenerate with: didio compile-skills
+-->
+
 # /orchestrate — Strategic Decision via Gandalf
 
 You are executing a strategic orchestration session using the Gandalf and

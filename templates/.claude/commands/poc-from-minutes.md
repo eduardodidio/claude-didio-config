@@ -2,6 +2,11 @@
 description: Generate a runnable Vite+React POC from meeting minutes
 ---
 
+<!-- GENERATED FILE — DO NOT EDIT.
+     Source: skills/poc-from-minutes.md
+     Regenerate with: didio compile-skills
+-->
+
 # /poc-from-minutes <path-da-ata>
 
 You are orchestrating the **meeting-to-POC** pipeline. The user has

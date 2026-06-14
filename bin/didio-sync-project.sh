@@ -186,14 +186,52 @@ else
 fi
 
 # ---------------------------------------------------------------------------
+# 2b. Compile skills — refresh template artifacts from skills/ before copying.
+#     Source of truth is skills/*.md; templates/.claude/{agents,commands} and
+#     templates/agents/prompts/ are generated outputs. A compile failure aborts
+#     the sync before any copy happens (target left unchanged).
+# ---------------------------------------------------------------------------
+COMPILE_SCRIPT="$DIDIO_HOME/bin/didio-compile-skills.sh"
+if [[ -f "$COMPILE_SCRIPT" ]]; then
+  COMPILE_TARGET="claude"
+  CONFIG_LIB="$DIDIO_HOME/bin/didio-config-lib.sh"
+  if [[ -f "$CONFIG_LIB" ]]; then
+    # shellcheck source=/dev/null
+    source "$CONFIG_LIB"
+    for _role in architect developer techlead qa readiness tea t800 t1000; do
+      if [[ "$(didio_provider_for_role "$_role" 2>/dev/null || echo claude)" == "codex" ]]; then
+        COMPILE_TARGET="all"
+        break
+      fi
+    done
+  fi
+
+  COMPILE_ARGS=(--target "$COMPILE_TARGET" --output-root "$TEMPLATES")
+  if [[ $DRY_RUN -eq 1 ]]; then
+    COMPILE_ARGS+=(--dry-run)
+    echo -e "${CYAN}[COMPILE]${RESET} DRY-RUN: would run didio-compile-skills.sh ${COMPILE_ARGS[*]}"
+  else
+    echo -e "${CYAN}[COMPILE]${RESET} Refreshing template artifacts via didio compile-skills (--target $COMPILE_TARGET)..."
+  fi
+
+  if ! bash "$COMPILE_SCRIPT" "${COMPILE_ARGS[@]}"; then
+    echo -e "${RED}ERROR:${RESET} didio compile-skills failed — aborting sync before any copy (target unchanged)." >&2
+    exit 1
+  fi
+else
+  echo -e "${YELLOW}[WARN]${RESET} $COMPILE_SCRIPT not found — skipping compile step, syncing checked-in templates as-is" >&2
+fi
+
+# ---------------------------------------------------------------------------
 # 3. Sync .claude/agents/
 # ---------------------------------------------------------------------------
 sync_dir "$TEMPLATES/.claude/agents" "$TARGET/.claude/agents"
 
 # ---------------------------------------------------------------------------
-# 4. Sync .claude/commands/ (source: templates/commands/ — not under .claude/)
+# 4. Sync .claude/commands/ (source: templates/.claude/commands/ — compiled
+#    output of `didio compile-skills`)
 # ---------------------------------------------------------------------------
-sync_dir "$TEMPLATES/commands" "$TARGET/.claude/commands"
+sync_dir "$TEMPLATES/.claude/commands" "$TARGET/.claude/commands"
 
 # ---------------------------------------------------------------------------
 # 5. Sync .claude/settings.json

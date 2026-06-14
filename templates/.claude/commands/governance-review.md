@@ -2,6 +2,11 @@
 description: Run Saruman governance review on a Gandalf decision
 ---
 
+<!-- GENERATED FILE — DO NOT EDIT.
+     Source: skills/governance-review.md
+     Regenerate with: didio compile-skills
+-->
+
 # /governance-review — Saruman Governance Review
 
 You are executing an on-demand governance review of a Gandalf decision

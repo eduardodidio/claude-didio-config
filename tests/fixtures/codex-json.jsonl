@@ -1,0 +1,8 @@
+{"id":"0","msg":{"type":"session_configured","session_id":"sess-codex-1"}}
+{"id":"1","msg":{"type":"agent_message","message":"Reading the task file."}}
+{"id":"2","msg":{"type":"exec_command_begin","command":["cat","foo.md"]}}
+{"id":"3","msg":{"type":"exec_command_end","command":["cat","foo.md"],"exit_code":0}}
+{"id":"4","msg":{"type":"exec_command_begin","command":["false"]}}
+{"id":"5","msg":{"type":"exec_command_end","command":["false"],"exit_code":1}}
+{"id":"6","msg":{"type":"token_count","input_tokens":100,"output_tokens":50}}
+{"id":"7","msg":{"type":"task_complete","last_agent_message":"DIDIO_DONE: developer completed F01-T11"}}

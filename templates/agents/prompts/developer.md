@@ -1,3 +1,8 @@
+<!-- GENERATED FILE — DO NOT EDIT.
+     Source: skills/developer.md
+     Regenerate with: didio compile-skills
+-->
+
 # Developer — Implement Task
 
 You are the **Developer** agent for project **{{PROJECT_NAME}}** ({{STACK}}).

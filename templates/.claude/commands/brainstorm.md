@@ -1,68 +1,80 @@
 ---
-description: Exploração divergente de um tópico ou feature — gera oportunidades, user stories, riscos e próximos passos
-argument-hint: <tópico ou descrição da feature>
+description: Gera 3–5 direções de design com trade-offs (input para /elicit-prd ou /plan-feature)
+argument-hint: "<topic>"
 ---
 
-Você é um facilitador de brainstorming estratégico para o projeto **{{PROJECT_NAME}}**.
+<!-- GENERATED FILE — DO NOT EDIT.
+     Source: skills/brainstorm.md
+     Regenerate with: didio compile-skills
+-->
 
-O usuário quer explorar: **$ARGUMENTS**
+Você é o orquestrador de `/brainstorm` no `claude-didio-config`.
 
-## Sua missão
+O usuário pediu brainstorm sobre: **$ARGUMENTS**
 
-Realize uma exploração divergente e estruturada do tópico acima. Não planeje implementação — esse é o espaço de descoberta antes da decisão.
+## Sua tarefa
 
-## Passo 1 — Entender o contexto
+1. **Analise o topic.** Se for genérico demais (≤ 2 palavras OU sem
+   contexto explícito de sistema), pergunte ao usuário via
+   `AskUserQuestion`:
+   - "Qual sistema/feature isso resolve?"
+   - "Qual restrição é mais importante: tempo / qualidade / escopo?"
+   Se `AskUserQuestion` indisponível, peça em texto e aguarde resposta.
+   Se topic já for específico, pule este passo.
 
-Leia os seguintes arquivos para contextualizar antes de gerar qualquer output:
-- `CLAUDE.md` (visão geral do projeto)
-- `docs/PRD.md` (se existir)
-- `tasks/features/000-task-index.md` (features existentes)
+2. **Gere 3 a 5 direções.** Cada uma DEVE ter exatamente este formato
+   literal:
 
-Se precisar de mais contexto, pergunte ao usuário com **AskUserQuestion** (máximo 2 perguntas, objetivas).
+   ```
+   ### Direção <N> — <título curto>
+   **Quem ganha / Quem perde:** <quem ganha>; <quem perde>
+   **Esforço estimado:** <S | M | L | XL>
+   **Risco principal:** <risco>
+   **Pré-condição:** <o que precisa estar verdadeiro>
+   ```
 
-## Passo 2 — Gerar o brainstorm
+3. **Calcule o slug.** Pegue $ARGUMENTS (sem aspas), faça lowercase,
+   troque não-alphanumérico por `-`, colapse `-+` em `-`, trim.
+   Limite a 60 chars.
 
-Produza um documento estruturado com:
+4. **Calcule a data.** `YYYYMMDD` do dia (use `Bash: date +%Y%m%d`).
 
-### 🎯 Oportunidade
-- Qual problema real esse tópico resolve?
-- Quem se beneficia? (persona, user story de alto nível)
-- Por que agora?
+5. **Crie o diretório.** `Bash: mkdir -p claude-didio-out/brainstorms`.
 
-### 💡 Possibilidades (mínimo 5)
-Liste abordagens alternativas, ângulos de implementação, variantes do escopo. Inclua opções conservadoras e ousadas.
+6. **Escreva o arquivo.** Caminho:
+   `claude-didio-out/brainstorms/<slug>-<YYYYMMDD>.md`. Conteúdo:
 
-### ⚠️ Riscos e Incertezas
-- Riscos técnicos
-- Riscos de produto (adoção, acessibilidade, narrativa)
-- Dependências desconhecidas
+   ```markdown
+   # Brainstorm — <topic original>
 
-### 🔗 Conexões com o projeto
-- Features existentes impactadas (cruze com 000-task-index.md)
-- Oportunidades de reutilização de código/sistemas
-- Conflitos potenciais
+   _Gerado em <YYYY-MM-DD> por /brainstorm._
 
-### 🚀 Próximos passos sugeridos
-- [ ] Pesquisar: `/research <subtópico>` para aprofundar X
-- [ ] Formalizar: `/product-brief <FXX> docs/research/brainstorm-<slug>.md`
-- [ ] Executar: `/create-feature <FXX> <descrição curta>`
+   ## Contexto
+   <1 parágrafo: sistema/restrições aprendidos no passo 1, ou "topic já
+    específico, sem clarificação adicional">
 
-## Passo 3 — Salvar output
+   ## Direções
 
-Salve o documento em `docs/research/brainstorm-<slug>.md` onde `<slug>` é o tópico em kebab-case.
+   ### Direção 1 — ...
+   ...
 
-Use este cabeçalho:
-```
----
-feature: brainstorm
-topic: <tópico original>
-date: <data atual YYYY-MM-DD>
-status: draft
----
-```
+   ### Direção 5 — ...
+   ...
+   ```
 
-Ao final, informe ao usuário o path do arquivo gerado e sugira o próximo passo (`/research` ou `/product-brief`).
+7. **Reporte ao usuário.** Mensagem final em texto:
 
----
+   ```
+   ✅ Brainstorm escrito: claude-didio-out/brainstorms/<slug>-<YYYYMMDD>.md
+   Próximo passo sugerido:
+     • /research "<topic>"  — para validar com precedentes/blog posts
+     • /product-brief       — para fundir com research existente
+   ```
 
-(c) 2026 Blind Studios. Todos os direitos reservados.
+## Regras (não-negociáveis)
+
+- **NUNCA** dispare agentes externos via didio. Tudo roda no contexto
+  deste prompt — sem run-wave, sem subprocess.
+- **NUNCA** escreva fora de `claude-didio-out/` ou crie `.gitkeep`.
+- **SEMPRE** entre 3 e 5 direções (nem 2, nem 6+).
+- **SEMPRE** as 5 facetas literais por direção (ordenadas como acima).

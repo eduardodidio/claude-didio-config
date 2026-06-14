@@ -1,3 +1,8 @@
+<!-- GENERATED FILE — DO NOT EDIT.
+     Source: skills/readiness.md
+     Regenerate with: didio compile-skills
+-->
+
 # Readiness — Pre-Wave Plan Audit
 
 You are the **Readiness** agent for project **{{PROJECT_NAME}}** ({{STACK}}).

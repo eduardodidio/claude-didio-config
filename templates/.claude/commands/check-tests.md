@@ -1,91 +1,69 @@
 ---
-description: Audita cobertura de testes de uma feature — compara test-plan.md do TEA contra testes implementados
+description: Re-rodar TEA (Test Architect) numa feature existente para regenerar `<FXX>-test-plan.md`
 argument-hint: <FXX>
 ---
 
-Você é um auditor de qualidade de testes para o projeto **{{PROJECT_NAME}}**.
+<!-- GENERATED FILE — DO NOT EDIT.
+     Source: skills/check-tests.md
+     Regenerate with: didio compile-skills
+-->
 
-Feature a auditar: **$ARGUMENTS**
+You are orchestrating the **TEA gate** for feature **$ARGUMENTS** in
+project **{{PROJECT_NAME}}**.
 
-## Sua missão
+## Pipeline
 
-Verificar se os testes implementados para a feature cobrem o que o TEA planejou em `<FXX>-test-plan.md`.
+1. Extract `<FXX>` from `$ARGUMENTS`. If missing, abort with:
+   `usage: /check-tests <FXX> (e.g. /check-tests F13)`
+2. Resolve the feature directory:
+   ```bash
+   FEATURE_DIR=$(ls -d tasks/features/<FXX>-* 2>/dev/null | head -n1)
+   ```
+   If empty, abort: `feature directory not found for <FXX>`.
+3. Read `didio.config.json:tea.enabled`. If `false`, print:
+   `[check-tests] tea.enabled=false in config — running anyway by manual invocation`
+   and continue. (Manual invocation overrides the global flag because
+   the user explicitly asked for it.)
+4. Check `DIDIO_SKIP_TEA`. If `1`, abort:
+   `[check-tests] DIDIO_SKIP_TEA=1 — bypass active, refusing to run`
+5. If `<FXX>-test-plan.md` already exists, back it up:
+   ```bash
+   cp "$FEATURE_DIR/<FXX>-test-plan.md" "claude-didio-out/tea/<FXX>-test-plan.$(date +%s).bak"
+   ```
+6. Spawn TEA:
+   ```bash
+   didio spawn-agent tea <FXX> "$FEATURE_DIR/<FXX>-README.md"
+   ```
+7. After it finishes, verify `<FXX>-test-plan.md` exists in
+   `$FEATURE_DIR`. Verify it has all 7 sections per
+   `docs/F13-test-plan-spec.md` (header, Fixtures, Harnesses, Perf
+   budgets, Mocks, Test scenarios resumo, Anotações).
+8. Report verdict:
+   - `WRITTEN` if first time.
+   - `UPDATED` if re-run (backup exists).
+   - `FAILED` if spawn exit code ≠ 0 or the file is missing.
 
-## Passo 1 — Localizar artefatos
+## Bypass de emergência
 
-```
-tasks/features/<FXX>-*/
-  <FXX>-README.md       — acceptance criteria
-  <FXX>-test-plan.md   — plano do TEA (se existir)
-  <FXX>-T*.md          — tasks implementadas
-```
+Para pular a TEA gate em emergência, defina `DIDIO_SKIP_TEA=1` no env
+antes de rodar `/create-feature` ou `/didio` opção 1. O comando
+`/check-tests` se recusa a rodar com esse bypass ativo (não faz sentido
+manual invocation com bypass — desative `DIDIO_SKIP_TEA` primeiro).
 
-Se `<FXX>-test-plan.md` não existir, TEA não rodou para esta feature. Reporte isso e prossiga auditando apenas os acceptance criteria do README.
+**Nunca pule silenciosamente.** O orquestrador deve imprimir um aviso
+amarelo visível quando o bypass está ativo.
 
-## Passo 2 — Mapear testes existentes
+## Ligando TEA
 
-Para cada test file listado no test-plan.md (seção "Test File Map"):
-1. Verifique se o arquivo existe no disco
-2. Leia o arquivo e identifique quais cenários estão cobertos
-3. Compare com os cenários esperados no test-plan.md (seção "Coverage Map")
+Por padrão, `tea.enabled` é `false` em `didio.config.json`. Para ativar
+TEA globalmente (rodando automaticamente em todas as Waves):
 
-Se não há test-plan.md, busque test files relacionados à feature via:
-```bash
-grep -r "F<NN>\|<feature-slug>" blind-warrior-frontend/src --include="*.test.*" -l
-grep -r "F<NN>\|<feature-slug>" blind-warrior-backend/src/test -l 2>/dev/null
-```
-
-## Passo 3 — Verificar fixtures
-
-Para cada fixture listado no test-plan.md:
-- Existe em `tests/fixtures/`?
-- É importado pelos test files corretos?
-
-## Passo 4 — Verificar performance budgets
-
-Para cada budget no test-plan.md:
-- Existe algum teste com `fake timers` ou assertions de latência?
-- Se não, é um gap de cobertura.
-
-## Passo 5 — Relatório
-
-Produza um relatório no formato:
-
-```markdown
-# Test Audit — <FXX>: <Feature Title>
-
-**Data:** <YYYY-MM-DD>
-**TEA plan presente:** sim/não
-
-## Cobertura por Acceptance Criterion
-
-| CA | Esperado | Implementado | Status |
-|----|----------|--------------|--------|
-| CA01 | <cenários TEA> | <testes encontrados> | ✅ / ⚠️ / ❌ |
-
-## Gaps detectados
-
-- ❌ <cenário ausente>: não encontrado em nenhum test file
-
-## Fixtures
-
-- ✅ / ❌ `tests/fixtures/<path>` — presente/ausente
-
-## Performance Budgets
-
-- ✅ / ❌ <operação> < <budget>ms — testado/não testado
-
-## Sumário
-
-| Total CAs | Cobertos | Parciais | Ausentes |
-|-----------|----------|----------|---------|
-| N | N | N | N |
-
-**Recomendação:** APPROVED / GAPS FOUND (lista de ações)
+```json
+{
+  "tea": { "enabled": true }
+}
 ```
 
-Salve o relatório em `tasks/features/<FXX>-*/check-tests-<data>.md` e mostre ao usuário.
-
----
-
-(c) 2026 Blind Studios. Todos os direitos reservados.
+**Override por feature:** atualmente não suportado — flag é global.
+Se precisar desligar para uma feature específica, use
+`DIDIO_SKIP_TEA=1 /create-feature ...`.

@@ -3,6 +3,11 @@ description: Compila precedentes/blog posts/docs sobre um topic, com budget de W
 argument-hint: "<topic>"
 ---
 
+<!-- GENERATED FILE — DO NOT EDIT.
+     Source: skills/research.md
+     Regenerate with: didio compile-skills
+-->
+
 Você é o orquestrador de `/research` no `claude-didio-config`.
 
 O usuário pediu pesquisa sobre: **$ARGUMENTS**

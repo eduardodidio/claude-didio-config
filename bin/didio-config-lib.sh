@@ -88,6 +88,47 @@ print(role_cfg.get('model', ''))
 " 2>/dev/null || true
 }
 
+# Returns the provider for a given role, respecting economy mode. Default "claude".
+didio_provider_for_role() {
+  local role="$1"
+  local config
+  config="$(didio_find_config)"
+  [[ -z "$config" ]] && echo "claude" && return 0
+  python3 -c "
+import json
+with open('$config') as f:
+    c = json.load(f)
+economy = c.get('economy', False)
+key = 'models_economy' if economy else 'models'
+models = c.get(key, c.get('models', {}))
+role_cfg = models.get('$role', {})
+print(role_cfg.get('provider', 'claude'))
+" 2>/dev/null || echo "claude"
+}
+
+# Returns the CLI binary for a given provider. Default = the provider name itself.
+didio_provider_bin() {
+  local provider="$1"
+  local config
+  config="$(didio_find_config)"
+  [[ -z "$config" ]] && echo "$provider" && return 0
+  python3 -c "
+import json
+with open('$config') as f:
+    c = json.load(f)
+providers = c.get('providers', {})
+provider_cfg = providers.get('$provider', {})
+print(provider_cfg.get('bin', '$provider'))
+" 2>/dev/null || echo "$provider"
+}
+
+# Returns the provider-correct model id for a given role, respecting economy
+# mode. The model id is already provider-namespaced by the config author; this
+# helper exists so callers don't assume Claude tiers.
+didio_provider_model_for_role() {
+  didio_model_for_role "$1"
+}
+
 # Returns the --fallback-model value for a given role, respecting economy mode.
 didio_fallback_for_role() {
   local role="$1"
