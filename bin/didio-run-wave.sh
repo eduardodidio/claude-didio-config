@@ -16,6 +16,14 @@
 
 set -euo pipefail
 
+# Normalize DIDIO_HOME once up front so every later bare "$DIDIO_HOME"
+# reference is safe under `set -u`. Without this, running `didio run-wave`
+# with DIDIO_HOME unexported (e.g. a fresh shell or CI) crashed with
+# "DIDIO_HOME: unbound variable" at the post-Wave summary spawn. Supersedes
+# the obsolete per-line fix in 333ae5c (that line was removed by the F01
+# refactor, which reintroduced bare refs elsewhere).
+DIDIO_HOME="${DIDIO_HOME:-$HOME/.claude-didio-config}"
+
 # --resume short-circuit: delegate to resume-pending and exec away
 if [[ "${1:-}" = "--resume" ]]; then
   FEATURE_TO_RESUME="${2:?--resume requires a feature id}"
