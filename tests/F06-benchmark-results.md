@@ -1,15 +1,13 @@
 # F06 — Token Benchmark Results
 
-Generated: 2026-06-14T12:55:19Z
+Generated: 2026-09-21T14:39:25Z
 Token proxy: bytes / 4 (GPT heuristic, ±10%).
+
+> **Note:** second-brain MCP not detected in `claude mcp list`.
+> The `second-brain bytes` column is an **analytical estimate**
+> (top-10 shortest sections, +60B JSON overhead per hit) — not a
+> live measurement. Rerun after MCP is wired up for ground-truth.
 
 | Role | Local bytes | Local tokens | Second-brain bytes | Second-brain tokens | Delta % |
 |------|-------------|--------------|--------------------|---------------------|---------|
-| architect | 11630 | 2907 | 2400 | 600 | 79% |
-| developer | 20025 | 5006 | 2400 | 600 | 88% |
-| techlead | 20050 | 5012 | 2400 | 600 | 88% |
-| qa | 16780 | 4195 | 2400 | 600 | 85% |
-
-**Average delta across roles:** 85%
-
-**Acceptance criterion (≥ 50 % reduction):** PASS
+| architect | 11711 | 2927 | 2400 | 600 | 79% |
