@@ -184,7 +184,7 @@ def write_atomic(path, content):
     os.makedirs(os.path.dirname(path), exist_ok=True)
     fd, tmp_path = tempfile.mkstemp(dir=os.path.dirname(path), prefix=".compile-skills-")
     try:
-        with os.fdopen(fd, "w") as f:
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
             f.write(content)
         os.replace(tmp_path, path)
     except Exception:
@@ -200,7 +200,7 @@ def discover_skill_files(skills_dir):
         if not fname.endswith(".md"):
             continue
         path = os.path.join(skills_dir, fname)
-        with open(path, "r") as f:
+        with open(path, "r", encoding="utf-8") as f:
             head = f.read(4)
         if head == "---\n":
             result.append(fname)
@@ -214,7 +214,7 @@ def build_agents_md(role_prompts, output_root):
 
     claude_md = os.path.join(output_root, "CLAUDE.md")
     if os.path.exists(claude_md):
-        with open(claude_md, "r") as f:
+        with open(claude_md, "r", encoding="utf-8") as f:
             project_instructions = f.read().strip("\n")
         toc.append("- [Project Instructions](#project-instructions)")
         sections.append("## Project Instructions\n\n" + project_instructions + "\n")
@@ -238,7 +238,7 @@ def compile_target(target, skill_files, skills_dir, output_root, codex_prompts_d
 
     for fname in skill_files:
         src_path = os.path.join(skills_dir, fname)
-        with open(src_path, "r") as f:
+        with open(src_path, "r", encoding="utf-8") as f:
             text = f.read()
 
         meta, body = parse_front_matter(text, fname)
@@ -263,7 +263,7 @@ def compile_target(target, skill_files, skills_dir, output_root, codex_prompts_d
 
         existing = None
         if os.path.exists(out_path):
-            with open(out_path, "r") as f:
+            with open(out_path, "r", encoding="utf-8") as f:
                 existing = f.read()
 
         if existing == content:
@@ -339,7 +339,7 @@ def main(argv):
 
                 existing = None
                 if os.path.exists(agents_path):
-                    with open(agents_path, "r") as f:
+                    with open(agents_path, "r", encoding="utf-8") as f:
                         existing = f.read()
 
                 if existing != agents_content:
