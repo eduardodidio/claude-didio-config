@@ -564,6 +564,7 @@ GITIGNORE_ENTRIES=(
   "logs/governance/*.json"
   "archive/"
   "claude-didio-out/"
+  "graphify-out/"
 )
 APPENDED_GITIGNORE=0
 declare -a NEW_GITIGNORE_ENTRIES=()

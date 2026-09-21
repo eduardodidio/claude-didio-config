@@ -1,0 +1,30 @@
+%%{ init: { "theme": "dark" } }%%
+flowchart TD
+    Start([User wants Graphify/RTK]) --> CheckInstall{Tool installed?}
+
+    CheckInstall -->|No| RunInstall["didio install-graphify<br/>OR didio install-rtk"]
+    RunInstall --> PlatformDetect{Platform?}
+    PlatformDetect -->|Graphify| UV["uv tool install graphifyy<br/>graphify install"]
+    PlatformDetect -->|RTK + Windows| Winget["winget install rtk-ai.rtk"]
+    PlatformDetect -->|RTK + macOS/Linux| Brew["brew install rtk"]
+    UV --> SanityCheck["Sanity: tool --version"]
+    Winget --> SanityCheck
+    Brew --> SanityCheck
+    SanityCheck --> EnableConfig
+
+    CheckInstall -->|Yes| EnableConfig["Enable in didio.config.json<br/>graphify.enabled: true<br/>OR rtk.enabled: true"]
+
+    EnableConfig --> SmokeCheck["Smoke check<br/>(automatic on wave start)"]
+    SmokeCheck --> Available{Binary on PATH?}
+    Available -->|Yes| Ready([Tool ready])
+    Available -->|No| Warn["WARN: degraded gracefully<br/>(pipeline continues)"]
+
+    Ready --> UseGraphify["didio graphify query <file><br/>Nudge on Read (hook)"]
+    Ready --> UseRTK["RTK auto-compresses<br/>bash output (user hook)"]
+
+    subgraph RTKPostInstall["RTK post-install (manual)"]
+        RTKInit["User runs: rtk init -g<br/>(modifies ~/.claude/settings.json)"]
+    end
+
+    EnableConfig -->|RTK only| RTKInit
+    RTKInit --> UseRTK

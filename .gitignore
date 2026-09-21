@@ -21,6 +21,9 @@ dashboard/.vite/
 # F09 — output isolation + archived features
 archive/
 claude-didio-out/
+
+# F28 — Graphify knowledge graph output
+graphify-out/
 logs/decisions/*.json
 logs/decisions/_requests/
 logs/governance/*.json

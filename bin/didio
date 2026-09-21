@@ -26,6 +26,10 @@ case "$SUBCMD" in
   t1000)           exec "$DIDIO_HOME/bin/didio-t1000.sh" "$@" ;;
   decisions)       exec "$DIDIO_HOME/bin/didio-decisions.sh" "$@" ;;
   meta-metrics)    exec "$DIDIO_HOME/bin/didio-meta-metrics.sh" "$@" ;;
+  graphify)          exec "$DIDIO_HOME/bin/didio-graphify.sh" "$@" ;;
+  install-graphify)  exec "$DIDIO_HOME/bin/didio-install-graphify.sh" "$@" ;;
+  rtk)               exec "$DIDIO_HOME/bin/didio-rtk.sh" "$@" ;;
+  install-rtk)       exec "$DIDIO_HOME/bin/didio-install-rtk.sh" "$@" ;;
   menu|"")         exec "$DIDIO_HOME/bin/didio-menu.sh" "$@" ;;
   version)       echo "didio $(cat "$DIDIO_HOME/VERSION" 2>/dev/null || echo dev)" ;;
   help|-h|--help)
@@ -99,6 +103,23 @@ Usage:
   didio meta-metrics [--root <path>]
       Compute meta-agent KPI report from live logs (Gandalf + Saruman).
       Writes logs/agents/meta-metrics.json and prints a text report.
+
+  didio graphify [args...]
+      Run graphify CLI (knowledge graph). Requires graphify.enabled=true
+      in didio.config.json and graphify binary on PATH.
+      Install with: didio install-graphify
+
+  didio install-graphify
+      Install the Graphify CLI via uv tool install graphifyy.
+      Downloads tree-sitter grammars automatically.
+
+  didio rtk [args...]
+      Run RTK CLI (context compression). Requires rtk.enabled=true
+      in didio.config.json and rtk binary on PATH.
+      Install with: didio install-rtk
+
+  didio install-rtk
+      Install the RTK CLI. Does NOT auto-run 'rtk init -g' (manual step).
 
   didio resume-pending [--feature FXX] [--dry-run] [--max-retries N]
       Scan logs/agents/_pending/ and re-spawn rate-limited jobs whose

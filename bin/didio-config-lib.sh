@@ -325,6 +325,21 @@ didio_second_brain_installed() {
   fi
 }
 
+# Returns "true" or "false". Default false (opt-in).
+didio_graphify_enabled() {
+  didio_read_config_path 'graphify.enabled' 'false'
+}
+
+# Returns the Graphify output directory. Default "graphify-out".
+didio_graphify_output_dir() {
+  didio_read_config_path 'graphify.output_dir' 'graphify-out'
+}
+
+# Returns "true" or "false". Default false (opt-in).
+didio_rtk_enabled() {
+  didio_read_config_path 'rtk.enabled' 'false'
+}
+
 # Print a summary of current config (for menu display).
 didio_config_summary() {
   local config

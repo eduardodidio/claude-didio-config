@@ -133,5 +133,14 @@
     "smoke_timeout_secs": 30,
     "install_timeout_secs": 180,
     "build_timeout_secs": 60
+  },
+  "graphify": {
+    "enabled": false,
+    "auto_index": false,
+    "output_dir": "graphify-out",
+    "query_before_read": true
+  },
+  "rtk": {
+    "enabled": false
   }
 }

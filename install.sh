@@ -109,6 +109,60 @@ if [[ -n "$SB_HOME" ]]; then
   fi
 fi
 
+# --- Graphify opt-in install (F28) ---
+GF_DECISION=""
+case "${DIDIO_INSTALL_GRAPHIFY:-}" in
+  yes|y|auto|1) GF_DECISION="install" ;;
+  no|n|0)       GF_DECISION="skip" ;;
+  *)
+    if [[ -t 0 ]]; then
+      printf '\033[1;36m[didio-install]\033[0m Install Graphify (knowledge graph for codebase navigation)? [y/N] '
+      read -r ans
+      case "${ans:-N}" in
+        y|Y|yes|YES) GF_DECISION="install" ;;
+        *)           GF_DECISION="skip" ;;
+      esac
+    else
+      GF_DECISION="skip"
+    fi
+    ;;
+esac
+
+if [[ "$GF_DECISION" == "install" && -x "$DIDIO_HOME/bin/didio-install-graphify.sh" ]]; then
+  if bash "$DIDIO_HOME/bin/didio-install-graphify.sh"; then
+    say "Graphify installed successfully"
+  else
+    warn "Graphify installation failed — run 'didio install-graphify' later"
+  fi
+fi
+
+# --- RTK opt-in install (F28) ---
+RTK_DECISION=""
+case "${DIDIO_INSTALL_RTK:-}" in
+  yes|y|auto|1) RTK_DECISION="install" ;;
+  no|n|0)       RTK_DECISION="skip" ;;
+  *)
+    if [[ -t 0 ]]; then
+      printf '\033[1;36m[didio-install]\033[0m Install RTK (context compression for bash output)? [y/N] '
+      read -r ans
+      case "${ans:-N}" in
+        y|Y|yes|YES) RTK_DECISION="install" ;;
+        *)           RTK_DECISION="skip" ;;
+      esac
+    else
+      RTK_DECISION="skip"
+    fi
+    ;;
+esac
+
+if [[ "$RTK_DECISION" == "install" && -x "$DIDIO_HOME/bin/didio-install-rtk.sh" ]]; then
+  if bash "$DIDIO_HOME/bin/didio-install-rtk.sh"; then
+    say "RTK installed successfully"
+  else
+    warn "RTK installation failed — run 'didio install-rtk' later"
+  fi
+fi
+
 cat <<EOF
 
   ✓ didio installed at $DIDIO_HOME

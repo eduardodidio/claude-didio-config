@@ -1,0 +1,47 @@
+%%{ init: { "theme": "dark" } }%%
+flowchart TB
+    subgraph Framework["claude-didio-config"]
+        Config["didio.config.json<br/>graphify.enabled<br/>rtk.enabled"]
+        ConfigLib["didio-config-lib.sh<br/>didio_graphify_enabled()<br/>didio_rtk_enabled()"]
+        PreTool["didio-pre-tool.sh<br/>(PreToolUse hook)"]
+        SmokeGF["didio-graphify-smoke.sh"]
+        SmokeRTK["didio-rtk-smoke.sh"]
+        WrapGF["didio-graphify.sh"]
+        WrapRTK["didio-rtk.sh"]
+        InstGF["didio-install-graphify.sh"]
+        InstRTK["didio-install-rtk.sh"]
+        CLI["bin/didio<br/>(case/esac router)"]
+    end
+
+    subgraph External["External Tools"]
+        Graphify["graphify CLI<br/>(tree-sitter AST → knowledge graph)"]
+        RTK["rtk CLI<br/>(Rust context compression proxy)"]
+    end
+
+    subgraph Hooks["Hook Layers"]
+        ProjectHooks["Project-level hooks<br/>(.claude/settings.json)<br/>session guard + graphify nudge"]
+        UserHooks["User-level hooks<br/>(~/.claude/settings.json)<br/>RTK compression"]
+    end
+
+    Config --> ConfigLib
+    ConfigLib --> PreTool
+    ConfigLib --> SmokeGF
+    ConfigLib --> SmokeRTK
+    ConfigLib --> WrapGF
+    ConfigLib --> WrapRTK
+
+    CLI --> WrapGF
+    CLI --> WrapRTK
+    CLI --> InstGF
+    CLI --> InstRTK
+
+    WrapGF --> Graphify
+    WrapRTK --> RTK
+
+    InstGF -->|"uv tool install graphifyy"| Graphify
+    InstRTK -->|"winget/brew install"| RTK
+
+    PreTool -->|"nudge on Read .ts/.py/..."| Graphify
+    RTK -->|"rtk init -g"| UserHooks
+
+    ProjectHooks -.->|"coexist (no conflict)"| UserHooks

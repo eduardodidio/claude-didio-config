@@ -646,5 +646,73 @@ Para usar `provider: "codex"` em um papel:
   reset, o campo aparece como `n/a` em vez de erro.
 
 Veja `docs/adr/0002-multi-provider-driver-architecture.md` e
-`docs/adr/0003-neutral-skill-compile-model.md` para as decisões de
+`docs/adr/0003-neutral-skill-compile-model.md` para as decisoes de
 arquitetura.
+
+---
+
+## Integracoes externas: Graphify e RTK (F28)
+
+Dois CLIs externos complementam o framework como extensoes **opt-in**:
+
+### Graphify (knowledge graph do codebase)
+
+Gera um knowledge graph via tree-sitter AST. Agentes consultam o grafo
+antes de ler arquivos, navegando com mais precisao e menos tokens.
+
+```bash
+# Instalar
+didio install-graphify
+
+# Habilitar no projeto
+# Em didio.config.json: "graphify": { "enabled": true }
+
+# Usar
+didio graphify index .          # indexar o codebase
+didio graphify query MyClass    # consultar o grafo
+```
+
+Quando habilitado com `query_before_read: true`, o hook PreToolUse emite
+um nudge sugerindo consultar o grafo antes de ler arquivos de codigo
+(throttled: 1x por arquivo por sessao).
+
+### RTK (compressao de contexto)
+
+Proxy Rust que comprime output de comandos bash antes de chegar no
+contexto do LLM (ate 90% de reducao). So afeta Bash tool calls.
+
+```bash
+# Instalar
+didio install-rtk
+
+# Habilitar compressao (passo manual — modifica ~/.claude/settings.json)
+rtk init -g
+
+# Verificar savings
+rtk gain
+```
+
+RTK opera no nivel usuario (`~/.claude/settings.json`), coexistindo sem
+conflito com os hooks projeto-level do didio. O framework nunca executa
+`rtk init -g` automaticamente.
+
+### Configuracao
+
+Ambos seguem o padrao opt-in (default: desabilitado):
+
+```json
+{
+  "graphify": {
+    "enabled": false,
+    "auto_index": false,
+    "output_dir": "graphify-out",
+    "query_before_read": true
+  },
+  "rtk": {
+    "enabled": false
+  }
+}
+```
+
+Veja `docs/adr/0006-external-tool-integrations.md` e
+`docs/adr/0007-rtk-hook-coexistence.md` para as decisoes de arquitetura.

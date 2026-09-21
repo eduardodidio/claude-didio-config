@@ -102,8 +102,42 @@ fi
 # hook. If the regex couldn't find a tool name (odd formatting, escaped chars),
 # TOOL_NAME is empty, the case below doesn't match, and we fall through to the
 # full evaluation — same observable behavior, just no whitelist shortcut.
+#
+# Graphify nudge (F28): for Read tool calls on source files, emit a nudge
+# systemMessage BEFORE the whitelist exit. The nudge never blocks (always
+# prints to stdout then falls through to exit 0).
+if [[ "$TOOL_NAME" == "Read" ]]; then
+  # Source the config lib for the nudge check. If it fails, skip silently.
+  # shellcheck disable=SC1090
+  if source "$DIDIO_HOME/bin/didio-config-lib.sh" 2>/dev/null; then
+    _GF_ENABLED="$(didio_read_config_path graphify.enabled false 2>/dev/null || echo false)"
+    _GF_QUERY="$(didio_read_config_path graphify.query_before_read true 2>/dev/null || echo true)"
+    if [[ "$_GF_ENABLED" == "true" && "$_GF_QUERY" == "true" ]] && command -v graphify >/dev/null 2>&1; then
+      _READ_PATH=""
+      if [[ "$STDIN_BUF" =~ \"file_path\"[[:space:]]*:[[:space:]]*\"([^\"]*)\" ]]; then
+        _READ_PATH="${BASH_REMATCH[1]}"
+      fi
+      if [[ -n "$_READ_PATH" ]]; then
+        case "$_READ_PATH" in
+          *.ts|*.tsx|*.js|*.jsx|*.py|*.go|*.rs|*.java|*.rb|*.cpp|*.c|*.h|*.cs|*.swift|*.kt|*.scala|*.php)
+            _NUDGE_DIR="/tmp/didio-graphify-nudged-$$"
+            mkdir -p "$_NUDGE_DIR" 2>/dev/null || true
+            _NUDGE_FILE="$_NUDGE_DIR/$(echo "$_READ_PATH" | tr '/' '_')"
+            if [[ ! -f "$_NUDGE_FILE" ]]; then
+              touch "$_NUDGE_FILE" 2>/dev/null || true
+              _BASENAME="$(basename "$_READ_PATH")"
+              printf '{"systemMessage":"Graphify is available. Consider running `didio graphify query %s` to explore the knowledge graph for this file before reading it directly."}\n' "$_BASENAME"
+            fi
+            ;;
+        esac
+      fi
+    fi
+  fi
+  exit 0
+fi
+
 case "$TOOL_NAME" in
-  Read|Grep|Glob|LS|TodoWrite|TaskGet|TaskList|TaskOutput|ToolSearch)
+  Grep|Glob|LS|TodoWrite|TaskGet|TaskList|TaskOutput|ToolSearch)
     exit 0
     ;;
 esac
