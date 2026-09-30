@@ -499,8 +499,67 @@ if [[ ! -f "$SRC_CFG" ]]; then
 elif [[ ! -f "$DST_CFG" ]]; then
   if [[ $DRY_RUN -eq 0 ]]; then
     cp "$SRC_CFG" "$DST_CFG"
+
+    # --- Interactive prompts: Gandalf Gate & TEA (default: enabled) ---
+    # Gandalf Gate (t800) — strategic orchestrator that validates decisions
+    # before features proceed, with optional Saruman (t1000) governance review.
+    # TEA — Test Architect agent that produces structured test plans before
+    # developers write tests.
+    GANDALF_ENABLED=true
+    TEA_ENABLED=true
+
+    if [[ -t 0 ]]; then
+      echo ""
+      echo -e "${BOLD}Optional agents configuration:${RESET}"
+      echo ""
+
+      echo -e "${CYAN}Gandalf Gate (t800/t1000)${RESET} — meta-agente estrategico que valida"
+      echo -e "  decisoes antes de features serem executadas. Inclui o Saruman (t1000)"
+      echo -e "  como revisao de governanca independente. Adiciona ~2-4 min por feature"
+      echo -e "  mas garante decisoes estruturadas e auditaveis."
+      printf "${CYAN}[didio-install]${RESET} Ativar Gandalf Gate? [Y/n] "
+      read -r ans_gandalf
+      case "${ans_gandalf:-Y}" in
+        n|N|no|NO) GANDALF_ENABLED=false ;;
+      esac
+
+      echo ""
+      echo -e "${CYAN}TEA (Test Architect)${RESET} — agente que produz um plano de testes"
+      echo -e "  estruturado (fixtures, harnesses, mocks, cenarios) antes dos devs"
+      echo -e "  escreverem os testes. Garante cobertura consistente e evita retrabalho."
+      printf "${CYAN}[didio-install]${RESET} Ativar TEA? [Y/n] "
+      read -r ans_tea
+      case "${ans_tea:-Y}" in
+        n|N|no|NO) TEA_ENABLED=false ;;
+      esac
+      echo ""
+    else
+      # Non-interactive: respect env vars, default to enabled
+      case "${DIDIO_GANDALF_GATE:-yes}" in
+        no|n|0) GANDALF_ENABLED=false ;;
+      esac
+      case "${DIDIO_TEA:-yes}" in
+        no|n|0) TEA_ENABLED=false ;;
+      esac
+    fi
+
+    # Apply choices to the copied config
+    if command -v python3 &>/dev/null; then
+      python3 - "$DST_CFG" "$GANDALF_ENABLED" "$TEA_ENABLED" <<'PY'
+import json, sys
+cfg_path, gandalf, tea = sys.argv[1], sys.argv[2] == "true", sys.argv[3] == "true"
+with open(cfg_path) as f:
+    cfg = json.load(f)
+cfg.setdefault("tea", {})["enabled"] = tea
+cfg.setdefault("meta_agents", {}).setdefault("t800", {})["enabled"] = gandalf
+cfg.setdefault("meta_agents", {}).setdefault("t1000", {})["enabled"] = gandalf
+with open(cfg_path, "w") as f:
+    json.dump(cfg, f, indent=2)
+    f.write("\n")
+PY
+    fi
   fi
-  log_action "ADDED" "didio.config.json"
+  log_action "ADDED" "didio.config.json (gandalf=${GANDALF_ENABLED:-true}, tea=${TEA_ENABLED:-true})"
 else
   MERGE_CFG_RESULT=$(python3 - "$SRC_CFG" "$DST_CFG" "$DRY_RUN" <<'PY'
 import json, sys
