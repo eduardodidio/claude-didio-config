@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::PathBuf;
 use std::process::Command;
-use tauri::State;
+use tauri::{Emitter, State};
 
 use crate::notifications::AppState;
 
