@@ -28,6 +28,11 @@ logs/decisions/*.json
 logs/decisions/_requests/
 logs/governance/*.json
 
+# F30 — Kanban board runtime flag/action files (preserve directories)
+logs/agents/flags/*.json
+logs/agents/actions/*.json
+logs/agents/actions/archive/*.json
+
 # Python bytecode
 __pycache__/
 *.pyc

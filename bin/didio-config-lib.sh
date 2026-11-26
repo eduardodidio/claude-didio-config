@@ -404,6 +404,42 @@ didio_find_feature_dir() {
   return 1
 }
 
+# --- Negotiation helpers ---
+
+# Returns negotiation.max_rounds. Default 3.
+didio_negotiation_max_rounds() {
+  didio_read_config_path 'negotiation.max_rounds' '3'
+}
+
+# Returns "true" or "false". Default true.
+didio_post_work_review_enabled() {
+  didio_read_config_path 'negotiation.post_work_review' 'true'
+}
+
+# --- Pipeline helpers ---
+
+# Returns "true" or "false". Default true.
+didio_pipeline_autonomous() {
+  didio_read_config_path 'pipeline.autonomous' 'true'
+}
+
+# Returns the pipeline signal directory. Default "logs/agents/signals".
+didio_pipeline_signal_dir() {
+  didio_read_config_path 'pipeline.signal_dir' 'logs/agents/signals'
+}
+
+# --- Token monitor helpers ---
+
+# Returns "true" or "false". Default true.
+didio_token_monitor_enabled() {
+  didio_read_config_path 'token_monitor.enabled' 'true'
+}
+
+# Returns token_monitor.check_interval_minutes. Default 10.
+didio_token_monitor_interval() {
+  didio_read_config_path 'token_monitor.check_interval_minutes' '10'
+}
+
 # Recommended parallelism for a model tier.
 didio_recommend_parallel() {
   local model="${1:-sonnet}"

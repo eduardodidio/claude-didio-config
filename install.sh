@@ -37,6 +37,212 @@ mkdir -p "$BIN_DIR"
 ln -sf "$DIDIO_HOME/bin/didio" "$BIN_DIR/didio"
 chmod +x "$DIDIO_HOME/bin/"*.sh "$DIDIO_HOME/bin/didio" 2>/dev/null || true
 
+# =========================================================================
+# Helper: write a key=value into didio.config.json (create if missing)
+# Usage: didio_config_set <key> <value>
+#   key uses dot notation: "persona.theme" => {"persona":{"theme":"value"}}
+# =========================================================================
+DIDIO_CONFIG="${DIDIO_HOME}/didio.config.json"
+
+didio_config_set() {
+  local key="$1" val="$2"
+  if ! command -v python3 >/dev/null 2>&1; then
+    warn "python3 not found — cannot write config key $key"
+    return 1
+  fi
+  python3 - "$DIDIO_CONFIG" "$key" "$val" <<'PYEOF'
+import json, sys, os
+path, key, val = sys.argv[1], sys.argv[2], sys.argv[3]
+# coerce booleans and integers
+if val.lower() in ("true","yes"):  val = True
+elif val.lower() in ("false","no"): val = False
+else:
+    try: val = int(val)
+    except ValueError: pass
+cfg = {}
+if os.path.isfile(path):
+    with open(path, "r", encoding="utf-8") as f:
+        cfg = json.load(f)
+parts = key.split(".")
+obj = cfg
+for p in parts[:-1]:
+    obj = obj.setdefault(p, {})
+obj[parts[-1]] = val
+with open(path, "w", encoding="utf-8") as f:
+    json.dump(cfg, f, indent=2, ensure_ascii=False)
+    f.write("\n")
+PYEOF
+}
+
+# =========================================================================
+# Non-interactive detection
+# =========================================================================
+NON_INTERACTIVE=false
+if [[ ! -t 0 ]]; then
+  NON_INTERACTIVE=true
+fi
+if [[ "${DIDIO_DEFAULTS_OK:-}" == "yes" ]]; then
+  NON_INTERACTIVE=true
+fi
+
+# --- Machine scan + parallelism (F29B) ---
+if command -v nproc >/dev/null 2>&1; then
+  CORES=$(nproc)
+elif command -v sysctl >/dev/null 2>&1; then
+  CORES=$(sysctl -n hw.ncpu 2>/dev/null || echo 4)
+else
+  CORES=${NUMBER_OF_PROCESSORS:-4}
+fi
+
+if [ "$CORES" -le 4 ]; then
+  SUGGESTED=2
+elif [ "$CORES" -le 8 ]; then
+  SUGGESTED=5
+else
+  SUGGESTED=10
+fi
+
+MAX_PARALLEL="${DIDIO_MAX_PARALLEL:-}"
+if [[ -z "$MAX_PARALLEL" ]]; then
+  if [[ "$NON_INTERACTIVE" == "true" ]]; then
+    MAX_PARALLEL=$SUGGESTED
+  else
+    say "Detected $CORES CPU cores. Recommended parallelism: $SUGGESTED"
+    printf '\033[1;36m[didio-install]\033[0m Set max_parallel to %d? [Y/n] ' "$SUGGESTED"
+    read -r ans
+    case "${ans:-Y}" in
+      n|N|no|NO)
+        printf '\033[1;36m[didio-install]\033[0m Enter max_parallel value: '
+        read -r custom_par
+        MAX_PARALLEL="${custom_par:-$SUGGESTED}"
+        ;;
+      *)
+        MAX_PARALLEL=$SUGGESTED
+        ;;
+    esac
+  fi
+fi
+didio_config_set "max_parallel" "$MAX_PARALLEL"
+say "max_parallel set to $MAX_PARALLEL"
+
+# --- Persona setup prompt (F29B) ---
+PERSONA_THEME="${DIDIO_PERSONA_THEME:-}"
+HANDLER_NAME=""
+GATEKEEPER_NAME=""
+
+if [[ -z "$PERSONA_THEME" ]]; then
+  if [[ "$NON_INTERACTIVE" == "true" ]]; then
+    PERSONA_THEME="default"
+  else
+    say "Meta-agents (Handler + GateKeeper + TEA) will be enabled by default."
+    echo ""
+    say "Would you like to customize the agent persona names?"
+    echo "  (1) Default       -- Handler / GateKeeper  [recommended]"
+    echo "  (2) Lord of Rings -- Gandalf / Saruman"
+    echo "  (3) Terminator    -- T-800 / T-1000"
+    echo "  (4) Custom        -- enter your own names"
+    printf '\033[1;36m[didio-install]\033[0m Choice [1]: '
+    read -r choice
+    case "${choice:-1}" in
+      2)
+        PERSONA_THEME="lotr"
+        HANDLER_NAME="Gandalf"
+        GATEKEEPER_NAME="Saruman"
+        ;;
+      3)
+        PERSONA_THEME="terminator"
+        HANDLER_NAME="T-800"
+        GATEKEEPER_NAME="T-1000"
+        ;;
+      4)
+        PERSONA_THEME="custom"
+        printf '\033[1;36m[didio-install]\033[0m Handler name: '
+        read -r HANDLER_NAME
+        printf '\033[1;36m[didio-install]\033[0m GateKeeper name: '
+        read -r GATEKEEPER_NAME
+        HANDLER_NAME="${HANDLER_NAME:-Handler}"
+        GATEKEEPER_NAME="${GATEKEEPER_NAME:-GateKeeper}"
+        ;;
+      *)
+        PERSONA_THEME="default"
+        HANDLER_NAME="Handler"
+        GATEKEEPER_NAME="GateKeeper"
+        ;;
+    esac
+  fi
+fi
+
+# Fill in names from theme if not already set
+case "$PERSONA_THEME" in
+  lotr)       HANDLER_NAME="${HANDLER_NAME:-Gandalf}"; GATEKEEPER_NAME="${GATEKEEPER_NAME:-Saruman}" ;;
+  terminator) HANDLER_NAME="${HANDLER_NAME:-T-800}";   GATEKEEPER_NAME="${GATEKEEPER_NAME:-T-1000}" ;;
+  *)          HANDLER_NAME="${HANDLER_NAME:-Handler}";  GATEKEEPER_NAME="${GATEKEEPER_NAME:-GateKeeper}" ;;
+esac
+
+didio_config_set "persona.theme" "$PERSONA_THEME"
+didio_config_set "persona.handler_name" "$HANDLER_NAME"
+didio_config_set "persona.gatekeeper_name" "$GATEKEEPER_NAME"
+didio_config_set "persona.configured" "true"
+say "Persona: theme=$PERSONA_THEME, handler=$HANDLER_NAME, gatekeeper=$GATEKEEPER_NAME"
+
+# --- Feature toggle confirmation (F29B) ---
+FEATURES_OK="${DIDIO_DEFAULTS_OK:-}"
+if [[ -z "$FEATURES_OK" ]]; then
+  if [[ "$NON_INTERACTIVE" == "true" ]]; then
+    FEATURES_OK="yes"
+  else
+    say "The following will be enabled by default:"
+    echo "  - Handler (strategic orchestrator)"
+    echo "  - GateKeeper (governance reviewer)"
+    echo "  - TEA (test architect)"
+    echo "  - Autonomous pipeline execution"
+    echo "  - Token budget monitoring"
+    printf '\033[1;36m[didio-install]\033[0m Accept defaults? [Y/n] '
+    read -r ans
+    case "${ans:-Y}" in
+      n|N|no|NO) FEATURES_OK="no" ;;
+      *)         FEATURES_OK="yes" ;;
+    esac
+  fi
+fi
+
+if [[ "$FEATURES_OK" == "yes" ]]; then
+  didio_config_set "features.handler" "true"
+  didio_config_set "features.gatekeeper" "true"
+  didio_config_set "features.tea" "true"
+  didio_config_set "features.autonomous_pipeline" "true"
+  didio_config_set "features.token_budget" "true"
+else
+  for feat in handler gatekeeper tea autonomous_pipeline token_budget; do
+    label="$feat"
+    printf '\033[1;36m[didio-install]\033[0m Enable %s? [Y/n] ' "$label"
+    read -r ans
+    case "${ans:-Y}" in
+      n|N|no|NO) didio_config_set "features.$feat" "false" ;;
+      *)         didio_config_set "features.$feat" "true" ;;
+    esac
+  done
+fi
+
+# --- Easter eggs opt-in (F29B) ---
+EASTER_EGGS="${DIDIO_EASTER_EGGS:-}"
+if [[ -z "$EASTER_EGGS" ]]; then
+  if [[ "$NON_INTERACTIVE" == "true" ]]; then
+    EASTER_EGGS="no"
+  else
+    printf '\033[1;36m[didio-install]\033[0m Enable themed easter eggs (fun agent phrases)? [y/N] '
+    read -r ans
+    case "${ans:-N}" in
+      y|Y|yes|YES) EASTER_EGGS="yes" ;;
+      *)           EASTER_EGGS="no" ;;
+    esac
+  fi
+fi
+didio_config_set "persona.easter_eggs" "$EASTER_EGGS"
+if [[ "$EASTER_EGGS" == "yes" ]]; then
+  say "Easter eggs enabled"
+fi
+
 # --- second-brain MCP auto-install (F24) ---
 SB_HOME=""
 if [[ -n "${DIDIO_SECOND_BRAIN_HOME:-}" && -d "$DIDIO_SECOND_BRAIN_HOME/.git" ]]; then

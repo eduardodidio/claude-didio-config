@@ -32,6 +32,17 @@ case "$SUBCMD" in
   install-graphify)  exec "$DIDIO_HOME/bin/didio-install-graphify.sh" "$@" ;;
   rtk)               exec "$DIDIO_HOME/bin/didio-rtk.sh" "$@" ;;
   install-rtk)       exec "$DIDIO_HOME/bin/didio-install-rtk.sh" "$@" ;;
+  action-listener)   exec "$DIDIO_HOME/bin/didio-action-listener.sh" "$@" ;;
+  post-review)       exec "$DIDIO_HOME/bin/didio-post-review.sh" "$@" ;;
+  flag)              exec "$DIDIO_HOME/bin/didio-flag.sh" "$@" ;;
+  token-monitor)     exec "$DIDIO_HOME/bin/didio-token-monitor.sh" "$@" ;;
+  pipeline-status)   exec "$DIDIO_HOME/bin/didio-pipeline-status.sh" "$@" ;;
+  pipeline-pause)    exec "$DIDIO_HOME/bin/didio-pipeline-pause.sh" "$@" ;;
+  pipeline-resume)   exec "$DIDIO_HOME/bin/didio-pipeline-resume.sh" "$@" ;;
+  run-pipeline)      exec "$DIDIO_HOME/bin/didio-run-pipeline.sh" "$@" ;;
+  learnings-export)  exec "$DIDIO_HOME/bin/didio-learnings-export.sh" "$@" ;;
+  learnings-import)  exec "$DIDIO_HOME/bin/didio-learnings-import.sh" "$@" ;;
+  learnings-sync)    exec "$DIDIO_HOME/bin/didio-learnings-sync.sh" "$@" ;;
   menu|"")         exec "$DIDIO_HOME/bin/didio-menu.sh" "$@" ;;
   version)       echo "didio $(cat "$DIDIO_HOME/VERSION" 2>/dev/null || echo dev)" ;;
   help|-h|--help)
@@ -126,10 +137,66 @@ Usage:
   didio install-rtk
       Install the RTK CLI. Does NOT auto-run 'rtk init -g' (manual step).
 
+  didio post-review <feature-id>
+      Run post-work review gate after QA completes. Handler reviews the
+      feature output, then GateKeeper validates via negotiation loop.
+      Disabled when negotiation.post_work_review=false.
+      Exit 0=approved, 2=escalated (human review needed).
+
+  didio flag raise <feature> <type> [task] [message]
+  didio flag resolve <feature> <type> [task]
+  didio flag list [--feature FXX] [--unresolved]
+  didio flag is-blocked <feature> [task]
+      Manage pipeline flags (blocked, needs_review, escalated, warning, info).
+      Flags are stored as JSON in logs/agents/flags/.
+
+  didio action-listener [--interval SECS] [--once]
+      Poll logs/agents/actions/ for operator action JSON files and
+      process them (unblock, approve, skip, pause, resume, cancel).
+      Processed files are archived to logs/agents/actions/archive/.
+      --once processes pending actions and exits (no loop).
+
+  didio run-pipeline <feature-id> <brief-or-file> [--skip-handler] [--skip-readiness] [--skip-tea] [--skip-post-review]
+      Run the FULL autonomous pipeline for a feature:
+      Handler -> Architect -> Readiness -> TEA -> Waves -> TechLead -> QA -> Post-review.
+      Tracks state in logs/agents/pipeline-<FXX>.state.json.
+      Supports pause/resume/cancel via signal files in logs/agents/signals/.
+      Exit 0=success, 1=failed, 2=escalated, 3=token-budget-paused, 4=cancelled.
+
+  didio token-monitor [--check-only | --suggest]
+      Analyze token budget, project depletion, and suggest scheduling
+      for pipeline resumption.  --check-only prints OK/WARNING/CRITICAL.
+      --suggest outputs JSON with at/cron scheduling commands.
+
+  didio learnings-export [--output FILE] [--role ROLE] [--since DATE]
+      Export agent learnings from memory/agent-learnings/*.md to JSON.
+      Default output: logs/agents/shared-learnings-export.json
+
+  didio learnings-import <input-file.json> [--role ROLE] [--dry-run]
+      Import shared learnings from a JSON file into local memory files.
+      Appends new lessons under "## Imported Learnings" section.
+
+  didio learnings-sync <shared-repo-path>
+      Bidirectional sync: exports local learnings then imports from
+      other projects in <shared-repo-path>/learnings/.
+
   didio resume-pending [--feature FXX] [--dry-run] [--max-retries N]
       Scan logs/agents/_pending/ and re-spawn rate-limited jobs whose
       reset has passed. Idempotent (lockfile + atomic consume).
       See ADR-0014 for the pending JSON schema.
+
+  didio pipeline-status [<feature-id>]
+      Show status of active pipelines. Without arguments lists all
+      pipelines in a summary table. With a feature-id shows detailed
+      stage-by-stage status for that pipeline.
+
+  didio pipeline-pause <feature-id>
+      Pause a running pipeline. Creates a pause signal file so the
+      pipeline will stop after its current stage completes.
+
+  didio pipeline-resume <feature-id>
+      Resume a paused pipeline. Creates a resume signal file so the
+      pipeline continues from the stage where it paused.
 
   didio version
       Print framework version.

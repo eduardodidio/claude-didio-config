@@ -1,0 +1,23 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "SharedLearning",
+  "type": "object",
+  "required": ["learning_id", "project", "role", "feature", "lesson", "created_at"],
+  "properties": {
+    "learning_id": { "type": "string" },
+    "project": { "type": "string" },
+    "role": {
+      "type": "string",
+      "enum": ["architect", "developer", "qa", "techlead", "security"]
+    },
+    "feature": { "type": "string" },
+    "lesson": { "type": "string" },
+    "context": { "type": "string" },
+    "severity": {
+      "type": "string",
+      "enum": ["critical", "important", "nice_to_know"]
+    },
+    "tags": { "type": "array", "items": { "type": "string" } },
+    "created_at": { "type": "string", "format": "date-time" }
+  }
+}

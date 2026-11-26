@@ -1,5 +1,5 @@
 ---
-description: Run the full Architect → Waves → TechLead → QA pipeline for a new feature
+description: Run the full Architect -> Waves -> TechLead -> QA pipeline for a new feature
 argument-hint: <FXX> <feature description>
 ---
 
@@ -8,40 +8,150 @@ argument-hint: <FXX> <feature description>
      Regenerate with: didio compile-skills
 -->
 
-You are orchestrating the claude-didio-config 4-agent Waves workflow for
-project **{{PROJECT_NAME}}**.
+You are dispatching a feature pipeline for project **{{PROJECT_NAME}}**.
 
 The user asked for feature: **$ARGUMENTS**
 
-## Your job (non-negotiable pipeline)
+## Step 0 — Determine execution mode
 
-For each feature you execute EXACTLY this pipeline. Do not improvise.
+Check whether autonomous pipeline mode is enabled:
 
-1. **Architect** plans minimal tasks grouped in parallel Waves.
-2. **Wave 0 includes ALL permissions, scaffolding, and dependencies** the
-   later Waves need, so Waves 1..N run without interruption.
-3. **Developer** implements each task.
-4. **TechLead** reviews all tasks.
-5. **QA** validates end-to-end and fills test gaps.
+```bash
+AUTONOMOUS=$(python3 -c "
+import json, os
+try:
+    c = json.load(open('didio.config.json'))
+    print(str(c.get('pipeline', {}).get('autonomous', False)).lower())
+except Exception:
+    print('false')
+" 2>/dev/null || echo "false")
+echo "pipeline.autonomous=$AUTONOMOUS"
+```
 
-Constraints:
-- Tasks must be **as small as possible** while still self-contained.
-- Waves are **independent** — tasks in the same Wave must not touch each
-  other's files.
-- **Backend and frontend in the same Wave** whenever they don't share files.
-- Every agent runs in a **clean bash context** via `didio spawn-agent` — you
-  do NOT use the Agent tool for these; you shell out to `didio`.
+- If `AUTONOMOUS` is `true`: proceed to **Dispatch Mode** (Step 1).
+- If `AUTONOMOUS` is `false` (default, or config absent): proceed to
+  **Legacy Inline Mode** (Step 10).
 
-## Step 0 — Handler Strategic Gate (conditional)
+---
+
+## Dispatch Mode (pipeline.autonomous = true)
+
+### Step 1 — Extract feature ID and brief
+
+Extract the feature ID (e.g. `F07`) and description from `$ARGUMENTS`.
+If the user did not supply an ID, pick the next free `F<NN>` by looking at
+`tasks/features/`.
+
+### Step 2 — Write the brief file
+
+```bash
+mkdir -p tasks/features
+cat > "tasks/features/<FXX>-_tmp-brief.md" <<'BRIEF'
+<feature description from $ARGUMENTS>
+BRIEF
+```
+
+### Step 3 — Launch the pipeline in background
+
+```bash
+didio run-pipeline <FXX> "tasks/features/<FXX>-_tmp-brief.md" &
+PIPELINE_PID=$!
+echo "PIPELINE_PID=$PIPELINE_PID"
+```
+
+Print to the user:
+
+> Launching pipeline in background (PID: $PIPELINE_PID). Monitoring progress...
+> State file: `logs/agents/pipeline-<FXX>.state.json`
+> Signal dir: `logs/agents/signals/` (create `<FXX>.pause` or `<FXX>.cancel` to control)
+
+### Step 4 — Monitor mode
+
+Read `pipeline.monitor_poll_interval_secs` from `didio.config.json` (default: 15).
+
+Enter a polling loop:
+
+```bash
+POLL_INTERVAL=$(python3 -c "
+import json
+try:
+    c = json.load(open('didio.config.json'))
+    print(c.get('pipeline', {}).get('monitor_poll_interval_secs', 15))
+except Exception:
+    print(15)
+" 2>/dev/null || echo "15")
+```
+
+Repeatedly poll the state file every `$POLL_INTERVAL` seconds:
+
+```bash
+cat logs/agents/pipeline-<FXX>.state.json
+```
+
+**On each poll:**
+- Compare `stage` and `status` with the previous poll.
+- If a **stage transition** occurred, report it:
+  > [pipeline] Stage transition: architect -> readiness (running)
+- If `stage_detail` changed (e.g. wave progress), report it:
+  > [pipeline] Progress: wave 2 of 4
+- If `status` changed to `completed`:
+  > Pipeline complete for <FXX>.
+  > Run `didio pipeline-status <FXX>` for details.
+  Break from the monitor loop and proceed to Step 5.
+- If `status` changed to `failed`:
+  > Pipeline FAILED at stage: <stage>
+  > Error: <error from state file>
+  > Run `didio pipeline-status <FXX>` for details.
+  Break from the monitor loop.
+- If `status` changed to `escalated`:
+  > Pipeline ESCALATED at stage: <stage>
+  > Error: <error from state file>
+  > Human review required. See `didio pipeline-status <FXX>`.
+  Break from the monitor loop.
+- If `status` changed to `paused`:
+  > Pipeline PAUSED: <error from state file>
+  > Resume with: `touch logs/agents/signals/<FXX>.resume`
+  Break from the monitor loop.
+
+**If the operator types during monitoring:** pause the monitor polling,
+respond to the operator's message, then resume polling. The pipeline
+CONTINUES running in background regardless of monitor state.
+
+### Step 5 — Final summary (dispatch mode)
+
+When the pipeline completes (status=`completed`), read the final state and
+summarize:
+
+- Feature: `<FXX>`
+- Stages completed: (list from `stages_completed`)
+- Duration: (from `started_at` to `updated_at`)
+- State file: `logs/agents/pipeline-<FXX>.state.json`
+- Dashboard: `didio dashboard`
+
+> Pipeline complete. Run `didio pipeline-status <FXX>` for details.
+
+---
+
+## Legacy Inline Mode (pipeline.autonomous = false or absent)
+
+### Step 10 — Run full inline pipeline
+
+When `pipeline.autonomous` is `false` or absent, execute the full inline
+pipeline directly. This is the original behavior preserved for backward
+compatibility.
+
+Follow the complete inline pipeline documented in
+`skills/create-feature-legacy.md`:
+
+**Step 10.0 — Handler Strategic Gate (conditional)**
 
 Before any agent runs, check if the Handler strategic orchestrator is enabled:
 
 ```bash
 HANDLER_ENABLED=$(python3 -c "import json; c=json.load(open('didio.config.json')); print(c.get('meta_agents',{}).get('handler',{}).get('enabled', False))" 2>/dev/null || echo "False")
-# Backward compat: was T800_ENABLED / meta_agents.t800
 ```
 
-If `HANDLER_ENABLED` is `False` (default): **skip this step silently** and proceed to Step 1.
+If `HANDLER_ENABLED` is `False` (default): **skip this step silently** and proceed to Step 10.1.
 
 If `True`:
 1. Write a decision request file to `logs/decisions/_requests/<FXX>-<timestamp>.md`:
@@ -65,8 +175,8 @@ If `True`:
      > Handler/GateKeeper escalated this decision. Human review required.
      > Decision: logs/decisions/<id>.json
      > Governance: logs/governance/G-<id>.json
-   - If `executed` or `reviewed` with governance verdict `agree`: **proceed** to Step 1.
-   - If governance verdict `challenge` was resolved: **proceed** to Step 1.
+   - If `executed` or `reviewed` with governance verdict `agree`: **proceed** to Step 10.1.
+   - If governance verdict `challenge` was resolved: **proceed** to Step 10.1.
 
 5. Read the `actions` array. If the Handler recommends a different action
    than `create-feature` (e.g. `plan-feature`, `skip`, `research`),
@@ -78,7 +188,7 @@ If `True`:
 **Bypass:** if `DIDIO_SKIP_HANDLER=1` is set, skip with a visible yellow warning:
 > Warning: Handler gate bypassed via DIDIO_SKIP_HANDLER=1
 
-## Step 1 — Architect
+**Step 10.1 — Architect**
 
 Extract the feature ID (e.g. `F07`) and description from `$ARGUMENTS`.
 If the user did not supply an ID, pick the next free `F<NN>` by looking at
@@ -95,72 +205,52 @@ didio spawn-agent architect <FXX> tasks/features/<FXX>-_tmp-brief.md
 Wait for it to finish. Verify `tasks/features/<FXX>-*/<FXX>-README.md` now
 exists and contains a `Wave N:` manifest. Delete the `_tmp-brief.md`.
 
-## Step 1.5 — Readiness gate (pre-Wave audit)
+**Step 10.1.5 — Readiness gate (pre-Wave audit)**
 
-Before firing Wave 0, run the readiness audit. The agent reads
-`<FXX>-README.md` + every `<FXX>-T*.md` and produces
-`tasks/features/<FXX>-*/readiness-report.md` with a binary verdict.
+Before firing Wave 0, run the readiness audit:
 
 ```bash
 /check-readiness <FXX>
 ```
 
-(Equivalente em bash, se preferir invocar diretamente:
-`didio spawn-agent readiness <FXX> tasks/features/<FXX>-*/<FXX>-README.md`,
-seguido de `grep -E '^\*\*Verdict:\*\* BLOCKED' tasks/features/<FXX>-*/readiness-report.md`
-para detectar BLOCKED.)
+If the verdict is `BLOCKED`: STOP the pipeline, print the path of
+`readiness-report.md`, tell the user to fix the plan.
 
-If the slash command exits 1 (verdict `BLOCKED`):
-- STOP the pipeline.
-- Print the path of `readiness-report.md` to the user.
-- Tell the user to fix the plan and re-run `/create-feature <FXX>`.
+If `DIDIO_SKIP_READINESS=1` is set, skip with a yellow warning.
 
-If the user **explicitly** sets `DIDIO_SKIP_READINESS=1` in the environment,
-skip this step (with a yellow warning) and proceed straight to Step 2.
-**Never** skip silently.
+**Step 10.1.7 — TEA gate (test architect, opt-in)**
 
-## Step 1.7 — TEA gate (test architect, opt-in)
-
-If `didio.config.json:tea.enabled` is `true` AND `DIDIO_SKIP_TEA` is not set,
-spawn the TEA agent to write `<FXX>-test-plan.md`:
+If `didio.config.json:tea.enabled` is `true` AND `DIDIO_SKIP_TEA` is not set:
 
 ```bash
 didio spawn-agent tea <FXX> tasks/features/<FXX>-*/<FXX>-README.md
 ```
 
-Verify the file was created with all 7 sections per `docs/F13-test-plan-spec.md`.
-If `tea.enabled` is `false`, skip silently (TEA is opt-in).
+If `tea.enabled` is `false`, skip silently. If `DIDIO_SKIP_TEA=1`, skip with warning.
 
-If `DIDIO_SKIP_TEA=1` is set, skip with a visible yellow warning. Re-run later
-with `/check-tests <FXX>` to regenerate.
-
-## Step 2 — Run each Wave in order
-
-Parse the Wave manifest from the feature README. For each Wave N (starting
-from 0), run:
+**Step 10.2 — Run each Wave in order**
 
 ```bash
 didio run-wave <FXX> <N> developer
 ```
 
-Wait for each Wave to exit before starting the next. If any Wave fails,
-STOP the pipeline and report the failure to the user.
+Wait for each Wave before starting the next. If any Wave fails, STOP.
 
-## Step 3 — Tech Lead
+**Step 10.3 — Tech Lead**
 
 ```bash
 didio spawn-agent techlead <FXX> tasks/features/<FXX>-*/<FXX>-README.md
 ```
 
-If the verdict is `REJECTED`, STOP and report.
+If verdict is `REJECTED`, STOP and report.
 
-## Step 4 — QA
+**Step 10.4 — QA**
 
 ```bash
 didio spawn-agent qa <FXX> tasks/features/<FXX>-*/<FXX>-README.md
 ```
 
-## Step 5 — Final report
+**Step 10.5 — Final report**
 
 Summarize to the user:
 - Number of Waves executed
@@ -170,14 +260,20 @@ Summarize to the user:
 - Paths to review/qa reports
 - Link: `didio dashboard` for visual audit
 
+---
+
 ## Rules
 
 - NEVER run Developer/TechLead/QA through the `Agent` tool — always use
   `didio spawn-agent` so they run in clean bash with persistent logs.
 - NEVER skip a Wave. NEVER run Waves out of order.
 - NEVER advance past a failing Wave.
-- NEVER skip the readiness gate (Step 1.5) silently. The only valid bypass
+- NEVER skip the readiness gate silently. The only valid bypass
   is `DIDIO_SKIP_READINESS=1` set explicitly by the user, with a visible
   yellow warning printed.
 - NEVER skip the Handler gate silently when enabled. The only valid bypass
   is `DIDIO_SKIP_HANDLER=1` set explicitly by the user, with a visible warning.
+- In dispatch mode, the pipeline CONTINUES in background regardless of
+  whether the monitor is active. Pausing the monitor does NOT pause the
+  pipeline. Use signal files (`<FXX>.pause`, `<FXX>.cancel`) to control
+  the pipeline itself.

@@ -331,6 +331,36 @@ jornada BPMN), prompts pré-configurados, rebranding "Didio Agents Dash".
 Config keys, CLI subcommands, filenames, and documentation updated.
 Persona themes kept as optional easter-egg content.
 
+**F30 (Kanban Board + Governance Dashboard)** ✅ Visual Kanban board with
+5-column pipeline visualization (Backlog, Planning, Running, Review, Done).
+Zero-prompt action system: click to unblock, approve, skip, pause, resume,
+or cancel features directly from the dashboard. Flag panel with severity
+tabs and action buttons. Governance view with active pipelines table,
+token budget summary (with 80%+ warnings), flag analytics, and decision
+history. Action listener (`didio action-listener`) polls for operator
+actions and executes them. Flag library (`didio-flags-lib.sh`) for agents
+to raise/resolve flags programmatically. Shared learnings protocol with
+JSON schema, export (`didio learnings-export`), import
+(`didio learnings-import`), and bidirectional sync
+(`didio learnings-sync`) for cross-project knowledge sharing.
+
+**F29B (pipeline automation)** ✅ Autonomous pipeline execution with
+state tracking and external control:
+- **3-round negotiation loop:** Handler and GateKeeper now negotiate up to
+  `negotiation.max_rounds` rounds (default 3) before escalating. Each round
+  logged to `logs/governance/G-<id>-round-<N>.json`.
+- **Post-work review gate:** After QA, Handler + GateKeeper review completed
+  feature output. Same negotiation loop applies.
+- **Autonomous pipeline:** `didio run-pipeline <FXX>` executes the full
+  pipeline with state tracking, signal-based pause/resume/cancel, and
+  token budget integration.
+- **Control commands:** `didio pipeline-status`, `didio pipeline-pause`,
+  `didio pipeline-resume` for observing and controlling running pipelines.
+- **Token budget monitor:** `didio token-monitor` tracks token usage and
+  suggests scheduling for pipeline resumption when budget runs low.
+- **Install flow:** Persona setup (custom Handler/GateKeeper names),
+  machine-aware parallelism suggestion, feature toggle confirmation.
+
 ---
 
 ## Rate-limit recovery

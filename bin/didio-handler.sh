@@ -22,6 +22,16 @@ else
   source "$DIDIO_HOME/bin/didio-config-lib.sh"
 fi
 
+# F30-T10 — source flags lib for raising escalated flags
+FLAGS_LIB="${DIDIO_HOME}/bin/didio-flags-lib.sh"
+if [[ -f "$PROJECT_ROOT/bin/didio-flags-lib.sh" ]]; then
+  FLAGS_LIB="$PROJECT_ROOT/bin/didio-flags-lib.sh"
+fi
+if [[ -f "$FLAGS_LIB" ]]; then
+  # shellcheck disable=SC1090
+  source "$FLAGS_LIB"
+fi
+
 # --help
 if [[ "${1:-}" = "--help" || "${1:-}" = "-h" ]]; then
   cat <<'EOF'
@@ -109,58 +119,46 @@ fi
 DECISION_ID="$(basename "$LATEST_DECISION" .json)"
 echo "[didio-handler] decision record: $LATEST_DECISION" >&2
 
-# Auto-governance: spawn GateKeeper if enabled
+# Source negotiation loop library
+if [[ -f "$PROJECT_ROOT/bin/didio-negotiation-loop.sh" ]]; then
+  # shellcheck disable=SC1090
+  source "$PROJECT_ROOT/bin/didio-negotiation-loop.sh"
+else
+  # shellcheck disable=SC1090
+  source "$DIDIO_HOME/bin/didio-negotiation-loop.sh"
+fi
+
+# Auto-governance: negotiate with GateKeeper if enabled
 AUTO_GOV="$(didio_auto_governance)"
 if [[ "$AUTO_GOV" == "true" ]]; then
   GATEKEEPER_ENABLED="$(didio_gatekeeper_enabled)"
   if [[ "$GATEKEEPER_ENABLED" == "true" ]]; then
-    echo "[didio-handler] auto-governance: spawning GateKeeper for $DECISION_ID..." >&2
-    "$DIDIO_HOME/bin/didio-gatekeeper.sh" --decision "$DECISION_ID"
-    GATEKEEPER_EXIT=$?
+    echo "[didio-handler] auto-governance: starting negotiation for $DECISION_ID..." >&2
+    didio_negotiate "$FEATURE" "$LATEST_DECISION" "$EXTRA"
+    NEGOTIATE_EXIT=$?
 
-    if [[ $GATEKEEPER_EXIT -ne 0 ]]; then
-      echo "[didio-handler] GateKeeper governance review failed (exit=$GATEKEEPER_EXIT)" >&2
-    fi
-
-    # Check governance verdict
-    GOV_FILE="$PROJECT_ROOT/logs/governance/G-${DECISION_ID}.json"
-    if [[ -f "$GOV_FILE" ]]; then
-      VERDICT=$(python3 -c "
-import json
-with open('$GOV_FILE') as f:
-    print(json.load(f).get('verdict', 'unknown'))
-" 2>/dev/null || echo "unknown")
-
-      case "$VERDICT" in
-        agree)
-          echo "[didio-handler] governance: AGREE — proceeding with pipeline" >&2
-          ;;
-        challenge)
-          echo "[didio-handler] governance: CHALLENGE — Handler re-evaluating (max 1 round)..." >&2
-          # Re-spawn Handler with governance feedback
-          "$DIDIO_HOME/bin/didio-spawn-agent.sh" handler "$FEATURE" "$LATEST_DECISION" \
-            "MODE=re-evaluate GOVERNANCE_FILE=$GOV_FILE — The GateKeeper has challenged your decision. Read the governance report and reconsider. Update the decision record if warranted. This is the final round — no further challenges."
-          ;;
-        escalate)
-          echo "[didio-handler] governance: ESCALATE — pipeline BLOCKED. Human review required." >&2
-          echo "[didio-handler] decision: $LATEST_DECISION" >&2
-          echo "[didio-handler] governance: $GOV_FILE" >&2
-          # Update decision status to blocked
-          python3 -c "
-import json
-with open('$LATEST_DECISION') as f:
-    d = json.load(f)
-d['status'] = 'escalated'
-with open('$LATEST_DECISION', 'w') as f:
-    json.dump(d, f, indent=2)
-" 2>/dev/null || true
-          exit 3
-          ;;
-        *)
-          echo "[didio-handler] governance: unknown verdict '$VERDICT' — proceeding cautiously" >&2
-          ;;
-      esac
-    fi
+    case $NEGOTIATE_EXIT in
+      0)
+        echo "[didio-handler] governance: AGREED — proceeding with pipeline" >&2
+        ;;
+      1)
+        echo "[didio-handler] governance: negotiation FAILED (agent error)" >&2
+        exit 1
+        ;;
+      2)
+        echo "[didio-handler] governance: ESCALATED — pipeline BLOCKED. Human review required." >&2
+        echo "[didio-handler] decision: $LATEST_DECISION" >&2
+        echo "[didio-handler] summary: $PROJECT_ROOT/logs/governance/G-${DECISION_ID}-summary.json" >&2
+        # F30-T10 — raise an escalated flag when negotiation escalates
+        if declare -F didio_flag_raise >/dev/null 2>&1; then
+          didio_flag_raise "$FEATURE" "escalated" "" "Negotiation escalated for decision $DECISION_ID — human review required" >/dev/null 2>&1 || true
+        fi
+        exit 3
+        ;;
+      *)
+        echo "[didio-handler] governance: unexpected exit code $NEGOTIATE_EXIT — proceeding cautiously" >&2
+        ;;
+    esac
   else
     echo "[didio-handler] auto-governance: GateKeeper disabled, skipping governance review" >&2
   fi

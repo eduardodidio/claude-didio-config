@@ -6,8 +6,8 @@
 # Usage:
 #   didio-spawn-agent.sh <role> <feature-id> <task-file> [extra-prompt]
 #
-# Roles: architect | developer | techlead | qa | readiness | tea | handler | gatekeeper
-# Aliases: t800 -> handler, t1000 -> gatekeeper
+# Roles: architect | developer | techlead | qa | readiness | tea | handler | gatekeeper | post-review
+# Aliases: t800 -> handler, t1000 -> gatekeeper, post-review -> handler
 #
 # The agent prompt is composed as:
 #   <role-prompt-from-agents/prompts/>  +  task context  +  optional extra
@@ -56,10 +56,12 @@ EOF
   exit 0
 fi
 
-ROLE="${1:?role required: architect|developer|techlead|qa|readiness|tea|handler|gatekeeper|meeting-parser}"
+ROLE="${1:?role required: architect|developer|techlead|qa|readiness|tea|handler|gatekeeper|post-review|meeting-parser}"
 # Backward-compat aliases
 [[ "$ROLE" == "t800" ]] && ROLE="handler"
 [[ "$ROLE" == "t1000" ]] && ROLE="gatekeeper"
+# post-review is an alias for handler with extra context
+[[ "$ROLE" == "post-review" ]] && ROLE="handler"
 FEATURE="${2:?feature-id required (e.g. F01)}"
 TASK_FILE="${3:?task-file required (absolute or relative path)}"
 EXTRA="${4:-}"
@@ -108,6 +110,16 @@ if [[ -f "$RL_LIB" ]]; then
 else
   echo "[didio-spawn-agent] WARN: rate-limit-lib not found at $RL_LIB; falling back to fail-fast" >&2
   DIDIO_ON_RATE_LIMIT='fail-fast'
+fi
+
+# F30-T10 — source flags lib so all agents have flag functions available
+FLAGS_LIB="${DIDIO_HOME:-$HOME/.claude-didio-config}/bin/didio-flags-lib.sh"
+if [[ -f "$PROJECT_ROOT/bin/didio-flags-lib.sh" ]]; then
+  FLAGS_LIB="$PROJECT_ROOT/bin/didio-flags-lib.sh"
+fi
+if [[ -f "$FLAGS_LIB" ]]; then
+  # shellcheck disable=SC1090
+  source "$FLAGS_LIB"
 fi
 
 TS="$(date +%Y%m%d-%H%M%S)"

@@ -1,0 +1,19 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "OperatorAction",
+  "type": "object",
+  "required": ["action_id", "action", "feature", "operator", "timestamp"],
+  "properties": {
+    "action_id": { "type": "string", "format": "uuid" },
+    "action": {
+      "type": "string",
+      "enum": ["unblock", "approve", "skip", "pause", "resume", "cancel"]
+    },
+    "feature": { "type": "string", "pattern": "^F\\d+" },
+    "task": { "type": ["string", "null"] },
+    "operator": { "type": "string", "default": "user" },
+    "timestamp": { "type": "string", "format": "date-time" },
+    "params": { "type": "object" }
+  },
+  "additionalProperties": false
+}

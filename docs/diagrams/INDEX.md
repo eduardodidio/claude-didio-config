@@ -122,6 +122,20 @@ All diagrams are [Mermaid](https://mermaid.js.org/) `.mmd` files.
 | [F17-architecture.mmd](F17-architecture.mmd) | F17-T09 | Data-flow: enabled meta-agents → log sources → metaSources loader → metaMetrics compute → CLI report + dashboard panel |
 | [F17-journey.mmd](F17-journey.mmd) | F17-T11 | BPMN-style user journey: Handler→GateKeeper→Decision-Log→Harness loop; happy path + challenge/escalate branches |
 
+## F29B — Pipeline Automation
+
+| File | Owner task | What it shows |
+|---|---|---|
+| [F29B-architecture.mmd](F29B-architecture.mmd) | F29B-T10 | Pipeline execution flow: 8 stages (Handler Gate through Post-Review), signal files (pause/resume/cancel), state tracking, token budget integration, control commands, negotiation loop with governance logs |
+| [F29B-journey.mmd](F29B-journey.mmd) | F29B-T10 | Operator journey: launch pipeline via /create-feature, negotiate Handler gate, execute waves with token budget checks, monitor via pipeline-status, pause/resume/cancel, post-review gate, success or escalation |
+
+## F30 — Kanban Board, Governance Dashboard, Action System
+
+| File | Owner task | What it shows |
+|---|---|---|
+| [F30-architecture.mmd](F30-architecture.mmd) | F30-T13 | Three-layer architecture: React Dashboard (KanbanBoard, Governance, FlagPanel, ActionButtons, hooks) -> File-Based Communication Layer (flags, actions, state, pipeline, meta-metrics) -> Shell Scripts (action-listener, flags-lib, learnings) -> Agent Pipeline (Architect, Developer, TechLead, QA) |
+| [F30-journey.mmd](F30-journey.mmd) | F30-T13 | Operator journey: open dashboard -> view Kanban board -> check flags -> click action button -> confirmation (destructive) -> action JSON written -> listener processes -> board updates; alternate paths to Governance view (token budget, decision history, flag analytics) and card detail |
+
 ## F24 — auto-install second-brain
 
 | File | Owner task | What it shows |

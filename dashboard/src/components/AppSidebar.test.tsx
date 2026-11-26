@@ -31,10 +31,12 @@ const renderAt = (path: string) =>
   );
 
 describe('AppSidebar', () => {
-  it('happy: renders all 5 nav items with correct hrefs', () => {
+  it('happy: renders all 7 nav items with correct hrefs', () => {
     renderAt('/');
     const expected: Array<[string, string]> = [
       ['Overview', '/'],
+      ['Board', '/kanban'],
+      ['Governance', '/governance'],
       ['Features', '/features'],
       ['Agents', '/agents'],
       ['Meta-Agents', '/meta-agents'],
@@ -59,9 +61,9 @@ describe('AppSidebar', () => {
     expect(screen.getByText('Didio Agents Dash')).toBeInTheDocument();
   });
 
-  it('boundary: all 5 nav icons render even in collapsed-style stub', () => {
+  it('boundary: all 7 nav icons render even in collapsed-style stub', () => {
     const { container } = renderAt('/');
     const svgs = container.querySelectorAll('a svg');
-    expect(svgs.length).toBe(5);
+    expect(svgs.length).toBe(7);
   });
 });

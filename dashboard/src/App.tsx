@@ -5,12 +5,16 @@ import { Features } from '@/views/Features';
 import { Agents } from '@/views/Agents';
 import EasterEggs from '@/views/EasterEggs';
 import { MetaAgents } from '@/views/MetaAgents';
+import { KanbanBoard } from '@/views/KanbanBoard';
+import { Governance } from '@/views/Governance';
 
 export default function App() {
   return (
     <Routes>
       <Route element={<MainLayout />}>
         <Route index element={<Overview />} />
+        <Route path="kanban" element={<KanbanBoard />} />
+        <Route path="governance" element={<Governance />} />
         <Route path="features" element={<Features />} />
         <Route path="agents" element={<Agents />} />
         <Route path="meta-agents" element={<MetaAgents />} />

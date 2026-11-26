@@ -43,6 +43,16 @@ source "${DIDIO_HOME:-$HOME/.claude-didio-config}/bin/didio-config-lib.sh"
 # shellcheck disable=SC1090
 source "${DIDIO_HOME:-$HOME/.claude-didio-config}/bin/didio-rate-limit-lib.sh"
 
+# F30-T10 — source flags lib for raising blocked flags on wave failure
+FLAGS_LIB="${DIDIO_HOME}/bin/didio-flags-lib.sh"
+if [[ -f "$PROJECT_ROOT/bin/didio-flags-lib.sh" ]]; then
+  FLAGS_LIB="$PROJECT_ROOT/bin/didio-flags-lib.sh"
+fi
+if [[ -f "$FLAGS_LIB" ]]; then
+  # shellcheck disable=SC1090
+  source "$FLAGS_LIB"
+fi
+
 FEATURE_DIR=$(didio_find_feature_dir "$FEATURE") || {
   echo "[didio-run-wave] feature directory not found: tasks/features/${FEATURE}-*" >&2
   exit 2
@@ -167,10 +177,22 @@ fi
 
 if [[ ${#FAILED[@]} -gt 0 ]]; then
   echo "[didio-run-wave] Wave $WAVE failed: ${FAILED[*]}" >&2
+  # F30-T10 — raise a blocked flag for the feature when a wave fails
+  if declare -F didio_flag_raise >/dev/null 2>&1; then
+    for fail_entry in "${FAILED[@]}"; do
+      _FAIL_TID="${fail_entry%%:*}"
+      didio_flag_raise "$FEATURE" "blocked" "$_FAIL_TID" "Wave $WAVE task $_FAIL_TID failed (rc=${fail_entry##*:})" >/dev/null 2>&1 || true
+    done
+  fi
   exit 1
 fi
 
 echo "[didio-run-wave] Wave $WAVE completed: $(echo $TASK_IDS | wc -w | tr -d ' ') tasks" >&2
+
+# F30-T10 — resolve any blocked flags for this feature when wave succeeds
+if declare -F didio_flag_resolve >/dev/null 2>&1; then
+  didio_flag_resolve "$FEATURE" "blocked" >/dev/null 2>&1 || true
+fi
 
 # Post-Wave summary (F12) — opt-in via sharding.wave_summary, default true.
 # Failure to write the summary is non-blocking — Wave N+1 simply lacks

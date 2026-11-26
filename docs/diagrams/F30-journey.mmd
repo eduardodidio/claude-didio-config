@@ -1,0 +1,31 @@
+graph LR
+    A["Operator opens Dashboard"] --> B["Views Kanban Board"]
+    B --> C{"Flags active?"}
+    C -->|Yes| D["Reviews Flag Panel"]
+    D --> E["Clicks Action Button"]
+    E --> F{"Destructive action?"}
+    F -->|Yes| F1["Confirmation dialog"]
+    F1 -->|Confirmed| G["Action JSON written"]
+    F1 -->|Cancelled| D
+    F -->|No| G
+    G --> H["Listener processes action"]
+    H --> I{"Action type"}
+    I -->|unblock| J["Flag resolved"]
+    I -->|pause| K["Pipeline paused"]
+    I -->|resume| L["Pipeline resumed"]
+    I -->|skip| M["Task skipped"]
+    I -->|cancel| N["Feature cancelled"]
+    I -->|approve| O["Flag dismissed"]
+    J --> P["Board updates automatically via polling"]
+    K --> P
+    L --> P
+    M --> P
+    N --> P
+    O --> P
+    C -->|No| Q["Reviews Governance View"]
+    Q --> R["Checks token budget"]
+    Q --> S["Reviews decision history"]
+    Q --> T["Reviews flag analytics"]
+    B --> U["Clicks feature card"]
+    U --> V["Views card detail + task trail"]
+    V --> D

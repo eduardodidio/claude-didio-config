@@ -1,0 +1,81 @@
+%%{ init: { "flowchart": { "curve": "basis" } } }%%
+flowchart TD
+
+    subgraph UserLayer["User / Dispatcher"]
+        U([User])
+        CF["/create-feature dispatcher"]
+    end
+
+    subgraph PipelineEngine["Pipeline Engine (run-pipeline.sh)"]
+        HG["0. Handler Gate"]
+        AR["1. Architect"]
+        RD["1.5 Readiness"]
+        TEA["1.7 TEA"]
+        WV["2. Waves 0..N"]
+        TL["3. TechLead"]
+        QA["4. QA"]
+        PR["5. Post-Review"]
+        STATE["pipeline-FXX.state.json"]
+    end
+
+    subgraph GovernanceLayer["Governance Layer"]
+        NL["negotiation-loop.sh"]
+        HANDLER["Handler agent"]
+        GK["GateKeeper agent"]
+        ROUNDS["G-id-round-N.json"]
+        SUMMARY["G-id-summary.json"]
+    end
+
+    subgraph ControlPlane["Control Plane"]
+        STATUS["didio pipeline-status"]
+        PAUSE["didio pipeline-pause"]
+        RESUME["didio pipeline-resume"]
+        SIG_DIR["logs/agents/signals/"]
+        SIG_P["FXX.pause"]
+        SIG_R["FXX.resume"]
+        SIG_C["FXX.cancel"]
+    end
+
+    subgraph TokenMgmt["Token Management"]
+        TM["didio-token-monitor.sh"]
+        BUDGET["logs/session-budget.json"]
+        SUGGEST["token-schedule-suggestion.json"]
+    end
+
+    U -->|"/create-feature"| CF
+    CF -->|"brief + feature-id"| HG
+
+    HG --> AR
+    AR --> RD
+    RD --> TEA
+    TEA --> WV
+    WV --> TL
+    TL --> QA
+    QA --> PR
+
+    HG ---|"negotiation loop"| NL
+    PR ---|"negotiation loop"| NL
+    NL --> HANDLER
+    NL --> GK
+    NL -->|"per-round log"| ROUNDS
+    NL -->|"final summary"| SUMMARY
+
+    HG ---|"update state"| STATE
+    AR ---|"update state"| STATE
+    WV ---|"update state"| STATE
+    PR ---|"update state"| STATE
+
+    STATUS -->|"reads"| STATE
+    PAUSE -->|"writes"| SIG_P
+    RESUME -->|"writes"| SIG_R
+    SIG_P --> SIG_DIR
+    SIG_R --> SIG_DIR
+    SIG_C --> SIG_DIR
+    SIG_DIR -->|"checked between stages"| WV
+
+    TM -->|"reads"| BUDGET
+    TM -->|"writes"| SUGGEST
+    TM -->|"DEPLETED -> pause signal"| SIG_P
+
+    PR -->|"exit 0: success"| U
+    PR -->|"exit 2: escalate"| U

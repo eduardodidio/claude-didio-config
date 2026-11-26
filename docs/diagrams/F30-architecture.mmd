@@ -1,0 +1,64 @@
+graph TB
+    subgraph Dashboard ["React Dashboard (Vite + shadcn/ui)"]
+        KB[KanbanBoard View]
+        GV[Governance View]
+        FP[FlagPanel]
+        AB[ActionButtons]
+        HK[useKanbanState Hook]
+        UF[useFlags Hook]
+        UA[useActions Hook]
+        UG[useGovernance Hook]
+    end
+
+    subgraph FileSystem ["File-Based Communication Layer"]
+        FLAGS["logs/agents/flags/*.json"]
+        ACTIONS["logs/agents/actions/*.json"]
+        STATE["logs/agents/state.json"]
+        PIPE["logs/agents/pipeline-*.state.json"]
+        META["logs/agents/meta-metrics.json"]
+        ARCHIVE["logs/agents/actions/archive/"]
+    end
+
+    subgraph Scripts ["Shell Scripts (bin/)"]
+        AL["didio-action-listener.sh"]
+        FL["didio-flags-lib.sh"]
+        LE["didio-learnings-export.sh"]
+        LI["didio-learnings-import.sh"]
+        RP["didio-run-pipeline.sh"]
+    end
+
+    subgraph Agents ["Agent Pipeline"]
+        ARCH[Architect]
+        DEV[Developer]
+        TL[Tech Lead]
+        QA[QA]
+    end
+
+    KB --> HK
+    KB --> FP
+    GV --> UG
+    FP --> AB
+    HK --> UF
+    HK -->|"poll 2s"| STATE
+    UF -->|"poll 2s"| FLAGS
+    UG -->|"poll"| PIPE
+    UG -->|"poll"| META
+    UA -->|"POST /api/actions"| ACTIONS
+    AB --> UA
+
+    AL -->|"poll 5s"| ACTIONS
+    AL -->|"resolve"| FLAGS
+    AL -->|"archive"| ARCHIVE
+    AL -->|"control"| PIPE
+
+    RP --> ARCH
+    RP --> DEV
+    RP --> TL
+    RP --> QA
+    RP -->|"write"| PIPE
+
+    ARCH -->|"source"| FL
+    DEV -->|"source"| FL
+    TL -->|"source"| FL
+    QA -->|"source"| FL
+    FL -->|"write"| FLAGS

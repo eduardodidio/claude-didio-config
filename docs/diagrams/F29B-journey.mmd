@@ -1,0 +1,42 @@
+%%{ init: { "flowchart": { "curve": "basis" } } }%%
+flowchart TD
+    START([Start]) --> CREATE["User runs /create-feature FXX"]
+    CREATE --> DISPATCH["Dispatcher writes brief + starts pipeline"]
+
+    DISPATCH --> HG{"Handler Gate"}
+    HG -->|"negotiate"| NEG1["Negotiation Loop (up to max_rounds)"]
+    NEG1 -->|"agree"| ARCH["Architect plans tasks + waves"]
+    NEG1 -->|"escalate"| ESCAL1([Paused: human review needed])
+
+    ARCH --> READY{"Readiness check"}
+    READY -->|"READY"| TEA_G["TEA writes test plan"]
+    READY -->|"BLOCKED"| FAIL_RD([Failed: readiness blocked])
+
+    TEA_G --> WAVE_LOOP{"Waves 0..N"}
+
+    WAVE_LOOP --> TOK_CHK{"Token budget OK?"}
+    TOK_CHK -->|"OK / WARNING"| WAVE_RUN["Execute current Wave"]
+    TOK_CHK -->|"DEPLETED"| PAUSED_TOK([Paused: token budget exhausted])
+    PAUSED_TOK -->|"didio pipeline-resume"| TOK_CHK
+
+    WAVE_RUN --> WAVE_OK{"Wave passed?"}
+    WAVE_OK -->|"yes"| SIG_CHK{"Check signals"}
+    WAVE_OK -->|"no"| FAIL_WAVE([Failed: wave error])
+
+    SIG_CHK -->|"no signal"| NEXT_WAVE{"More waves?"}
+    SIG_CHK -->|"pause signal"| PAUSED_SIG([Paused: operator requested])
+    SIG_CHK -->|"cancel signal"| CANCELLED([Cancelled])
+    PAUSED_SIG -->|"didio pipeline-resume"| SIG_CHK
+
+    NEXT_WAVE -->|"yes"| WAVE_LOOP
+    NEXT_WAVE -->|"no"| TL["TechLead reviews"]
+
+    TL --> QA_V["QA validates"]
+    QA_V --> PR{"Post-Review Gate"}
+    PR -->|"negotiate"| NEG2["Negotiation Loop (up to max_rounds)"]
+    NEG2 -->|"agree"| DONE([Success: feature ships])
+    NEG2 -->|"escalate"| ESCAL2([Paused: human review needed])
+
+    %% Operator monitoring branch
+    DISPATCH -.->|"operator monitors"| MON["didio pipeline-status"]
+    MON -.->|"reads state"| WAVE_LOOP

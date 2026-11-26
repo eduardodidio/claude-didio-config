@@ -150,6 +150,19 @@
   },
   "negotiation": {
     "max_rounds": 3,
-    "post_work_review": true
+    "post_work_review": true,
+    "escalation_summary": true
+  },
+  "pipeline": {
+    "autonomous": true,
+    "monitor_poll_interval_secs": 5,
+    "signal_dir": "logs/agents/signals",
+    "state_dir": "logs/agents"
+  },
+  "token_monitor": {
+    "enabled": true,
+    "check_interval_minutes": 10,
+    "suggest_scheduling": true,
+    "schedule_method": "at"
   }
 }

@@ -1,0 +1,27 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "AgentFlag",
+  "type": "object",
+  "required": ["flag_id", "type", "feature", "severity", "reason", "created_at"],
+  "properties": {
+    "flag_id": { "type": "string", "format": "uuid" },
+    "type": {
+      "type": "string",
+      "enum": ["blocked", "needs_review", "escalated", "needs_input", "token_warning"]
+    },
+    "feature": { "type": "string", "pattern": "^F\\d+" },
+    "task": { "type": ["string", "null"] },
+    "severity": {
+      "type": "string",
+      "enum": ["critical", "warning", "info"]
+    },
+    "reason": { "type": "string", "minLength": 1 },
+    "suggested_actions": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "created_at": { "type": "string", "format": "date-time" },
+    "resolved_at": { "type": ["string", "null"], "format": "date-time" }
+  },
+  "additionalProperties": false
+}
