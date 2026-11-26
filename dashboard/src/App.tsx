@@ -7,6 +7,7 @@ import EasterEggs from '@/views/EasterEggs';
 import { MetaAgents } from '@/views/MetaAgents';
 import { KanbanBoard } from '@/views/KanbanBoard';
 import { Governance } from '@/views/Governance';
+import { WarRoom } from '@/views/WarRoom';
 
 export default function App() {
   return (
@@ -14,6 +15,7 @@ export default function App() {
       <Route element={<MainLayout />}>
         <Route index element={<Overview />} />
         <Route path="kanban" element={<KanbanBoard />} />
+        <Route path="warroom" element={<WarRoom />} />
         <Route path="governance" element={<Governance />} />
         <Route path="features" element={<Features />} />
         <Route path="agents" element={<Agents />} />

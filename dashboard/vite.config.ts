@@ -39,6 +39,46 @@ function kanbanJsonPlugin(): Plugin {
         res.end(JSON.stringify(pipelines));
       });
 
+      // GET /warroom-cards.json — aggregated War Room cards
+      server.middlewares.use('/warroom-cards.json', async (_req, res) => {
+        const cardsDir = path.resolve(__dirname, '../logs/warroom/cards');
+        const cards = await aggregateJsonDir(cardsDir);
+        res.setHeader('Content-Type', 'application/json');
+        res.setHeader('Cache-Control', 'no-store');
+        res.end(JSON.stringify(cards));
+      });
+
+      // POST /api/warroom-cards — write War Room card JSON file
+      server.middlewares.use('/api/warroom-cards', async (req, res) => {
+        if (req.method !== 'POST') {
+          res.statusCode = 405;
+          res.end(JSON.stringify({ error: 'Method not allowed' }));
+          return;
+        }
+        try {
+          const body = await readBody(req);
+          if (!body.card_id || typeof body.card_id !== 'string') {
+            res.statusCode = 400;
+            res.setHeader('Content-Type', 'application/json');
+            res.end(JSON.stringify({ error: 'Missing or invalid card_id' }));
+            return;
+          }
+          const cardsDir = path.resolve(__dirname, '../logs/warroom/cards');
+          await fs.mkdir(cardsDir, { recursive: true });
+          const filename = `${body.card_id}.json`;
+          await fs.writeFile(
+            path.join(cardsDir, filename),
+            JSON.stringify(body, null, 2),
+          );
+          res.setHeader('Content-Type', 'application/json');
+          res.end(JSON.stringify({ ok: true, file: filename }));
+        } catch {
+          res.statusCode = 400;
+          res.setHeader('Content-Type', 'application/json');
+          res.end(JSON.stringify({ error: 'Invalid JSON body' }));
+        }
+      });
+
       // POST /api/actions — write action JSON file
       server.middlewares.use('/api/actions', async (req, res) => {
         if (req.method !== 'POST') {

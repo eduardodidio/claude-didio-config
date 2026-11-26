@@ -50,6 +50,10 @@
     "gatekeeper": {
       "model": "opus",
       "fallback": "sonnet"
+    },
+    "overlord": {
+      "model": "opus",
+      "fallback": "sonnet"
     }
   },
   "models_economy": {
@@ -88,6 +92,10 @@
     "gatekeeper": {
       "model": "sonnet",
       "fallback": "haiku"
+    },
+    "overlord": {
+      "model": "sonnet",
+      "fallback": "haiku"
     }
   },
   "retrospective": {
@@ -122,7 +130,17 @@
   },
   "meta_agents": {
     "handler": { "enabled": true, "auto_governance": true },
-    "gatekeeper": { "enabled": true, "review_mode": "post-decision", "escalation_blocks_pipeline": true }
+    "gatekeeper": { "enabled": true, "review_mode": "post-decision", "escalation_blocks_pipeline": true },
+    "overlord": { "enabled": true, "observes": ["handler", "gatekeeper"], "can_raise_cards": true }
+  },
+  "overlord": {
+    "enabled": true,
+    "auto_triage": true,
+    "triage_interval_minutes": 30,
+    "knowledge_sources": ["adr", "learnings", "retrospectives"],
+    "max_concurrent_promotions": 2,
+    "promotion_requires_confirmation": false,
+    "defer_auto_archive_days": 30
   },
   "research": {
     "web_search_budget": 5,

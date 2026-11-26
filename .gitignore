@@ -33,6 +33,9 @@ logs/agents/flags/*.json
 logs/agents/actions/*.json
 logs/agents/actions/archive/*.json
 
+# F31 — War Room card runtime artifacts (preserve directories)
+logs/warroom/cards/*.json
+
 # Python bytecode
 __pycache__/
 *.pyc

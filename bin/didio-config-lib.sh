@@ -404,6 +404,33 @@ didio_find_feature_dir() {
   return 1
 }
 
+# --- Overlord helpers ---
+
+# Returns "true" or "false". Default true.
+didio_overlord_enabled() {
+  didio_read_config_path 'overlord.enabled' 'true'
+}
+
+# Returns "true" or "false". Default true.
+didio_overlord_auto_triage() {
+  didio_read_config_path 'overlord.auto_triage' 'true'
+}
+
+# Returns triage interval in minutes. Default 30.
+didio_overlord_triage_interval() {
+  didio_read_config_path 'overlord.triage_interval_minutes' '30'
+}
+
+# Returns max concurrent promotions. Default 2.
+didio_overlord_max_promotions() {
+  didio_read_config_path 'overlord.max_concurrent_promotions' '2'
+}
+
+# Returns overlord.knowledge_sources as a JSON array. Default '["adr", "learnings", "retrospectives"]'.
+didio_overlord_knowledge_sources() {
+  didio_read_config_path 'overlord.knowledge_sources' '["adr", "learnings", "retrospectives"]'
+}
+
 # --- Negotiation helpers ---
 
 # Returns negotiation.max_rounds. Default 3.

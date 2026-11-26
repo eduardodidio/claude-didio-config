@@ -344,6 +344,19 @@ JSON schema, export (`didio learnings-export`), import
 (`didio learnings-import`), and bidirectional sync
 (`didio learnings-sync`) for cross-project knowledge sharing.
 
+**F31 (War Room + Overlord)** ✅ Strategic triage system with two-board
+architecture. War Room board (`/warroom` dashboard view) with 5 columns
+(Incoming, Triaging, Promoted, Deferred, Archived) for capturing and
+managing unstructured strategic items. Overlord meta-agent sits above
+Handler/GateKeeper in the agent hierarchy -- observes but does not
+override. CLI commands: `didio warroom add|list|show|move` for card
+management, `didio overlord triage` for AI-assisted card assessment,
+`didio overlord promote|defer` for card disposition, `didio overlord
+monitor` for governance pattern detection. Cards are file-based JSON
+(`logs/warroom/cards/`) -- git-friendly and dependency-free. Promoted
+cards bridge to the Standard Board as feature stubs. Overlord config
+in `didio.config.json` under `overlord` section.
+
 **F29B (pipeline automation)** ✅ Autonomous pipeline execution with
 state tracking and external control:
 - **3-round negotiation loop:** Handler and GateKeeper now negotiate up to

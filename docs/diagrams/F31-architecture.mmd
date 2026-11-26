@@ -1,0 +1,88 @@
+flowchart TB
+    subgraph Sources["Card Sources"]
+        OP["Operator (Dashboard)"]
+        CLI["Operator (CLI)"]
+        AGT["Agent (Overlord Monitor)"]
+    end
+
+    subgraph Dashboard["React Dashboard"]
+        CCF["CardCreateForm"]
+        WRV["WarRoom View"]
+        WRC["WarroomColumn x5"]
+        WRK["WarroomCard"]
+        TP["TriagePanel"]
+        HOOKS["useWarroomState\nuseWarroomActions"]
+    end
+
+    subgraph FileLayer["File-Based Data Layer"]
+        CARDS["logs/warroom/cards/*.json"]
+        VITE["Vite Dev Server\n(warroom-cards.json aggregator)"]
+        API["POST /api/warroom-cards"]
+    end
+
+    subgraph CLI_Scripts["Shell Scripts (bin/)"]
+        DW["didio-warroom.sh\nadd | list | show | move"]
+        OT["didio-overlord-triage.sh\nassess incoming cards"]
+        OP2["didio-overlord-promote.sh\ncard -> feature stub"]
+        OD["didio-overlord-defer.sh\nmark card deferred"]
+        OM["didio-overlord-monitor.sh\nscan governance logs"]
+    end
+
+    subgraph Knowledge["Overlord Knowledge Base"]
+        ADR["docs/adr/"]
+        LEARN["memory/agent-learnings/"]
+        FEAT["tasks/features/"]
+        DEC["logs/decisions/"]
+        GOV["logs/governance/"]
+    end
+
+    subgraph AgentHierarchy["Agent Hierarchy"]
+        OVERLORD["Overlord\n(strategic meta-agent)"]
+        HANDLER["Handler\n(orchestration)"]
+        GK["GateKeeper\n(governance)"]
+        ARCH["Architect"]
+        DEV["Developer"]
+        TL["TechLead"]
+        QA["QA"]
+    end
+
+    subgraph StandardBoard["Standard Board (Kanban)"]
+        FEAT_STUB["tasks/features/FXX/"]
+        PIPELINE["Pipeline Execution"]
+    end
+
+    %% Card creation flows
+    OP --> CCF
+    CCF --> API
+    CLI --> DW
+    AGT --> DW
+    DW --> CARDS
+    API --> CARDS
+
+    %% Dashboard polling
+    CARDS --> VITE
+    VITE --> HOOKS
+    HOOKS --> WRV
+    WRV --> WRC
+    WRC --> WRK
+    WRV --> TP
+
+    %% Overlord triage flow
+    OT --> CARDS
+    OT -.->|reads| Knowledge
+    OT -->|writes assessment| CARDS
+    OM -.->|scans| DEC
+    OM -.->|scans| GOV
+    OM -->|creates strategic card| CARDS
+
+    %% Promotion bridge
+    OP2 -->|creates feature stub| FEAT_STUB
+    FEAT_STUB --> PIPELINE
+
+    %% Agent hierarchy
+    OVERLORD -.->|observes| HANDLER
+    OVERLORD -.->|observes| GK
+    HANDLER -->|directs| ARCH
+    ARCH --> DEV
+    DEV --> TL
+    TL --> QA

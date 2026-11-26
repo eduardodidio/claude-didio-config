@@ -1,0 +1,86 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "WarRoomCard",
+  "type": "object",
+  "required": ["card_id", "title", "body", "source", "created_at", "status"],
+  "properties": {
+    "card_id": {
+      "type": "string",
+      "pattern": "^WR-\\d{8}-\\d{3}$",
+      "description": "Format: WR-YYYYMMDD-NNN"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "body": {
+      "type": "string",
+      "description": "Full text description, raw markdown allowed"
+    },
+    "source": {
+      "type": "string",
+      "enum": ["operator", "agent", "external"]
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updated_at": {
+      "type": ["string", "null"],
+      "format": "date-time"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["incoming", "triaging", "promoted", "deferred", "archived"]
+    },
+    "priority_suggestion": {
+      "type": ["string", "null"],
+      "enum": ["low", "medium", "high", "max", null]
+    },
+    "overlord_assessment": {
+      "oneOf": [
+        { "type": "null" },
+        {
+          "type": "object",
+          "required": ["assessed_at", "recommendation", "priority", "rationale"],
+          "properties": {
+            "assessed_at": { "type": "string", "format": "date-time" },
+            "recommendation": {
+              "type": "string",
+              "enum": ["promote", "defer", "archive", "needs_input"]
+            },
+            "priority": {
+              "type": "string",
+              "enum": ["low", "medium", "high", "max"]
+            },
+            "rationale": { "type": "string", "minLength": 1 },
+            "promoted_as": {
+              "type": ["string", "null"],
+              "description": "Feature ID + name if promoted, e.g. 'F32 -- Auth refactor'"
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "promoted_to": {
+      "type": ["string", "null"],
+      "description": "Feature ID if promoted (e.g. 'F32')"
+    },
+    "tags": {
+      "type": "array",
+      "items": { "type": "string" },
+      "default": []
+    },
+    "source_agent": {
+      "type": ["string", "null"],
+      "description": "Agent role name if source is 'agent'"
+    },
+    "source_feature": {
+      "type": ["string", "null"],
+      "description": "Feature ID that triggered this card, if any"
+    }
+  },
+  "additionalProperties": false
+}

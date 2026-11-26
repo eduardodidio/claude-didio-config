@@ -35,6 +35,7 @@ case "$SUBCMD" in
   action-listener)   exec "$DIDIO_HOME/bin/didio-action-listener.sh" "$@" ;;
   post-review)       exec "$DIDIO_HOME/bin/didio-post-review.sh" "$@" ;;
   flag)              exec "$DIDIO_HOME/bin/didio-flag.sh" "$@" ;;
+  warroom)           exec "$DIDIO_HOME/bin/didio-warroom.sh" "$@" ;;
   token-monitor)     exec "$DIDIO_HOME/bin/didio-token-monitor.sh" "$@" ;;
   pipeline-status)   exec "$DIDIO_HOME/bin/didio-pipeline-status.sh" "$@" ;;
   pipeline-pause)    exec "$DIDIO_HOME/bin/didio-pipeline-pause.sh" "$@" ;;
@@ -43,6 +44,31 @@ case "$SUBCMD" in
   learnings-export)  exec "$DIDIO_HOME/bin/didio-learnings-export.sh" "$@" ;;
   learnings-import)  exec "$DIDIO_HOME/bin/didio-learnings-import.sh" "$@" ;;
   learnings-sync)    exec "$DIDIO_HOME/bin/didio-learnings-sync.sh" "$@" ;;
+  overlord)
+    OVERLORD_SUB="${1:-}"
+    shift || true
+    case "$OVERLORD_SUB" in
+      monitor)  exec "$DIDIO_HOME/bin/didio-overlord-monitor.sh" "$@" ;;
+      triage)   exec "$DIDIO_HOME/bin/didio-overlord-triage.sh" "$@" ;;
+      promote)  exec "$DIDIO_HOME/bin/didio-overlord-promote.sh" "$@" ;;
+      defer)    exec "$DIDIO_HOME/bin/didio-overlord-defer.sh" "$@" ;;
+      help|--help|-h|"")
+        echo "Usage: didio overlord <subcommand> [args...]"
+        echo ""
+        echo "Subcommands:"
+        echo "  monitor   Run governance pattern detection + strategic cards"
+        echo "  triage    Run Overlord triage on War Room cards"
+        echo "  promote   Promote a triaged card to a Standard Board feature"
+        echo "  defer     Defer a card with rationale"
+        echo ""
+        echo "Run 'didio overlord <subcommand> --help' for details."
+        ;;
+      *)
+        echo "didio overlord: unknown subcommand '$OVERLORD_SUB'. Try 'didio overlord help'." >&2
+        exit 1
+        ;;
+    esac
+    ;;
   menu|"")         exec "$DIDIO_HOME/bin/didio-menu.sh" "$@" ;;
   version)       echo "didio $(cat "$DIDIO_HOME/VERSION" 2>/dev/null || echo dev)" ;;
   help|-h|--help)
@@ -150,6 +176,21 @@ Usage:
       Manage pipeline flags (blocked, needs_review, escalated, warning, info).
       Flags are stored as JSON in logs/agents/flags/.
 
+  didio warroom add "title" [--body "text"] [--tags "a,b"] [--priority medium]
+  didio warroom list [--status <s>] [--all] [--format table|json]
+  didio warroom show <card_id>
+  didio warroom move <card_id> <status>
+      Manage War Room cards (incoming ideas, requests, signals).
+      Cards are stored as JSON in logs/warroom/cards/.
+
+  didio overlord triage [--dry-run]
+  didio overlord promote <card-id>
+  didio overlord defer <card-id>
+  didio overlord monitor
+      Overlord strategic command. Triage incoming War Room cards,
+      promote cards to features, defer cards with rationale, or
+      monitor governance patterns.
+
   didio action-listener [--interval SECS] [--once]
       Poll logs/agents/actions/ for operator action JSON files and
       process them (unblock, approve, skip, pause, resume, cancel).
@@ -179,6 +220,15 @@ Usage:
   didio learnings-sync <shared-repo-path>
       Bidirectional sync: exports local learnings then imports from
       other projects in <shared-repo-path>/learnings/.
+
+  didio overlord monitor [--dry-run] [--since YYYY-MM-DD] [--continuous]
+      Run Overlord governance pattern detection. Scans decision/governance
+      logs for repeated challenges, blocked pipelines, low confidence,
+      escalation frequency, stale flags, and token budget pressure.
+      Creates strategic War Room cards when patterns are detected.
+
+  didio overlord triage [args...]
+      Run Overlord triage on War Room cards.
 
   didio resume-pending [--feature FXX] [--dry-run] [--max-retries N]
       Scan logs/agents/_pending/ and re-spawn rate-limited jobs whose

@@ -61,9 +61,9 @@ describe('AppSidebar', () => {
     expect(screen.getByText('Didio Agents Dash')).toBeInTheDocument();
   });
 
-  it('boundary: all 7 nav icons render even in collapsed-style stub', () => {
+  it('boundary: all 8 nav icons render even in collapsed-style stub', () => {
     const { container } = renderAt('/');
     const svgs = container.querySelectorAll('a svg');
-    expect(svgs.length).toBe(7);
+    expect(svgs.length).toBe(8);
   });
 });

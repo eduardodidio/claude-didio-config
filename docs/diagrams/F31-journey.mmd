@@ -1,0 +1,38 @@
+flowchart TD
+    subgraph Flow1["Flow 1: Operator adds card via Dashboard"]
+        A1["Operator opens War Room view"] --> A2["Clicks Add Card"]
+        A2 --> A3["Fills form:\ntitle, body, priority, tags"]
+        A3 --> A4["POST /api/warroom-cards"]
+        A4 --> A5["Card appears in\nINCOMING column"]
+    end
+
+    subgraph Flow2["Flow 2: Operator adds card via CLI"]
+        B1["Runs: didio warroom add\n'title' --body 'text'"] --> B2["Card JSON created\nin logs/warroom/cards/"]
+        B2 --> B3["Dashboard polls\nwarroom-cards.json"]
+        B3 --> B4["Card visible in\nINCOMING column"]
+    end
+
+    subgraph Flow3["Flow 3: Overlord triages cards"]
+        C1["Operator runs:\ndidio overlord triage"] --> C2["Overlord gathers knowledge:\nADRs, learnings, features,\ndecisions, governance"]
+        C2 --> C3{"For each\nINCOMING card"}
+        C3 --> C4["Assess card against\nproject context"]
+        C4 --> C5{"Recommendation?"}
+        C5 -->|promote| C6["Write assessment\nCreate feature stub\nin tasks/features/FXX/"]
+        C5 -->|defer| C7["Write assessment\nMove to DEFERRED"]
+        C5 -->|archive| C8["Write assessment\nMove to ARCHIVED"]
+        C5 -->|needs_input| C9["Write assessment\nKeep in INCOMING\nwith blue badge"]
+        C6 --> C10["Standard Board\npicks up new feature"]
+        C7 --> C11["Card revisitable\nin next triage cycle"]
+    end
+
+    subgraph Flow4["Flow 4: Governance monitoring"]
+        D1["Overlord monitor scans:\nlogs/decisions/\nlogs/governance/"] --> D2{"Pattern detected?"}
+        D2 -->|yes| D3["Creates strategic\nWar Room card"]
+        D3 --> D4["Card enters INCOMING\nfor next triage cycle"]
+        D2 -->|no| D5["No action\nMonitor sleeps"]
+    end
+
+    %% Cross-flow connections
+    A5 -.->|next triage| C3
+    B4 -.->|next triage| C3
+    D4 -.->|next triage| C3
