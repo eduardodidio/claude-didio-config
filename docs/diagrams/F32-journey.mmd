@@ -1,0 +1,64 @@
+%% F32 Black Hawk Desktop — User Journey
+%% BPMN-style flow: operator interacts with Black Hawk Alpha via desktop app
+
+graph LR
+    subgraph Startup["Machine Startup"]
+        Boot["System boot"] --> AutoLaunch["Auto-launch<br/>Black Hawk Desktop"]
+        AutoLaunch --> Tray["System tray icon<br/>(green = OK)"]
+    end
+
+    subgraph TrayActions["Tray Interactions"]
+        Tray -->|"left click"| Toggle["Show/Hide<br/>mini window"]
+        Tray -->|"right click"| Menu["Context menu"]
+        Menu --> ShowWin["Show Window"]
+        Menu --> RunTriage["Run Triage"]
+        Menu --> ToggleSilent["Toggle Silent"]
+        Menu --> Quit["Quit"]
+    end
+
+    subgraph ChatFlow["Chat Tab"]
+        Toggle --> Tabs["Tab bar:<br/>Chat | Board | Alerts | Config"]
+        Tabs -->|"Chat tab"| ChatView["Chat interface"]
+        ChatView --> SendMsg["Operator types message"]
+        SendMsg --> AlphaReply["Alpha processes<br/>& responds"]
+        AlphaReply --> Actions["Action buttons<br/>in response"]
+        Actions -->|"click action"| Execute["Execute command<br/>via CLI bridge"]
+        Execute --> Result["Result shown<br/>in chat"]
+    end
+
+    subgraph BoardFlow["Board Tab"]
+        Tabs -->|"Board tab"| BoardView["Compact board view"]
+        BoardView --> Columns["BACKLOG | PLANNING<br/>RUNNING | REVIEW | DONE"]
+        Columns --> Progress["Progress bars<br/>& task counts"]
+        Progress --> Blockage["Blockage indicators<br/>(red = blocked)"]
+    end
+
+    subgraph AlertFlow["Alerts Tab"]
+        Tabs -->|"Alerts tab"| AlertView["Alerts panel"]
+        AlertView --> Active["Active alerts<br/>(critical/warning/info)"]
+        Active --> Resolved["Resolved history"]
+    end
+
+    subgraph NotifyFlow["Notifications"]
+        Blockage --> TrayRed["Tray icon<br/>turns RED"]
+        TrayRed --> OSNotify["OS notification<br/>(if not silent)"]
+        Active --> OSNotify
+    end
+
+    subgraph SettingsFlow["Config Tab"]
+        Tabs -->|"Config tab"| SettingsView["Settings panel"]
+        SettingsView --> SilentMode["Silent mode toggle"]
+        SettingsView --> AutoStart["Auto-launch toggle"]
+        SettingsView --> Interval["Triage interval"]
+        SettingsView --> Position["Window position"]
+    end
+
+    classDef start fill:#1e293b,stroke:#38bdf8,color:#bae6fd
+    classDef action fill:#2d1b69,stroke:#7c3aed,color:#e9d5ff
+    classDef alert fill:#451a03,stroke:#f97316,color:#fed7aa
+    classDef settings fill:#1a1a2e,stroke:#6b7280,color:#d1d5db
+
+    class Boot,AutoLaunch,Tray start
+    class SendMsg,AlphaReply,Actions,Execute action
+    class TrayRed,OSNotify,Active alert
+    class SilentMode,AutoStart,Interval,Position settings

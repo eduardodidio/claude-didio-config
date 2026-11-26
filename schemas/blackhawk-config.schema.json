@@ -1,0 +1,101 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "BlackHawkConfig",
+  "description": "Configuration for the Black Hawk Desktop Assistant",
+  "type": "object",
+  "properties": {
+    "enabled": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether the Black Hawk Alpha agent is active"
+    },
+    "auto_triage": {
+      "type": "boolean",
+      "default": true,
+      "description": "Automatically triage new features on interval"
+    },
+    "triage_interval_minutes": {
+      "type": "integer",
+      "minimum": 5,
+      "maximum": 1440,
+      "default": 30,
+      "description": "Minutes between automatic triage runs"
+    },
+    "knowledge_sources": {
+      "type": "array",
+      "items": { "type": "string" },
+      "default": ["adr", "learnings", "retrospectives"],
+      "description": "Knowledge sources for Black Hawk Alpha context"
+    },
+    "max_concurrent_promotions": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 10,
+      "default": 2,
+      "description": "Max features promoted concurrently"
+    },
+    "promotion_requires_confirmation": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether promotion needs user confirmation"
+    },
+    "defer_auto_archive_days": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 365,
+      "default": 30,
+      "description": "Days before deferred features are auto-archived"
+    },
+    "auto_launch": {
+      "type": "boolean",
+      "default": true,
+      "description": "Launch Black Hawk Desktop at system startup"
+    },
+    "silent_mode": {
+      "type": "boolean",
+      "default": false,
+      "description": "Suppress all notifications (logs still recorded)"
+    },
+    "avatar_path": {
+      "type": "string",
+      "default": "",
+      "description": "Path to custom avatar image (PNG/SVG). Empty = default."
+    },
+    "notification_sound": {
+      "type": "boolean",
+      "default": true,
+      "description": "Play sound on notifications"
+    },
+    "chat_history_days": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 365,
+      "default": 30,
+      "description": "Days to retain chat history before cleanup"
+    },
+    "desktop_app": {
+      "type": "object",
+      "properties": {
+        "width": {
+          "type": "integer",
+          "minimum": 300,
+          "maximum": 1200,
+          "default": 400
+        },
+        "height": {
+          "type": "integer",
+          "minimum": 400,
+          "maximum": 1600,
+          "default": 600
+        },
+        "position": {
+          "type": "string",
+          "enum": ["bottom-right", "bottom-left", "top-right", "top-left", "center"],
+          "default": "bottom-right"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

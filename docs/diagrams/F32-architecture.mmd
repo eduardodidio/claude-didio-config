@@ -1,0 +1,77 @@
+%% F32 Black Hawk Desktop — Architecture
+%% Tauri v2 desktop app: Rust backend + React frontend
+
+graph TB
+    subgraph Desktop["Black Hawk Desktop (Tauri v2)"]
+        subgraph Rust["Rust Backend (src-tauri/)"]
+            Main["main.rs<br/>App entry, tray, plugins"]
+            Cmd["commands.rs<br/>IPC command handlers"]
+            Watch["watcher.rs<br/>File system watcher"]
+            Notify["notifications.rs<br/>OS notifications + state"]
+        end
+
+        subgraph React["React Frontend (src/)"]
+            App["App.tsx<br/>Tab layout"]
+            Chat["Chat.tsx<br/>Alpha chat interface"]
+            Board["BoardMini.tsx<br/>Compact board view"]
+            Alerts["Alerts.tsx<br/>Alert notifications"]
+            Settings["Settings.tsx<br/>Config & avatar"]
+        end
+
+        subgraph Bridge["Tauri Bridge (src/lib/)"]
+            Types["types.ts<br/>Shared type defs"]
+            TBridge["tauriBridge.ts<br/>invoke + listen wrappers"]
+        end
+    end
+
+    subgraph CLI["didio CLI (bash scripts)"]
+        BH["didio-blackhawk.sh"]
+        Triage["didio-blackhawk-triage.sh"]
+        Promote["didio-blackhawk-promote.sh"]
+        Defer["didio-blackhawk-defer.sh"]
+    end
+
+    subgraph Data["Data Layer (file system)"]
+        ChatLog["logs/overlord/chat-*.jsonl"]
+        Flags["logs/flags/*.json"]
+        Cards["logs/warroom/cards/*.json"]
+        Features["tasks/features/*/"]
+        SettingsFile["~/.claude-didio-config/<br/>blackhawk/settings.json"]
+    end
+
+    %% Frontend -> Bridge -> Rust
+    App --> Chat & Board & Alerts & Settings
+    Chat --> TBridge
+    Board --> TBridge
+    Alerts --> TBridge
+    Settings --> TBridge
+    TBridge --> Types
+    TBridge -->|"invoke()"| Cmd
+    TBridge -->|"listen()"| Watch
+
+    %% Rust -> CLI
+    Cmd -->|"shell out"| BH
+    BH --> Triage & Promote & Defer
+
+    %% Rust -> Data
+    Cmd --> ChatLog & SettingsFile
+    Watch -->|"notify crate"| Flags & Cards & Features & ChatLog
+
+    %% Rust -> Notifications
+    Notify -->|"OS notification"| Main
+    Watch --> Notify
+
+    %% Tray
+    Main -->|"system tray"| App
+
+    classDef rust fill:#2d1b69,stroke:#7c3aed,color:#e9d5ff
+    classDef react fill:#1e293b,stroke:#38bdf8,color:#bae6fd
+    classDef bridge fill:#1e1e2e,stroke:#a78bfa,color:#c4b5fd
+    classDef cli fill:#1a1a2e,stroke:#6b7280,color:#d1d5db
+    classDef data fill:#0d1117,stroke:#4b5563,color:#9ca3af
+
+    class Main,Cmd,Watch,Notify rust
+    class App,Chat,Board,Alerts,Settings react
+    class Types,TBridge bridge
+    class BH,Triage,Promote,Defer cli
+    class ChatLog,Flags,Cards,Features,SettingsFile data

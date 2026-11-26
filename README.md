@@ -357,6 +357,17 @@ monitor` for governance pattern detection. Cards are file-based JSON
 cards bridge to the Standard Board as feature stubs. Black Hawk Alpha config
 in `didio.config.json` under `blackhawk` section.
 
+**F32 (Black Hawk Desktop)** ✅ Tauri v2 native desktop app for Black Hawk
+Alpha. System tray icon (green/red/muted), 4-tab mini GUI: Chat (operator
+talks to Alpha, action buttons inline), Board (compact Standard Board with
+progress bars and blockage indicators), Alerts (severity-grouped with
+active/resolved sections), Settings (silent mode, auto-launch, triage
+interval, window position, avatar). Rust backend shells out to `didio
+blackhawk` CLI for triage/promote/defer. File watcher (notify crate) pushes
+real-time board/alert/chat updates to the frontend. Chat persistence via
+JSONL (`logs/overlord/chat-*.jsonl`). OS notifications via
+tauri-plugin-notification. 18 component tests passing.
+
 **F29B (pipeline automation)** ✅ Autonomous pipeline execution with
 state tracking and external control:
 - **3-round negotiation loop:** Handler and GateKeeper now negotiate up to

@@ -1,0 +1,32 @@
+[package]
+name = "blackhawk-desktop"
+version = "0.1.0"
+description = "Black Hawk Desktop - Tauri v2 companion app for claude-didio-config"
+authors = ["Eduardo Didio"]
+edition = "2021"
+
+[lib]
+name = "blackhawk_desktop_lib"
+crate-type = ["lib", "cdylib", "staticlib"]
+path = "src/lib.rs"
+
+[[bin]]
+name = "blackhawk-desktop"
+path = "src/main.rs"
+
+[dependencies]
+tauri = { version = "2", features = ["tray-icon", "image-png"] }
+tauri-plugin-autostart = "2"
+tauri-plugin-notification = "2"
+tauri-plugin-fs = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+notify = { version = "6", default-features = false, features = ["macos_kqueue"] }
+tokio = { version = "1", features = ["full"] }
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[features]
+default = ["custom-protocol"]
+custom-protocol = ["tauri/custom-protocol"]
