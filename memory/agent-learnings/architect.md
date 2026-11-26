@@ -79,3 +79,10 @@
 ## F27 — 2026-06-11
 **What worked:** Thin alias-delegation pattern (marker line + delegates-to target + identical mirror in `.claude/commands/`) made structural ACs trivially testable with grep-based tests. Marker conventions (`<!-- bmad-new: persona=<...> phase=<...> -->`) for a generated-file family enable cheap structural tests across the whole family.
 **What to avoid:** When a Wave-0 decision skips a planned task (here T03), other tasks/docs drafted independently can still describe the skipped behavior as shipped — grep docs for the skipped task's filenames/permissions before final review. Also: reference/planning images can land at repo root under a different filename than the brief uses and go untracked — place them under `docs/` with the brief's filename or gitignore explicitly.
+
+## F34 — 2026-11-26
+**What worked:** Separating data-path fixes (Wave 0) from business-logic wiring (Wave 1) prevented integration issues. Clean collision avoidance: T01 (watcher+caps), T02 (commands.rs), T03 (commands.rs chat area), T04 (watcher.rs tray), T05 (frontend TS) -- no shared files within any Wave.
+
+**What to avoid:** When a task file describes a Tauri command that accepts a string parameter and passes it to `bash -c`, the architect MUST include a security note requiring mitigation (whitelist or confirmation gate). This was missed for `execute_action()` and caught only at TechLead review.
+
+**Pattern to repeat:** For any task that creates diagrams, include `grep -q "F<NN>" docs/diagrams/INDEX.md` as a mandatory AC. This is the 6th time INDEX.md was missed. Add this to the architect's standard AC template for diagram tasks.

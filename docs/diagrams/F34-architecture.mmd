@@ -1,0 +1,40 @@
+%% F34 — Black Hawk Desktop Wiring: Architecture Diagram
+%% Data flow from pipeline scripts through Rust backend to React frontend.
+
+flowchart LR
+    subgraph Scripts["Pipeline Scripts"]
+        RUN["didio-run-pipeline.sh"]
+        FLAGS["didio-flags-lib.sh"]
+        CLI["claude -p"]
+    end
+
+    subgraph Disk["Disk (logs/)"]
+        PS[("pipeline-*.state.json")]
+        FL[("flags/*.json")]
+        CH[("chat-*.jsonl")]
+    end
+
+    subgraph Rust["Tauri Rust Backend"]
+        CMD["commands.rs"]
+        WAT["watcher.rs"]
+        NOT["notifications.rs"]
+    end
+
+    subgraph React["React Frontend"]
+        HOOKS["hooks (chat, board, alerts)"]
+        VIEWS["views (Chat, Board, Alerts)"]
+    end
+
+    RUN -->|writes| PS
+    FLAGS -->|writes| FL
+    CMD -->|spawns| CLI
+    CLI -->|stdout| CMD
+    CMD -->|reads| PS
+    CMD -->|reads| FL
+    CMD -->|reads/writes| CH
+    WAT -->|watches| PS & FL & CH
+    WAT -->|emits events| HOOKS
+    WAT -->|calls| NOT
+    NOT -->|tray-update| HOOKS
+    CMD -->|invoke response| HOOKS
+    HOOKS --> VIEWS

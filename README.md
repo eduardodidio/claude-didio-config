@@ -403,6 +403,14 @@ operational references from 5 files (tea.md prompts, didio.md menus), deleted
 4 obsolete F27 test files. Historical BMAD docs preserved as reference.
 ADR-0011 documenting DOB design and BMAD purge rationale.
 
+**F34 (Desktop Wiring)** ✅ Wired every Black Hawk Desktop component to its
+real backend data source. Chat spawns `claude -p` for AI responses with JSONL
+persistence. Board reads `logs/agents/pipeline-*.state.json` for real pipeline
+status. Alerts read from correct `logs/agents/flags/` path. Tray icon reflects
+alert severity (red on critical, green when clear). File watcher pushes
+real-time updates to the React frontend. Tauri v2 capabilities updated for
+shell execution. ADR-0012 documenting the pipeline-state-as-board-data decision.
+
 ---
 
 ## Rate-limit recovery

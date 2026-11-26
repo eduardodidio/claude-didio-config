@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "board-status.schema.json",
+  "title": "BoardState",
+  "description": "Response shape from get_board_state() Tauri command. Derived from pipeline-*.state.json files in logs/agents/.",
+  "type": "object",
+  "required": ["cards", "lastUpdated"],
+  "properties": {
+    "cards": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["feature", "column", "progress", "taskTotal", "taskDone", "hasBlockage"],
+        "properties": {
+          "feature": {
+            "type": "string",
+            "description": "Feature identifier (e.g. F33, F34)"
+          },
+          "column": {
+            "type": "string",
+            "enum": ["BACKLOG", "PLANNING", "RUNNING", "REVIEW", "DONE"],
+            "description": "Board column derived from pipeline stage and status"
+          },
+          "progress": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100,
+            "description": "Completion percentage: (stages_completed / 8) * 100"
+          },
+          "taskTotal": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Total pipeline stages (always 8)"
+          },
+          "taskDone": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Number of completed stages"
+          },
+          "hasBlockage": {
+            "type": "boolean",
+            "description": "True when pipeline status is 'failed'"
+          },
+          "currentPhase": {
+            "type": ["string", "null"],
+            "description": "Current pipeline stage name (e.g. 'waves', 'techlead')"
+          }
+        }
+      }
+    },
+    "lastUpdated": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO-8601 timestamp of when board state was read"
+    }
+  }
+}

@@ -1,0 +1,44 @@
+%% F34 — Black Hawk Desktop Wiring: User Journey Diagram
+%% Operator interaction flow: chat, board, alerts, tray.
+
+flowchart TD
+    subgraph Operator["Operator"]
+        START(["Opens Black Hawk Desktop"])
+        CHAT_INPUT["Types message in Chat"]
+        VIEW_BOARD["Clicks Board tab"]
+        CHECK_ALERT["Notices tray alert"]
+        CLICK_ACTION["Clicks suggested action"]
+        END_OK(["Task complete"])
+    end
+
+    subgraph System["Tauri Backend"]
+        SPAWN_CLI["Spawn claude -p"]
+        PARSE["Parse response + actions"]
+        READ_PIPE["Read pipeline-*.state.json"]
+        READ_FLAGS["Read logs/agents/flags/"]
+        UPDATE_TRAY["Update tray tooltip"]
+        EXEC_CMD["Execute didio blackhawk command"]
+    end
+
+    subgraph External["External"]
+        CLAUDE["Claude CLI"]
+        PIPELINE["Pipeline scripts"]
+    end
+
+    START --> CHAT_INPUT
+    CHAT_INPUT --> SPAWN_CLI
+    SPAWN_CLI --> CLAUDE
+    CLAUDE --> PARSE
+    PARSE --> CHAT_INPUT
+
+    START --> VIEW_BOARD
+    VIEW_BOARD --> READ_PIPE
+    PIPELINE -->|writes state| READ_PIPE
+    READ_PIPE --> VIEW_BOARD
+
+    PIPELINE -->|raises flag| READ_FLAGS
+    READ_FLAGS --> UPDATE_TRAY
+    UPDATE_TRAY --> CHECK_ALERT
+    CHECK_ALERT --> CLICK_ACTION
+    CLICK_ACTION --> EXEC_CMD
+    EXEC_CMD --> END_OK

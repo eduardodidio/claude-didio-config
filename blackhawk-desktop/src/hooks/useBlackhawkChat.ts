@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { ChatMessage } from '@/lib/types';
-import { getChatHistory, onChatResponse, sendChat } from '@/lib/tauriBridge';
+import { getChatHistory, onChatExternalUpdate, onChatResponse, sendChat } from '@/lib/tauriBridge';
 
 export function useBlackhawkChat() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -23,6 +23,18 @@ export function useBlackhawkChat() {
         if (prev.some((m) => m.id === event.message.id)) return prev;
         return [...prev, event.message];
       });
+    });
+    return () => {
+      unlisten.then((fn) => fn());
+    };
+  }, []);
+
+  // Listen for external chat file changes (e.g. background agents writing)
+  useEffect(() => {
+    const unlisten = onChatExternalUpdate(() => {
+      getChatHistory()
+        .then(setMessages)
+        .catch((e) => setError(String(e)));
     });
     return () => {
       unlisten.then((fn) => fn());

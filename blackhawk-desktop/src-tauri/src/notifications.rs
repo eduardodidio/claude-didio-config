@@ -5,6 +5,7 @@ use tauri::Emitter;
 pub struct AppState {
     pub app_handle: Mutex<Option<tauri::AppHandle>>,
     pub silent_mode: Mutex<bool>,
+    pub chat_lock: Mutex<()>,
 }
 
 impl AppState {
@@ -12,6 +13,7 @@ impl AppState {
         Self {
             app_handle: Mutex::new(None),
             silent_mode: Mutex::new(false),
+            chat_lock: Mutex::new(()),
         }
     }
 }

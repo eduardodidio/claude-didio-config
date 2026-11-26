@@ -116,3 +116,10 @@
 **What to avoid:** Trusting a "suite now passes N/N" claim verified only in a context (clean shell / no `DIDIO_*` exported) that differs from the suite's actual real-world caller (an agent session with `DIDIO_FEATURE`/`DIDIO_RUN_ID`/etc. always set). The number can be true and still misleading.
 
 **Pattern to repeat:** For any test harness that builds a sandbox around a *synthetic* fixture identity (feature ID, project name, run ID), explicitly override every env var the code-under-test reads to resolve that identity (e.g. `DIDIO_FEATURE=""` in the invocation prefix) — don't assume `set -u` / sandboxed `$PROJ` paths are enough; inherited env vars bypass both. Verify by re-running the suite with the real session's env vars still set, not unset.
+
+## F34 — 2026-11-26
+**What worked:** Running `cargo check` and `npm run test` as independent parallel checks caught no issues and confirmed both stacks compile cleanly. Reading the TechLead review before starting QA gave a complete picture: 1 BLOCKING (INDEX.md), 1 IMPORTANT (command injection), 1 IMPORTANT (AC checkboxes), 3 MINOR. B01 was fixed directly during QA.
+
+**What to avoid:** When `cargo` is not on the default shell PATH (common on Windows/MINGW), explicitly add `$HOME/.cargo/bin` to PATH before running `cargo check`. The integration test script assumes `cargo` is on PATH -- this will fail in environments where it isn't.
+
+**Pattern to repeat:** For Tauri desktop app features, validate both Rust compilation (cargo check) and frontend tests (npm run test) independently. Structural grep checks in the integration test script serve as a fast wiring verification layer. Always fix BLOCKING TechLead items (like INDEX.md staleness) during QA rather than deferring.

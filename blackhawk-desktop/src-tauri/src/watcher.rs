@@ -3,12 +3,14 @@ use std::path::PathBuf;
 use std::sync::mpsc;
 use std::thread;
 use tauri::Emitter;
+use tauri::Manager;
 
 use crate::commands::{get_alerts, get_board_state};
 
 /// Watched directories relative to project root
 const WATCH_PATHS: &[&str] = &[
-    "logs/flags",
+    "logs/agents/flags",
+    "logs/agents",
     "logs/warroom",
     "logs/overlord",
     "tasks/features",
@@ -73,10 +75,13 @@ pub fn start_watchers(app_handle: tauri::AppHandle, project_root: PathBuf) {
                 if now.duration_since(last_alert_emit) > debounce {
                     last_alert_emit = now;
                     emit_alert_update(&app_handle);
+                    update_tray_from_alerts(&app_handle);
                 }
             }
 
-            if path_str.contains("features") || path_str.contains("warroom") {
+            if path_str.contains("features") || path_str.contains("warroom")
+                || path_str.contains("pipeline-")
+            {
                 if now.duration_since(last_board_emit) > debounce {
                     last_board_emit = now;
                     emit_board_update(&app_handle);
@@ -118,6 +123,50 @@ fn emit_alert_update(app: &tauri::AppHandle) {
                 let _ = app.emit("alert-update", serde_json::json!({ "alerts": alerts }));
             }
             Err(e) => eprintln!("[blackhawk-watcher] alert update error: {}", e),
+        }
+    }
+}
+
+fn update_tray_from_alerts(app: &tauri::AppHandle) {
+    let rt = tokio::runtime::Builder::new_current_thread()
+        .enable_all()
+        .build();
+    if let Ok(rt) = rt {
+        match rt.block_on(get_alerts()) {
+            Ok(alerts) => {
+                let state = app.state::<crate::notifications::AppState>();
+                let silent = *state.silent_mode.lock().unwrap();
+
+                if silent {
+                    crate::notifications::update_tray_state(
+                        app,
+                        crate::notifications::TrayStatus::Muted,
+                        0,
+                    );
+                    return;
+                }
+
+                let active_critical = alerts
+                    .iter()
+                    .filter(|a| a.status == "active" && a.severity == "critical")
+                    .count();
+                let active_total = alerts.iter().filter(|a| a.status == "active").count();
+
+                if active_critical > 0 {
+                    crate::notifications::update_tray_state(
+                        app,
+                        crate::notifications::TrayStatus::Alert,
+                        active_total,
+                    );
+                } else {
+                    crate::notifications::update_tray_state(
+                        app,
+                        crate::notifications::TrayStatus::Nominal,
+                        0,
+                    );
+                }
+            }
+            Err(e) => eprintln!("[blackhawk-watcher] tray update error: {}", e),
         }
     }
 }

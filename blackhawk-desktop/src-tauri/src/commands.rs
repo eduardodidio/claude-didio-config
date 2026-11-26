@@ -253,8 +253,14 @@ pub async fn send_chat(message: String, state: State<'_, AppState>) -> Result<Ch
     };
     append_chat_message(&today, &operator_msg)?;
 
-    // Generate Alpha response
-    let (content, actions) = generate_alpha_response(&message);
+    // Serialize CLI calls to prevent overlapping claude -p invocations
+    let _lock = state.chat_lock.lock().unwrap();
+
+    // Generate Alpha response via Claude CLI
+    let (content, actions) = match call_claude_cli(&message) {
+        Ok((c, a)) => (c, a),
+        Err(e) => (format!("[Error] {}", e), vec![]),
+    };
 
     let alpha_msg = ChatMessage {
         id: new_uuid(),
@@ -273,86 +279,58 @@ pub async fn send_chat(message: String, state: State<'_, AppState>) -> Result<Ch
     Ok(alpha_msg)
 }
 
-fn generate_alpha_response(message: &str) -> (String, Vec<ChatAction>) {
-    let lower = message.to_lowercase();
+fn call_claude_cli(message: &str) -> Result<(String, Vec<ChatAction>), String> {
+    let system_prompt = "You are Black Hawk Alpha, the primary tactical agent \
+        for the didio orchestrator. You help operators manage features, triage \
+        War Room cards, and monitor pipeline health. Available commands: triage, \
+        promote <card-id>, defer <card-id>, status, silent on/off. When suggesting \
+        an action, put it on its own line: [ACTION: <label>] <command>";
 
-    // Detect commands / intent
-    if lower.contains("triage") {
-        return (
-            "Roger. Ready to run triage on incoming War Room cards.".into(),
-            vec![ChatAction {
-                label: "Run Triage".into(),
-                command: "didio blackhawk triage".into(),
-                confirmed: false,
-            }],
-        );
+    let full_prompt = format!("{}\n\nOperator says: {}", system_prompt, message);
+
+    let output = Command::new("claude")
+        .arg("-p")
+        .arg(&full_prompt)
+        .output();
+
+    match output {
+        Ok(o) if o.status.success() => {
+            let raw = String::from_utf8_lossy(&o.stdout).to_string();
+            let (content, actions) = parse_alpha_output(&raw);
+            Ok((content, actions))
+        }
+        Ok(o) => {
+            let stderr = String::from_utf8_lossy(&o.stderr);
+            Err(format!("Claude CLI error: {}", stderr))
+        }
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
+            Err("Claude CLI not found on PATH. Install: npm i -g @anthropic-ai/claude-code".into())
+        }
+        Err(e) => Err(format!("Failed to spawn Claude CLI: {}", e)),
+    }
+}
+
+fn parse_alpha_output(raw: &str) -> (String, Vec<ChatAction>) {
+    let mut content_lines = Vec::new();
+    let mut actions = Vec::new();
+    let action_prefix = "[ACTION: ";
+
+    for line in raw.lines() {
+        let trimmed = line.trim();
+        if trimmed.starts_with(action_prefix) {
+            if let Some(end_bracket) = trimmed.find(']') {
+                let label = trimmed[action_prefix.len()..end_bracket].to_string();
+                let command = trimmed[end_bracket + 1..].trim().to_string();
+                actions.push(ChatAction { label, command, confirmed: false });
+            } else {
+                content_lines.push(line.to_string());
+            }
+        } else {
+            content_lines.push(line.to_string());
+        }
     }
 
-    if lower.contains("promote") {
-        // Try to extract card ID
-        let parts: Vec<&str> = message.split_whitespace().collect();
-        let card_id = parts.iter()
-            .find(|p| p.starts_with("WR-"))
-            .unwrap_or(&"<card-id>");
-        return (
-            format!("Promoting card {} to Standard Board.", card_id),
-            vec![ChatAction {
-                label: "Confirm Promote".into(),
-                command: format!("didio blackhawk promote {}", card_id),
-                confirmed: false,
-            }],
-        );
-    }
-
-    if lower.contains("defer") {
-        let parts: Vec<&str> = message.split_whitespace().collect();
-        let card_id = parts.iter()
-            .find(|p| p.starts_with("WR-"))
-            .unwrap_or(&"<card-id>");
-        return (
-            format!("Deferring card {}.", card_id),
-            vec![ChatAction {
-                label: "Confirm Defer".into(),
-                command: format!("didio blackhawk defer {}", card_id),
-                confirmed: false,
-            }],
-        );
-    }
-
-    if lower.contains("status") || lower.contains("board") {
-        return (
-            "Board state loaded. Check the Board tab for current status.".into(),
-            vec![ChatAction {
-                label: "Refresh Board".into(),
-                command: "refresh-board".into(),
-                confirmed: false,
-            }],
-        );
-    }
-
-    if lower.contains("silent") {
-        let enable = lower.contains("on") || lower.contains("enable");
-        return (
-            format!(
-                "Silent mode {}. Notifications will be {}.",
-                if enable { "enabled" } else { "disabled" },
-                if enable { "suppressed" } else { "active" }
-            ),
-            vec![ChatAction {
-                label: if enable { "Enable Silent" } else { "Disable Silent" }.into(),
-                command: format!("set-silent-mode {}", enable),
-                confirmed: false,
-            }],
-        );
-    }
-
-    // Default response
-    (
-        "Copy. Standing by for orders. Use 'triage', 'promote <card-id>', \
-         'defer <card-id>', 'status', or 'silent on/off'."
-            .into(),
-        vec![],
-    )
+    (content_lines.join("\n").trim().to_string(), actions)
 }
 
 fn append_chat_message(date: &str, msg: &ChatMessage) -> Result<(), String> {
@@ -398,74 +376,86 @@ pub async fn execute_action(command: String) -> Result<String, String> {
     }
 }
 
-#[tauri::command]
-pub async fn get_board_state() -> Result<BoardState, String> {
-    let root = project_root();
-    let features_dir = root.join("tasks").join("features");
+const ALL_STAGES: &[&str] = &[
+    "handler_gate", "architect", "readiness", "tea",
+    "waves", "techlead", "qa", "post_review",
+];
 
-    let mut cards = Vec::new();
-
-    if features_dir.exists() {
-        let entries = fs::read_dir(&features_dir).map_err(|e| e.to_string())?;
-        for entry in entries.flatten() {
-            let path = entry.path();
-            if !path.is_dir() { continue; }
-
-            let dir_name = path.file_name()
-                .and_then(|n| n.to_str())
-                .unwrap_or_default()
-                .to_string();
-
-            // Look for status file or README
-            let status_file = path.join("status.json");
-            let readme = path.join(format!("{}-README.md", dir_name.split('-').next().unwrap_or(&dir_name)));
-
-            let (column, progress, task_total, task_done, has_blockage, current_phase) =
-                if status_file.exists() {
-                    parse_status_file(&status_file)
-                } else if readme.exists() || path.join(format!("{}-README.md", &dir_name.split('-').next().unwrap_or(""))).exists() {
-                    // Infer from README status line
-                    ("BACKLOG".into(), 0u32, 0u32, 0u32, false, None)
-                } else {
-                    continue;
-                };
-
-            cards.push(BoardCard {
-                feature: dir_name,
-                column,
-                progress,
-                task_total,
-                task_done,
-                has_blockage,
-                current_phase,
-            });
-        }
+fn stage_to_column(stage: &str) -> &'static str {
+    match stage {
+        "architect" | "readiness" | "tea" => "PLANNING",
+        "waves" => "RUNNING",
+        "techlead" | "qa" | "post_review" => "REVIEW",
+        _ => "BACKLOG",
     }
+}
 
-    Ok(BoardState {
-        cards,
-        last_updated: now_iso(),
+fn pipeline_state_to_card(parsed: &serde_json::Value) -> Option<BoardCard> {
+    let feature = parsed["feature"].as_str()?.to_string();
+    let status = parsed["status"].as_str().unwrap_or("unknown");
+    let stage = parsed["stage"].as_str().unwrap_or("");
+
+    let stages_completed = parsed["stages_completed"].as_array()
+        .map(|a| a.len() as u32).unwrap_or(0);
+    let progress = ((stages_completed as f64 / ALL_STAGES.len() as f64) * 100.0) as u32;
+
+    let (column, has_blockage) = match status {
+        "completed" => ("DONE", false),
+        "running" => (stage_to_column(stage), false),
+        "failed" => (stage_to_column(stage), true),
+        "paused" => (stage_to_column(stage), false),
+        "cancelled" => ("BACKLOG", false),
+        _ => ("BACKLOG", false),
+    };
+
+    Some(BoardCard {
+        feature,
+        column: column.to_string(),
+        progress: if status == "completed" { 100 } else { progress },
+        task_total: ALL_STAGES.len() as u32,
+        task_done: stages_completed,
+        has_blockage,
+        current_phase: if stage.is_empty() { None } else { Some(stage.to_string()) },
     })
 }
 
-fn parse_status_file(path: &PathBuf) -> (String, u32, u32, u32, bool, Option<String>) {
-    let content = fs::read_to_string(path).unwrap_or_default();
-    let parsed: serde_json::Value = serde_json::from_str(&content).unwrap_or_default();
+#[tauri::command]
+pub async fn get_board_state() -> Result<BoardState, String> {
+    let root = project_root();
+    let agents_dir = root.join("logs").join("agents");
+    let mut cards = Vec::new();
 
-    let column = parsed["column"].as_str().unwrap_or("BACKLOG").to_string();
-    let progress = parsed["progress"].as_u64().unwrap_or(0) as u32;
-    let task_total = parsed["taskTotal"].as_u64().unwrap_or(0) as u32;
-    let task_done = parsed["taskDone"].as_u64().unwrap_or(0) as u32;
-    let has_blockage = parsed["hasBlockage"].as_bool().unwrap_or(false);
-    let current_phase = parsed["currentPhase"].as_str().map(|s| s.to_string());
+    if agents_dir.exists() {
+        let entries = fs::read_dir(&agents_dir).map_err(|e| e.to_string())?;
+        for entry in entries.flatten() {
+            let path = entry.path();
+            let fname = path.file_name()
+                .and_then(|n| n.to_str())
+                .unwrap_or_default();
+            if !fname.starts_with("pipeline-") || !fname.ends_with(".state.json") {
+                continue;
+            }
+            let content = fs::read_to_string(&path).unwrap_or_default();
+            let parsed: serde_json::Value = serde_json::from_str(&content)
+                .unwrap_or_default();
+            if let Some(card) = pipeline_state_to_card(&parsed) {
+                cards.push(card);
+            }
+        }
+    }
 
-    (column, progress, task_total, task_done, has_blockage, current_phase)
+    cards.sort_by_key(|c| match c.column.as_str() {
+        "RUNNING" => 0, "REVIEW" => 1, "PLANNING" => 2,
+        "BACKLOG" => 3, "DONE" => 4, _ => 5,
+    });
+
+    Ok(BoardState { cards, last_updated: now_iso() })
 }
 
 #[tauri::command]
 pub async fn get_alerts() -> Result<Vec<Alert>, String> {
     let root = project_root();
-    let flags_dir = root.join("logs").join("flags");
+    let flags_dir = root.join("logs").join("agents").join("flags");
 
     let mut alerts = Vec::new();
 
@@ -480,11 +470,23 @@ pub async fn get_alerts() -> Result<Vec<Alert>, String> {
             let content = fs::read_to_string(&path).unwrap_or_default();
             let parsed: serde_json::Value = serde_json::from_str(&content).unwrap_or_default();
 
-            let severity = match parsed["severity"].as_str().unwrap_or("info") {
+            let id = parsed["flag_id"].as_str()
+                .or_else(|| parsed["id"].as_str())
+                .unwrap_or_default().to_string();
+
+            let raw_type = parsed["type"].as_str()
+                .or_else(|| parsed["severity"].as_str())
+                .unwrap_or("info");
+            let severity = match raw_type {
+                "blocked" => "critical",
+                "needs_review" | "warning" | "warn" => "warning",
                 "critical" | "error" => "critical",
-                "warning" | "warn" => "warning",
                 _ => "info",
             };
+
+            let created_at = parsed["raised_at"].as_str()
+                .or_else(|| parsed["created_at"].as_str())
+                .unwrap_or_default().to_string();
 
             let status = if parsed["resolved"].as_bool().unwrap_or(false) {
                 "resolved"
@@ -493,13 +495,13 @@ pub async fn get_alerts() -> Result<Vec<Alert>, String> {
             };
 
             alerts.push(Alert {
-                id: parsed["id"].as_str().unwrap_or_default().to_string(),
+                id,
                 feature: parsed["feature"].as_str().unwrap_or_default().to_string(),
                 task: parsed["task"].as_str().map(|s| s.to_string()),
                 severity: severity.to_string(),
                 status: status.to_string(),
                 message: parsed["message"].as_str().unwrap_or_default().to_string(),
-                created_at: parsed["created_at"].as_str().unwrap_or_default().to_string(),
+                created_at,
                 resolved_at: parsed["resolved_at"].as_str().map(|s| s.to_string()),
             });
         }

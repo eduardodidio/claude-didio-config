@@ -143,6 +143,13 @@ All diagrams are [Mermaid](https://mermaid.js.org/) `.mmd` files.
 | [F31-architecture.mmd](F31-architecture.mmd) | F31-T13 | War Room data flow (card sources, file layer, dashboard), Black Hawk Alpha triage flow (knowledge base, assessment, promotion bridge), agent hierarchy (Black Hawk Alpha above Handler/GateKeeper above standard pipeline), governance monitoring loop |
 | [F31-journey.mmd](F31-journey.mmd) | F31-T13 | Four user flows: (1) operator adds card via dashboard, (2) operator adds card via CLI, (3) Black Hawk Alpha triages incoming cards (promote/defer/archive/needs_input), (4) governance monitoring detects patterns and creates strategic cards |
 
+## F34 — Black Hawk Desktop Wiring
+
+| File | Owner task | What it shows |
+|---|---|---|
+| [F34-architecture.mmd](F34-architecture.mmd) | F34-T07 | Data flow from pipeline scripts and flags through disk layer, Rust backend (commands, watcher, notifications), to React frontend hooks and views |
+| [F34-journey.mmd](F34-journey.mmd) | F34-T07 | Operator journey: chat with Alpha via Claude CLI, view board with real pipeline state, notice tray alerts, click suggested actions |
+
 ## F24 — auto-install second-brain
 
 | File | Owner task | What it shows |

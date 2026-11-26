@@ -128,3 +128,10 @@
 **What to avoid:** Authoring a status/verdict type enum from the brief before running the live pipeline — values the real agents produce (e.g., `ratified`) won't appear in the brief and will diverge from the type. Also: forgetting `docs/diagrams/INDEX.md` entry on diagram tasks (5th consecutive occurrence).
 
 **Pattern to repeat:** For any task that creates `docs/diagrams/F<NN>-*.mmd`, include this as a literal AC: `grep -q "F<NN>" docs/diagrams/INDEX.md`. At the Wave 2 → Wave 3 hand-off for features that define a status/verdict enum, run `jq '.[].status' logs/decisions/*.json | sort -u` and reconcile against the type union before closing the feature.
+
+## F34 — 2026-11-26
+**What worked:** Wave 0 as "data path fix" wave (correcting watch paths, capabilities, schemas) before wiring business logic in Wave 1 prevented integration issues. Fallback chaining (`or_else`) for field mapping in deserialization is clean and handles backward compat well. Comprehensive fixture-based integration test with trap cleanup validated all three data paths (pipeline, flags, chat).
+
+**What to avoid:** INDEX.md update continues to be missed (6th occurrence). Before marking Status: done on any diagram-creating task, run `grep -q "F<NN>" docs/diagrams/INDEX.md` and add the entry if missing. Also: tick AC checkboxes with brief evidence notes when marking Status: done -- this has been flagged since F02 and continues to recur.
+
+**Pattern to repeat:** For Tauri desktop apps, use structural grep checks in integration tests as a lightweight wiring verification gate -- catches missing imports/exports without needing a full E2E runtime. The `Mutex<()>` pattern for serializing CLI calls is simple and correct for single-user desktop apps.

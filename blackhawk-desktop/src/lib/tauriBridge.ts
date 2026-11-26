@@ -64,3 +64,7 @@ export function onChatResponse(callback: (event: ChatResponseEvent) => void): Pr
 export function onTrayUpdate(callback: (event: TrayUpdateEvent) => void): Promise<UnlistenFn> {
   return listen<TrayUpdateEvent>('tray-update', (e) => callback(e.payload));
 }
+
+export function onChatExternalUpdate(callback: () => void): Promise<UnlistenFn> {
+  return listen<void>('chat-external-update', () => callback());
+}
