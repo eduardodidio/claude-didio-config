@@ -29,16 +29,5 @@
       "csp": null
     }
   },
-  "plugins": {
-    "autostart": { "macosLaunchAgent": true },
-    "notification": { "all": true },
-    "fs": {
-      "scope": {
-        "allow": [
-          "$APPDATA/**",
-          "$HOME/.claude-didio-config/**"
-        ]
-      }
-    }
-  }
+  "plugins": {}
 }
