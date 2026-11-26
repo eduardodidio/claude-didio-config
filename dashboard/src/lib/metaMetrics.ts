@@ -1,12 +1,12 @@
 import type {
   BiasName,
   DecisionRecord,
-  GandalfKpis,
+  HandlerKpis,
   GovernanceReport,
   LoopHealthKpis,
   MetaMetricsReport,
   MetaRunState,
-  SarumanKpis,
+  GateKeeperKpis,
   Verdict,
 } from './metaTypes';
 
@@ -91,19 +91,20 @@ export function computeMetaMetrics(input: {
     if (g.decision_id) governanceByDecisionId.set(g.decision_id, g);
   }
 
-  // ---- Gandalf ----
-  const gandalfLatencies: number[] = [];
+  // ---- Handler ----
+  const handlerLatencies: number[] = [];
   for (const d of decisions) {
-    const run = findRunsByDecision(runs, 't800', d.decision_id)[0];
+    const run = findRunsByDecision(runs, 'handler', d.decision_id)[0]
+      ?? findRunsByDecision(runs, 't800', d.decision_id)[0];
     if (run && run.finished_at) {
-      gandalfLatencies.push(secondsBetween(run.started_at, run.finished_at));
+      handlerLatencies.push(secondsBetween(run.started_at, run.finished_at));
     }
   }
 
-  const gandalf: GandalfKpis = {
+  const handler: HandlerKpis = {
     total_decisions: decisions.length,
-    avg_latency_secs: avg(gandalfLatencies),
-    min_latency_secs: min(gandalfLatencies),
+    avg_latency_secs: avg(handlerLatencies),
+    min_latency_secs: min(handlerLatencies),
     avg_options_considered: avg(decisions.map((d) => d.options_considered.length)),
     min_options_considered: min(decisions.map((d) => d.options_considered.length)),
     type_distribution: countBy(decisions.map((d) => d.type)),
@@ -111,7 +112,7 @@ export function computeMetaMetrics(input: {
     avg_actions_per_decision: avg(decisions.map((d) => d.actions.length)),
   };
 
-  // ---- Saruman ----
+  // ---- GateKeeper ----
   const verdict_distribution = Object.fromEntries(
     VERDICTS.map((v) => [v, governance.filter((g) => g.verdict === v).length]),
   ) as Record<Verdict, number>;
@@ -129,22 +130,25 @@ export function computeMetaMetrics(input: {
     BIASES.map((b) => [b, governance.filter((g) => g.bias_check[b]).length]),
   ) as Record<BiasName, number>;
 
-  const sarumanLatencies: number[] = [];
+  const gatekeeperLatencies: number[] = [];
   for (const g of governance) {
     if (!g.decision_id) continue;
-    const t800Run = findRunsByDecision(runs, 't800', g.decision_id)[0];
-    if (!t800Run || !t800Run.finished_at) continue;
+    const handlerRun = findRunsByDecision(runs, 'handler', g.decision_id)[0]
+      ?? findRunsByDecision(runs, 't800', g.decision_id)[0];
+    if (!handlerRun || !handlerRun.finished_at) continue;
     const t1000Run =
+      findRunsByDecision(runs, 'gatekeeper', g.decision_id)[0] ??
       findRunsByDecision(runs, 't1000', g.decision_id)[0] ??
-      nearestRunByFinishedAt(runs, 't1000', t800Run.finished_at);
+      nearestRunByFinishedAt(runs, 'gatekeeper', handlerRun.finished_at) ??
+      nearestRunByFinishedAt(runs, 't1000', handlerRun.finished_at);
     if (t1000Run && t1000Run.finished_at) {
-      sarumanLatencies.push(
-        secondsBetween(t800Run.finished_at, t1000Run.finished_at),
+      gatekeeperLatencies.push(
+        secondsBetween(handlerRun.finished_at, t1000Run.finished_at),
       );
     }
   }
 
-  const saruman: SarumanKpis = {
+  const gatekeeper: GateKeeperKpis = {
     total_reviews: governance.length,
     verdict_distribution,
     verdict_rates,
@@ -152,7 +156,7 @@ export function computeMetaMetrics(input: {
     avg_confidence: avg(governance.map((g) => g.confidence)),
     avg_blind_spots: avg(governance.map((g) => g.blind_spots.length)),
     avg_risks: avg(governance.map((g) => g.risks.length)),
-    avg_decision_to_governance_latency_secs: avg(sarumanLatencies),
+    avg_decision_to_governance_latency_secs: avg(gatekeeperLatencies),
   };
 
   // ---- Loop health ----
@@ -168,8 +172,11 @@ export function computeMetaMetrics(input: {
   if (governedDecisions.length > 0) {
     const autoCount = governedDecisions.filter((d) => {
       if (!autoGovernance) return false;
-      const t1000Runs = findRunsByDecision(runs, 't1000', d.decision_id);
-      return t1000Runs.length <= 1;
+      const gkRuns = [
+        ...findRunsByDecision(runs, 'gatekeeper', d.decision_id),
+        ...findRunsByDecision(runs, 't1000', d.decision_id),
+      ];
+      return gkRuns.length <= 1;
     }).length;
     auto_reviewed_pct = round2(autoCount / governedDecisions.length);
   }
@@ -187,8 +194,8 @@ export function computeMetaMetrics(input: {
 
   return {
     generated_at,
-    gandalf,
-    saruman,
+    handler,
+    gatekeeper,
     loop_health,
   };
 }

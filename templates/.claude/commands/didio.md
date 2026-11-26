@@ -21,13 +21,13 @@ tem 20 itens. Use **um menu em dois níveis**:
 
 **Passo 1 — pergunte a categoria** (5 categorias; mostre 4 + "Other" para Greenfield):
 
-1. **🚀 Trabalho** — criar feature, POC from meeting, criar PRD, corrigir bug, revisar branch, planejar feature, orchestrate (Gandalf)
+1. **🚀 Trabalho** — criar feature, POC from meeting, criar PRD, corrigir bug, revisar branch, planejar feature, orchestrate (Handler)
    _(opções 1, 2, 3, 14, 16, 20, 21)_ — Trabalho tem 7 itens; use 4 na pergunta + "Other" para ver mais
 2. **📊 Visibilidade** — status, dashboard, ver docs, listar features planejadas
    _(opções 4, 5, 6, 15)_
 3. **🎓 Aprendizado & ajuda** — retrospectiva manual, prompts prontos
    _(opções 7, 8)_
-4. **⚙️ Configurações** — turbo, economy, highlander, paralelismo, modelos, governance review (Saruman), decision log
+4. **⚙️ Configurações** — turbo, economy, highlander, paralelismo, modelos, governance review (GateKeeper), decision log
    _(opções 9, 10, 11, 12, 13, 22, 23)_
 5. **🌱 Greenfield** — brainstorm, research, product brief, modo BMAD _(opções 17, 18, 19, 24)_
    _(apresente como "Other / Greenfield" na chamada do Passo 1 — o modelo mapeia para esta categoria)_
@@ -47,8 +47,8 @@ opção mais próxima do menu numerado (1–24) abaixo.
 
    **OBRIGATÓRIO — execute as 4 fases sequencialmente, sem pular nenhuma:**
 
-   **Fase 0 — Gandalf Strategic Gate (condicional):** Se
-   `meta_agents.t800.enabled=true` em `didio.config.json`, o Gandalf
+   **Fase 0 — Handler Strategic Gate (condicional):** Se
+   `meta_agents.handler.enabled=true` em `didio.config.json`, o Handler
    analisa o pedido antes do Architect. Se governance escala, pipeline
    para. Se disabled (default), esta fase nao existe.
 
@@ -158,8 +158,8 @@ opção mais próxima do menu numerado (1–24) abaixo.
 14. **🗓️ Planejar feature (BMad, sem executar)**
     Pergunte: id da feature (F0X) e descrição.
 
-    **Fase 0 — Gandalf Strategic Gate (condicional):** Se
-    `meta_agents.t800.enabled=true` em `didio.config.json`, o Gandalf
+    **Fase 0 — Handler Strategic Gate (condicional):** Se
+    `meta_agents.handler.enabled=true` em `didio.config.json`, o Handler
     analisa o pedido antes do Architect. Se governance escala, pipeline
     para. Se disabled (default), esta fase nao existe.
 
@@ -270,26 +270,26 @@ opção mais próxima do menu numerado (1–24) abaixo.
 
     Equivale ao slash command `/poc-from-minutes <path>`.
 
-21. **🤖 Gandalf Orchestrate — decisao estrategica**
+21. **🤖 Handler Orchestrate — decisao estrategica**
     Pergunte: id da feature (F0X) e descricao/contexto.
 
-    Execute o slash command `/orchestrate <FXX> <descricao>`. O Gandalf
+    Execute o slash command `/orchestrate <FXX> <descricao>`. O Handler
     analisa opcoes, produz um decision record em `logs/decisions/`,
-    e (se `auto_governance=true`) o Saruman revisa automaticamente.
+    e (se `auto_governance=true`) o GateKeeper revisa automaticamente.
 
-    **Pre-requisito:** `meta_agents.t800.enabled=true` em `didio.config.json`.
+    **Pre-requisito:** `meta_agents.handler.enabled=true` em `didio.config.json`.
     Se desabilitado, informe o usuario e sugira habilitar.
 
     Equivale ao slash command `/orchestrate <FXX> <descricao>`.
 
-22. **🛡️ Saruman Governance Review — revisao sob demanda**
+22. **🛡️ GateKeeper Governance Review — revisao sob demanda**
     Pergunte: decision-id (ou oferecer listar recentes).
 
-    Execute o slash command `/governance-review [decision-id]`. O Saruman
+    Execute o slash command `/governance-review [decision-id]`. O GateKeeper
     revisa a decisao com olhos frescos, verificando vieses cognitivos
     e blind spots.
 
-    **Pre-requisito:** `meta_agents.t1000.enabled=true` em `didio.config.json`.
+    **Pre-requisito:** `meta_agents.gatekeeper.enabled=true` em `didio.config.json`.
 
     Equivale ao slash command `/governance-review [decision-id]`.
 

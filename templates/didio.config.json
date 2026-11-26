@@ -1,7 +1,7 @@
 {
   "turbo": false,
   "economy": false,
-  "highlander": false,
+  
   "max_parallel": 0,
   "providers": {
     "claude": { "bin": "claude", "default": true },
@@ -43,11 +43,11 @@
       "fallback": "haiku",
       "effort": "medium"
     },
-    "t800": {
+    "handler": {
       "model": "opus",
       "fallback": "sonnet"
     },
-    "t1000": {
+    "gatekeeper": {
       "model": "opus",
       "fallback": "sonnet"
     }
@@ -81,11 +81,11 @@
       "model": "haiku",
       "fallback": "haiku"
     },
-    "t800": {
+    "handler": {
       "model": "sonnet",
       "fallback": "haiku"
     },
-    "t1000": {
+    "gatekeeper": {
       "model": "sonnet",
       "fallback": "haiku"
     }
@@ -121,8 +121,8 @@
     "enabled": true
   },
   "meta_agents": {
-    "t800": { "enabled": true, "auto_governance": true },
-    "t1000": { "enabled": true, "review_mode": "post-decision", "escalation_blocks_pipeline": true }
+    "handler": { "enabled": true, "auto_governance": true },
+    "gatekeeper": { "enabled": true, "review_mode": "post-decision", "escalation_blocks_pipeline": true }
   },
   "research": {
     "web_search_budget": 5,
@@ -142,5 +142,14 @@
   },
   "rtk": {
     "enabled": false
+  },
+  "persona": {
+    "theme": "default",
+    "handler_name": "Handler",
+    "gatekeeper_name": "GateKeeper"
+  },
+  "negotiation": {
+    "max_rounds": 3,
+    "post_work_review": true
   }
 }

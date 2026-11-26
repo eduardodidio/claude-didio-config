@@ -6,7 +6,7 @@ import type { MetaMetricsReport } from '@/lib/metaTypes';
 
 const fullReport: MetaMetricsReport = {
   generated_at: '2026-04-11T10:00:00Z',
-  gandalf: {
+  handler: {
     total_decisions: 4,
     avg_latency_secs: 100,
     min_latency_secs: 40,
@@ -16,7 +16,7 @@ const fullReport: MetaMetricsReport = {
     status_distribution: { executed: 3, blocked: 1 },
     avg_actions_per_decision: 1.75,
   },
-  saruman: {
+  gatekeeper: {
     total_reviews: 4,
     verdict_distribution: { agree: 2, challenge: 1, escalate: 1 },
     verdict_rates: { agree: 0.5, challenge: 0.25, escalate: 0.25 },
@@ -42,8 +42,8 @@ const fullReport: MetaMetricsReport = {
 
 const emptySeedReport: MetaMetricsReport = {
   generated_at: '',
-  gandalf: {} as MetaMetricsReport['gandalf'],
-  saruman: {} as MetaMetricsReport['saruman'],
+  handler: {} as MetaMetricsReport['handler'],
+  gatekeeper: {} as MetaMetricsReport['gatekeeper'],
   loop_health: {} as MetaMetricsReport['loop_health'],
 };
 
@@ -87,18 +87,18 @@ describe('MetaAgents', () => {
   it('happy: renders all three KPI sections with values from a full report', () => {
     renderWith(makeClient(fullReport));
 
-    expect(screen.getByTestId('gandalf-section')).toBeInTheDocument();
-    expect(screen.getByTestId('gandalf-total-decisions')).toHaveTextContent('4');
-    expect(screen.getByTestId('gandalf-avg-latency')).toHaveTextContent('100');
-    expect(screen.getByTestId('gandalf-type-distribution')).toHaveTextContent(
+    expect(screen.getByTestId('handler-section')).toBeInTheDocument();
+    expect(screen.getByTestId('handler-total-decisions')).toHaveTextContent('4');
+    expect(screen.getByTestId('handler-avg-latency')).toHaveTextContent('100');
+    expect(screen.getByTestId('handler-type-distribution')).toHaveTextContent(
       'wave_proceed',
     );
 
-    expect(screen.getByTestId('saruman-section')).toBeInTheDocument();
-    expect(screen.getByTestId('saruman-total-reviews')).toHaveTextContent('4');
-    expect(screen.getByTestId('saruman-verdict-agree')).toHaveTextContent('2');
-    expect(screen.getByTestId('saruman-verdict-agree')).toHaveTextContent('50.0%');
-    expect(screen.getByTestId('saruman-bias-frequency')).toHaveTextContent(
+    expect(screen.getByTestId('gatekeeper-section')).toBeInTheDocument();
+    expect(screen.getByTestId('gatekeeper-total-reviews')).toHaveTextContent('4');
+    expect(screen.getByTestId('gatekeeper-verdict-agree')).toHaveTextContent('2');
+    expect(screen.getByTestId('gatekeeper-verdict-agree')).toHaveTextContent('50.0%');
+    expect(screen.getByTestId('gatekeeper-bias-frequency')).toHaveTextContent(
       'scope_creep',
     );
 
@@ -111,18 +111,18 @@ describe('MetaAgents', () => {
     );
   });
 
-  it('edge: empty seed (gandalf/saruman/loop_health = {}) renders — and zeros without crashing', () => {
+  it('edge: empty seed (handler/gatekeeper/loop_health = {}) renders — and zeros without crashing', () => {
     renderWith(makeClient(emptySeedReport));
 
-    expect(screen.getByTestId('gandalf-total-decisions')).toHaveTextContent('—');
-    expect(screen.getByTestId('gandalf-avg-latency')).toHaveTextContent('—');
-    expect(screen.getByTestId('gandalf-type-distribution')).toHaveTextContent(
+    expect(screen.getByTestId('handler-total-decisions')).toHaveTextContent('—');
+    expect(screen.getByTestId('handler-avg-latency')).toHaveTextContent('—');
+    expect(screen.getByTestId('handler-type-distribution')).toHaveTextContent(
       'No data',
     );
 
-    expect(screen.getByTestId('saruman-total-reviews')).toHaveTextContent('—');
-    expect(screen.getByTestId('saruman-verdict-agree')).toHaveTextContent('—');
-    expect(screen.getByTestId('saruman-bias-frequency')).toHaveTextContent(
+    expect(screen.getByTestId('gatekeeper-total-reviews')).toHaveTextContent('—');
+    expect(screen.getByTestId('gatekeeper-verdict-agree')).toHaveTextContent('—');
+    expect(screen.getByTestId('gatekeeper-bias-frequency')).toHaveTextContent(
       'sunk_cost',
     );
 
@@ -158,18 +158,18 @@ describe('MetaAgents', () => {
   it('boundary: a verdict count of 0 renders explicitly, not as —', () => {
     const zeroVerdictReport: MetaMetricsReport = {
       ...fullReport,
-      saruman: {
-        ...fullReport.saruman,
+      gatekeeper: {
+        ...fullReport.gatekeeper,
         verdict_distribution: { agree: 4, challenge: 0, escalate: 0 },
         verdict_rates: { agree: 1, challenge: 0, escalate: 0 },
       },
     };
     renderWith(makeClient(zeroVerdictReport));
 
-    expect(screen.getByTestId('saruman-verdict-challenge')).toHaveTextContent(
+    expect(screen.getByTestId('gatekeeper-verdict-challenge')).toHaveTextContent(
       '0',
     );
-    expect(screen.getByTestId('saruman-verdict-challenge')).not.toHaveTextContent(
+    expect(screen.getByTestId('gatekeeper-verdict-challenge')).not.toHaveTextContent(
       '—',
     );
   });

@@ -63,15 +63,16 @@ pra confirmar antes de matar o processo.
 
 ## Inspirações e refinamentos
 
-O `claude-didio-config` se inspira fortemente no **BMAD method** para
-elicitação de PRD, sharding e auditoria de readiness, mas cada
-estratégia foi adaptada às necessidades específicas dos projetos
-downstream do usuário (`blind-warrior`, `escudo-do-mestre-v1`,
-`access-play-create`, `mellon-magic-maker`). A intenção não é portar
-BMAD verbatim — é destilar o que funciona e integrar ao workflow
-Architect → Developer → TechLead → QA já existente, sem prefixar
-nada com `bmad-` no framework (comandos, diretórios e arquivos
-mantêm a identidade `didio`).
+Concepts like elicitation, readiness audit, and sharding were inspired by
+the **BMAD methodology**, but each strategy was adapted to the specific
+needs of downstream projects (`blind-warrior`, `escudo-do-mestre-v1`,
+`access-play-create`, `mellon-magic-maker`). The intent is not to port
+BMAD verbatim -- it is to distill what works and integrate it into the
+existing Architect → Developer → TechLead → QA workflow.
+
+Naming personas (Gandalf/Saruman, T-800/T-1000) are available as optional
+themes inspired by Lord of the Rings and Terminator. The operational code
+uses the neutral names **Handler** and **GateKeeper**.
 
 Estratégias adotadas e em estudo:
 
@@ -243,6 +244,12 @@ o estado atual do código. Inclua arquitetura e jornada do usuário (BPMN).
   e `DIDIO_CI=1` pra controlar o comportamento. `didio resume-pending`
   ou `didio spawn-agent --help` pra ver todas as flags.
 
+- **Meta-agents: Handler + GateKeeper (opt-in)**
+  Handler toma decisoes estrategicas (prioridade, sequenciamento, go/no-go).
+  GateKeeper revisa decisoes com checklist de vieses cognitivos. Ambos
+  desabilitados por default. Habilite em `didio.config.json` →
+  `meta_agents.handler/gatekeeper.enabled`.
+
 - **Highlander mode (opt-in)** — _equivalente a Auto Mode on_
   Ativa o Auto Mode nativo do Claude Code via
   `permissions.defaultMode: "auto"` e mantém um allow-list liberal como
@@ -318,6 +325,11 @@ view de phrases por franquia.
 **Phase 3 (polish + guardrails + UX)** ✅ menu `/didio`, guardrails no
 CLAUDE.md, cerimônia de retrospectiva, diagramas obrigatórios (arq +
 jornada BPMN), prompts pré-configurados, rebranding "Didio Agents Dash".
+
+**F29A (corporate rename)** ✅ Replaced all operational persona names
+(T-800/T-1000, Gandalf/Saruman) with neutral names (Handler/GateKeeper).
+Config keys, CLI subcommands, filenames, and documentation updated.
+Persona themes kept as optional easter-egg content.
 
 ---
 

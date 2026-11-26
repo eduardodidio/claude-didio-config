@@ -1,4 +1,4 @@
-# Agent Learnings — Saruman (Governance Reviewer)
+# Agent Learnings — GateKeeper (Governance Reviewer)
 
 _Placeholder. QA acrescenta secoes `## <FXX> — <YYYY-MM-DD>` aqui durante a
 ceremony de retrospectiva (ver `templates/agents/prompts/qa.md`)._

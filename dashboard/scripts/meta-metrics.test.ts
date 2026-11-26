@@ -58,11 +58,11 @@ describe('meta-metrics CLI (run())', () => {
 
     const report = await run(root);
 
-    expect(report.gandalf.total_decisions).toBe(4);
-    expect(report.saruman.total_reviews).toBe(4);
+    expect(report.handler.total_decisions).toBe(4);
+    expect(report.gatekeeper.total_reviews).toBe(4);
     expect(report.loop_health.decisions_without_governance).toBe(0);
     // AC3: D-20260101-004 counted despite t800 exit_code=2 on disk
-    expect(report.gandalf.type_distribution['block']).toBe(1);
+    expect(report.handler.type_distribution['block']).toBe(1);
   });
 
   it('empty corpus: zeros report, file still written, no crash', async () => {
@@ -73,17 +73,17 @@ describe('meta-metrics CLI (run())', () => {
 
     const report = await run(root);
 
-    expect(report.gandalf.total_decisions).toBe(0);
-    expect(report.saruman.total_reviews).toBe(0);
-    expect(report.gandalf.avg_latency_secs).toBeNull();
-    expect(report.saruman.avg_confidence).toBeNull();
+    expect(report.handler.total_decisions).toBe(0);
+    expect(report.gatekeeper.total_reviews).toBe(0);
+    expect(report.handler.avg_latency_secs).toBeNull();
+    expect(report.gatekeeper.avg_confidence).toBeNull();
     expect(report.loop_health.auto_reviewed_pct).toBeNull();
 
     const outPath = join(root, 'logs', 'agents', 'meta-metrics.json');
     expect(existsSync(outPath)).toBe(true);
 
     const written = JSON.parse(readFileSync(outPath, 'utf-8'));
-    expect(written.gandalf.total_decisions).toBe(0);
+    expect(written.handler.total_decisions).toBe(0);
   });
 
   it('empty corpus: missing log dirs do not crash (dirs not created)', async () => {
@@ -92,8 +92,8 @@ describe('meta-metrics CLI (run())', () => {
 
     const report = await run(root);
 
-    expect(report.gandalf.total_decisions).toBe(0);
-    expect(report.saruman.total_reviews).toBe(0);
+    expect(report.handler.total_decisions).toBe(0);
+    expect(report.gatekeeper.total_reviews).toBe(0);
   });
 
   it('malformed artifact is skipped, run still succeeds with remaining valid artifacts', async () => {
@@ -106,7 +106,7 @@ describe('meta-metrics CLI (run())', () => {
     const report = await run(root);
 
     // Valid decisions still loaded; malformed one skipped
-    expect(report.gandalf.total_decisions).toBe(4);
+    expect(report.handler.total_decisions).toBe(4);
   });
 
   it('boundary: a single decision with one governance report produces count=1 fields', async () => {
@@ -158,10 +158,10 @@ describe('meta-metrics CLI (run())', () => {
 
     const report = await run(root);
 
-    expect(report.gandalf.total_decisions).toBe(1);
-    expect(report.saruman.total_reviews).toBe(1);
+    expect(report.handler.total_decisions).toBe(1);
+    expect(report.gatekeeper.total_reviews).toBe(1);
     expect(report.loop_health.decisions_without_governance).toBe(0);
-    expect(report.gandalf.avg_latency_secs).toBe(120);
-    expect(report.saruman.avg_decision_to_governance_latency_secs).toBe(60);
+    expect(report.handler.avg_latency_secs).toBe(120);
+    expect(report.gatekeeper.avg_decision_to_governance_latency_secs).toBe(60);
   });
 });

@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# didio-t800.sh — Gandalf Strategic Orchestrator launcher
+# didio-handler.sh — Handler Strategic Orchestrator launcher
 #
 # Usage:
-#   didio t800 <feature-id> <brief-or-request-file> [extra-prompt]
-#   didio t800 --checkpoint <decision-id>
+#   didio handler <feature-id> <brief-or-request-file> [extra-prompt]
+#   didio handler --checkpoint <decision-id>
 #
-# Spawns the Gandalf meta-agent to make a strategic decision. If
-# auto_governance is enabled, automatically spawns Saruman after.
+# Spawns the Handler meta-agent to make a strategic decision. If
+# auto_governance is enabled, automatically spawns GateKeeper after.
 
 set -euo pipefail
 
@@ -26,28 +26,28 @@ fi
 if [[ "${1:-}" = "--help" || "${1:-}" = "-h" ]]; then
   cat <<'EOF'
 USAGE:
-  didio t800 <feature-id> <brief-or-request-file> [extra-prompt]
-  didio t800 --checkpoint <decision-id>
+  didio handler <feature-id> <brief-or-request-file> [extra-prompt]
+  didio handler --checkpoint <decision-id>
 
-Spawns the Gandalf strategic orchestrator to produce a decision record
+Spawns the Handler strategic orchestrator to produce a decision record
 in logs/decisions/D-YYYYMMDD-NNN.json.
 
-If meta_agents.t800.auto_governance is true, the Saruman governance
+If meta_agents.handler.auto_governance is true, the GateKeeper governance
 reviewer is automatically spawned after the decision is produced.
 
 OPTIONS:
   --checkpoint <id>   Re-evaluate an existing decision (mid-pipeline check)
   --help, -h          Show this help and exit.
 
-REQUIRES: meta_agents.t800.enabled = true in didio.config.json
+REQUIRES: meta_agents.handler.enabled = true in didio.config.json
 EOF
   exit 0
 fi
 
-# Check if Gandalf is enabled
-T800_ENABLED="$(didio_t800_enabled)"
-if [[ "$T800_ENABLED" != "true" ]]; then
-  echo "[didio-t800] Gandalf is disabled. Set meta_agents.t800.enabled=true in didio.config.json" >&2
+# Check if Handler is enabled
+HANDLER_ENABLED="$(didio_handler_enabled)"
+if [[ "$HANDLER_ENABLED" != "true" ]]; then
+  echo "[didio-handler] Handler is disabled. Set meta_agents.handler.enabled=true in didio.config.json" >&2
   exit 1
 fi
 
@@ -61,11 +61,11 @@ if [[ "${1:-}" = "--checkpoint" ]]; then
   DECISION_ID="${2:?decision-id required for --checkpoint}"
   DECISION_FILE="$DECISIONS_DIR/${DECISION_ID}.json"
   if [[ ! -f "$DECISION_FILE" ]]; then
-    echo "[didio-t800] decision not found: $DECISION_FILE" >&2
+    echo "[didio-handler] decision not found: $DECISION_FILE" >&2
     exit 2
   fi
-  echo "[didio-t800] checkpoint mode for $DECISION_ID" >&2
-  "$DIDIO_HOME/bin/didio-spawn-agent.sh" t800 "META" "$DECISION_FILE" "MODE=checkpoint"
+  echo "[didio-handler] checkpoint mode for $DECISION_ID" >&2
+  "$DIDIO_HOME/bin/didio-spawn-agent.sh" handler "META" "$DECISION_FILE" "MODE=checkpoint"
   exit $?
 fi
 
@@ -75,7 +75,7 @@ REQUEST_FILE="${2:?brief or request file required}"
 EXTRA="${3:-}"
 
 if [[ ! -f "$REQUEST_FILE" ]]; then
-  echo "[didio-t800] request file not found: $REQUEST_FILE" >&2
+  echo "[didio-handler] request file not found: $REQUEST_FILE" >&2
   exit 2
 fi
 
@@ -83,15 +83,15 @@ fi
 TS="$(date +%Y%m%d-%H%M%S)"
 cp "$REQUEST_FILE" "$REQUESTS_DIR/${FEATURE}-${TS}.md"
 
-echo "[didio-t800] spawning Gandalf for $FEATURE..." >&2
+echo "[didio-handler] spawning Handler for $FEATURE..." >&2
 
-# Spawn Gandalf
-"$DIDIO_HOME/bin/didio-spawn-agent.sh" t800 "$FEATURE" "$REQUEST_FILE" "$EXTRA"
-T800_EXIT=$?
+# Spawn Handler
+"$DIDIO_HOME/bin/didio-spawn-agent.sh" handler "$FEATURE" "$REQUEST_FILE" "$EXTRA"
+HANDLER_EXIT=$?
 
-if [[ $T800_EXIT -ne 0 ]]; then
-  echo "[didio-t800] Gandalf failed (exit=$T800_EXIT)" >&2
-  exit $T800_EXIT
+if [[ $HANDLER_EXIT -ne 0 ]]; then
+  echo "[didio-handler] Handler failed (exit=$HANDLER_EXIT)" >&2
+  exit $HANDLER_EXIT
 fi
 
 # Find the most recent decision record for this feature
@@ -102,24 +102,24 @@ for f in "$DECISIONS_DIR"/D-*.json; do
 done
 
 if [[ -z "$LATEST_DECISION" ]]; then
-  echo "[didio-t800] WARNING: no decision record found in $DECISIONS_DIR" >&2
+  echo "[didio-handler] WARNING: no decision record found in $DECISIONS_DIR" >&2
   exit 0
 fi
 
 DECISION_ID="$(basename "$LATEST_DECISION" .json)"
-echo "[didio-t800] decision record: $LATEST_DECISION" >&2
+echo "[didio-handler] decision record: $LATEST_DECISION" >&2
 
-# Auto-governance: spawn Saruman if enabled
+# Auto-governance: spawn GateKeeper if enabled
 AUTO_GOV="$(didio_auto_governance)"
 if [[ "$AUTO_GOV" == "true" ]]; then
-  T1000_ENABLED="$(didio_t1000_enabled)"
-  if [[ "$T1000_ENABLED" == "true" ]]; then
-    echo "[didio-t800] auto-governance: spawning Saruman for $DECISION_ID..." >&2
-    "$DIDIO_HOME/bin/didio-t1000.sh" --decision "$DECISION_ID"
-    T1000_EXIT=$?
+  GATEKEEPER_ENABLED="$(didio_gatekeeper_enabled)"
+  if [[ "$GATEKEEPER_ENABLED" == "true" ]]; then
+    echo "[didio-handler] auto-governance: spawning GateKeeper for $DECISION_ID..." >&2
+    "$DIDIO_HOME/bin/didio-gatekeeper.sh" --decision "$DECISION_ID"
+    GATEKEEPER_EXIT=$?
 
-    if [[ $T1000_EXIT -ne 0 ]]; then
-      echo "[didio-t800] Saruman governance review failed (exit=$T1000_EXIT)" >&2
+    if [[ $GATEKEEPER_EXIT -ne 0 ]]; then
+      echo "[didio-handler] GateKeeper governance review failed (exit=$GATEKEEPER_EXIT)" >&2
     fi
 
     # Check governance verdict
@@ -133,18 +133,18 @@ with open('$GOV_FILE') as f:
 
       case "$VERDICT" in
         agree)
-          echo "[didio-t800] governance: AGREE — proceeding with pipeline" >&2
+          echo "[didio-handler] governance: AGREE — proceeding with pipeline" >&2
           ;;
         challenge)
-          echo "[didio-t800] governance: CHALLENGE — Gandalf re-evaluating (max 1 round)..." >&2
-          # Re-spawn Gandalf with governance feedback
-          "$DIDIO_HOME/bin/didio-spawn-agent.sh" t800 "$FEATURE" "$LATEST_DECISION" \
-            "MODE=re-evaluate GOVERNANCE_FILE=$GOV_FILE — The Saruman has challenged your decision. Read the governance report and reconsider. Update the decision record if warranted. This is the final round — no further challenges."
+          echo "[didio-handler] governance: CHALLENGE — Handler re-evaluating (max 1 round)..." >&2
+          # Re-spawn Handler with governance feedback
+          "$DIDIO_HOME/bin/didio-spawn-agent.sh" handler "$FEATURE" "$LATEST_DECISION" \
+            "MODE=re-evaluate GOVERNANCE_FILE=$GOV_FILE — The GateKeeper has challenged your decision. Read the governance report and reconsider. Update the decision record if warranted. This is the final round — no further challenges."
           ;;
         escalate)
-          echo "[didio-t800] governance: ESCALATE — pipeline BLOCKED. Human review required." >&2
-          echo "[didio-t800] decision: $LATEST_DECISION" >&2
-          echo "[didio-t800] governance: $GOV_FILE" >&2
+          echo "[didio-handler] governance: ESCALATE — pipeline BLOCKED. Human review required." >&2
+          echo "[didio-handler] decision: $LATEST_DECISION" >&2
+          echo "[didio-handler] governance: $GOV_FILE" >&2
           # Update decision status to blocked
           python3 -c "
 import json
@@ -157,12 +157,12 @@ with open('$LATEST_DECISION', 'w') as f:
           exit 3
           ;;
         *)
-          echo "[didio-t800] governance: unknown verdict '$VERDICT' — proceeding cautiously" >&2
+          echo "[didio-handler] governance: unknown verdict '$VERDICT' — proceeding cautiously" >&2
           ;;
       esac
     fi
   else
-    echo "[didio-t800] auto-governance: Saruman disabled, skipping governance review" >&2
+    echo "[didio-handler] auto-governance: GateKeeper disabled, skipping governance review" >&2
   fi
 fi
 
@@ -174,12 +174,12 @@ with open('$LATEST_DECISION') as f:
 " 2>/dev/null || echo "pending")
 
 if [[ "$STATUS" == "escalated" ]]; then
-  echo "[didio-t800] decision escalated — not executing actions" >&2
+  echo "[didio-handler] decision escalated — not executing actions" >&2
   exit 3
 fi
 
 # Read and execute actions
-echo "[didio-t800] executing actions from $DECISION_ID..." >&2
+echo "[didio-handler] executing actions from $DECISION_ID..." >&2
 python3 - "$LATEST_DECISION" <<'PY'
 import json, sys
 with open(sys.argv[1]) as f:
@@ -203,4 +203,4 @@ with open('$LATEST_DECISION', 'w') as f:
     json.dump(d, f, indent=2)
 " 2>/dev/null || true
 
-echo "[didio-t800] decision $DECISION_ID executed" >&2
+echo "[didio-handler] decision $DECISION_ID executed" >&2

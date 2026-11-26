@@ -6,7 +6,7 @@ import type { MetaMetricsReport } from '@/lib/metaTypes';
 
 const sampleReport: MetaMetricsReport = {
   generated_at: '2026-04-11T10:00:00Z',
-  gandalf: {
+  handler: {
     total_decisions: 5,
     avg_latency_secs: 90,
     min_latency_secs: 30,
@@ -16,7 +16,7 @@ const sampleReport: MetaMetricsReport = {
     status_distribution: { executed: 5 },
     avg_actions_per_decision: 2,
   },
-  saruman: {
+  gatekeeper: {
     total_reviews: 5,
     verdict_distribution: { agree: 5, challenge: 0, escalate: 0 },
     verdict_rates: { agree: 1, challenge: 0, escalate: 0 },
@@ -44,7 +44,7 @@ function Probe() {
   const q = useMetaMetrics();
   if (q.isLoading) return <div>loading</div>;
   if (q.error) return <div>error: {(q.error as Error).message}</div>;
-  return <div>decisions:{q.data?.gandalf.total_decisions ?? 0}</div>;
+  return <div>decisions:{q.data?.handler.total_decisions ?? 0}</div>;
 }
 
 function renderWithClient() {

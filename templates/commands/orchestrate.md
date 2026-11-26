@@ -1,11 +1,11 @@
 ---
-description: Orchestrate a strategic decision via Gandalf meta-agent (with optional Saruman governance)
+description: Orchestrate a strategic decision via Handler meta-agent (with optional GateKeeper governance)
 ---
 
-# /orchestrate — Strategic Decision via Gandalf
+# /orchestrate — Strategic Decision via Handler
 
-You are executing a strategic orchestration session using the Gandalf and
-Saruman meta-agents.
+You are executing a strategic orchestration session using the Handler and
+GateKeeper meta-agents.
 
 ## Input
 
@@ -17,9 +17,9 @@ Parse the arguments:
 
 ## Pre-flight Checks
 
-1. Read `didio.config.json` and check `meta_agents.t800.enabled`.
+1. Read `didio.config.json` and check `meta_agents.handler.enabled`.
    If `false` or missing, inform the user:
-   > Gandalf is disabled. To enable: set `meta_agents.t800.enabled: true`
+   > Handler is disabled. To enable: set `meta_agents.handler.enabled: true`
    > in `didio.config.json`. This is opt-in to avoid unexpected token costs.
 
 2. Ensure `logs/decisions/` directory exists (create if needed).
@@ -47,20 +47,20 @@ exists, if there are planned tasks, recent decisions, etc.>
 What is the best approach to proceed with <FXX>?
 ```
 
-### Phase 2 — Spawn Gandalf
+### Phase 2 — Spawn Handler
 
 Run via Bash:
 
 ```bash
-didio t800 <FXX> <request-file-path>
+didio handler <FXX> <request-file-path>
 ```
 
-This spawns the Gandalf agent which produces a decision record in
+This spawns the Handler agent which produces a decision record in
 `logs/decisions/D-YYYYMMDD-NNN.json`.
 
 ### Phase 3 — Report Results
 
-After Gandalf completes:
+After Handler completes:
 1. Read the decision record from `logs/decisions/`
 2. If auto_governance ran, read the governance report from `logs/governance/`
 3. Present a summary to the user:
@@ -80,6 +80,6 @@ If the decision was approved (not escalated):
 
 ## Notes
 
-- The Gandalf adds latency (~2-4 min) but provides structured decision-making
+- The Handler adds latency (~2-4 min) but provides structured decision-making
 - For simple, obvious decisions, the user may prefer `/create-feature` directly
 - Decision records serve as an audit trail in `logs/decisions/`

@@ -34,12 +34,11 @@ EOF
 
 print_menu() {
   # Show turbo/economy state in toggle labels
-  local turbo_label="OFF" economy_label="OFF" highlander_label="OFF"
+  local turbo_label="OFF" economy_label="OFF"
   local max_p
   max_p=$(didio_read_config max_parallel)
   [[ "$(didio_is_turbo)" == "true" ]] && turbo_label="ON"
   [[ "$(didio_is_economy)" == "true" ]] && economy_label="ON"
-  [[ "$(didio_is_highlander)" == "true" ]] && highlander_label="ON"
   [[ -z "$max_p" || "$max_p" == "0" ]] && max_p="ilimitado"
 
   cat <<EOF
@@ -53,17 +52,16 @@ print_menu() {
     6) 📚 Ver docs                   (docs/ ADRs / PRDs / diagramas)
     7) 🎓 Retrospectiva manual       (consolida learnings por role)
     8) ❓ Prompts prontos            (mostra o README cheat-sheet)
-   14) 🗓️  Planejar feature           (Architect only, tasks BMad)
+   14) 🗓️  Planejar feature           (Architect only, plan tasks)
    15) 📋 Listar features planejadas (Status=planned)
-   16) 🤖 Gandalf Orchestrate           [$(didio_t800_enabled | tr 'tf' 'TF' | sed 's/TRUE/ON/;s/FALSE/OFF/;s/true/ON/;s/false/OFF/')]
-   17) 🛡️  Saruman Governance Review    [$(didio_t1000_enabled | tr 'tf' 'TF' | sed 's/TRUE/ON/;s/FALSE/OFF/;s/true/ON/;s/false/OFF/')]
+   16) 🤖 Handler Orchestrate            [$(didio_handler_enabled | tr 'tf' 'TF' | sed 's/TRUE/ON/;s/FALSE/OFF/;s/true/ON/;s/false/OFF/')]
+   17) 🛡️  GateKeeper Governance Review [$(didio_gatekeeper_enabled | tr 'tf' 'TF' | sed 's/TRUE/ON/;s/FALSE/OFF/;s/true/ON/;s/false/OFF/')]
    18) 📋 Decision Log                (didio decisions)
    ──────────────────────────────────────────────────────────
     9) ⚡ Turbo Mode                  [$turbo_label]
    10) 💰 Economy Mode               [$economy_label]
    11) 🔀 Max paralelismo            [$max_p]
    12) 🤖 Configurar modelos         (modelo por agente)
-   13) 🛡️  Highlander Mode            [$highlander_label]
     0) Sair
 
   Dica: antes de começar uma nova feature, rode /clear no Claude Code
@@ -206,8 +204,7 @@ action_turbo() {
   else
     echo
     echo "  ⚠️  Turbo Mode ativa paralelismo maximo (sem limite de agentes"
-    echo "  simultaneos). Combinado com Highlander, aciona Auto Mode do"
-    echo "  Claude Code. Use apenas em projetos sandbox sem segredos."
+    echo "  simultaneos). Use apenas em projetos sandbox sem segredos."
     echo
     read -r -p "  Ativar Turbo Mode? [y/N]: " confirm
     if [[ "$confirm" == "y" || "$confirm" == "Y" ]]; then
@@ -328,32 +325,6 @@ with open('$config', 'w') as f: json.dump(c, f, indent=2); f.write('\n')
   echo
 }
 
-action_highlander() {
-  local current
-  current="$(didio_is_highlander)"
-  if [[ "$current" == "true" ]]; then
-    didio_write_config highlander false
-    echo
-    echo "  Highlander Mode DESATIVADO."
-    echo
-  else
-    echo
-    echo "  ⚠️  Highlander Mode ativa o Auto Mode do Claude Code"
-    echo "  (permissions.defaultMode = \"auto\") e mantém um allow-list"
-    echo "  liberal como fallback. Waves rodam sem prompts."
-    echo "  Use APENAS em projetos sandbox sem segredos ou credenciais."
-    echo
-    read -r -p "  Ativar Highlander Mode? [y/N]: " confirm
-    if [[ "$confirm" == "y" || "$confirm" == "Y" ]]; then
-      didio_write_config highlander true
-      echo "  Highlander Mode ATIVADO (equivalente a Auto Mode on)."
-    else
-      echo "  Cancelado."
-    fi
-    echo
-  fi
-}
-
 action_plan_feature() {
   cat <<'EOF'
 
@@ -365,7 +336,7 @@ action_plan_feature() {
 
     Claude, leia CLAUDE.md e PLANEJE a feature F0X: <descrição>.
     Rode apenas o Architect em modo PLAN_ONLY. Quero tasks em padrão
-    BMad (User Story, Dev Notes, Testing) com Status=planned.
+    didio (User Story, Dev Notes, Testing) com Status=planned.
     Não execute Waves, TechLead ou QA.
 
   Depois de revisar o plano, use a opção 1 ou /create-feature F0X
@@ -432,13 +403,13 @@ print()
 PY
 }
 
-action_t800() {
+action_handler() {
   local enabled
-  enabled="$(didio_t800_enabled)"
+  enabled="$(didio_handler_enabled)"
   if [[ "$enabled" != "true" ]]; then
     echo
-    echo "  Gandalf esta DESABILITADO."
-    echo "  Para habilitar: set meta_agents.t800.enabled=true em didio.config.json"
+    echo "  Handler esta DESABILITADO."
+    echo "  Para habilitar: set meta_agents.handler.enabled=true em didio.config.json"
     echo
     return
   fi
@@ -448,21 +419,21 @@ action_t800() {
   [[ -z "$REQ" ]] && echo "  Arquivo vazio. Cancelado." && return
   cat <<EOF
 
-  Rodando Gandalf para $F com $REQ...
+  Rodando Handler para $F com $REQ...
 
-  Comando: didio t800 $F $REQ
+  Comando: didio handler $F $REQ
 
 EOF
-  "$DIDIO_HOME/bin/didio-t800.sh" "$F" "$REQ"
+  "$DIDIO_HOME/bin/didio-handler.sh" "$F" "$REQ"
 }
 
-action_t1000() {
+action_gatekeeper() {
   local enabled
-  enabled="$(didio_t1000_enabled)"
+  enabled="$(didio_gatekeeper_enabled)"
   if [[ "$enabled" != "true" ]]; then
     echo
-    echo "  Saruman esta DESABILITADO."
-    echo "  Para habilitar: set meta_agents.t1000.enabled=true em didio.config.json"
+    echo "  GateKeeper esta DESABILITADO."
+    echo "  Para habilitar: set meta_agents.gatekeeper.enabled=true em didio.config.json"
     echo
     return
   fi
@@ -471,9 +442,9 @@ action_t1000() {
     echo "  Input vazio. Cancelado."; return
   fi
   if [[ "$DID" == "pending" ]]; then
-    "$DIDIO_HOME/bin/didio-t1000.sh" --pending
+    "$DIDIO_HOME/bin/didio-gatekeeper.sh" --pending
   else
-    "$DIDIO_HOME/bin/didio-t1000.sh" --decision "$DID"
+    "$DIDIO_HOME/bin/didio-gatekeeper.sh" --decision "$DID"
   fi
 }
 
@@ -548,11 +519,10 @@ main() {
       10) action_economy ;;
       11) action_max_parallel ;;
       12) action_models ;;
-      13) action_highlander ;;
       14) action_plan_feature ;;
       15) action_list_planned ;;
-      16) action_t800 ;;
-      17) action_t1000 ;;
+      16) action_handler ;;
+      17) action_gatekeeper ;;
       18) action_decisions ;;
       0|q|Q|exit|quit) echo; echo "  Bye 👋"; exit 0 ;;
       *) echo "  Opção inválida: $choice" ;;

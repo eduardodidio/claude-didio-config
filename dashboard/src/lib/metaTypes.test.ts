@@ -4,8 +4,8 @@ import type {
   DecisionRecord,
   GovernanceReport,
   MetaRunState,
-  GandalfKpis,
-  SarumanKpis,
+  HandlerKpis,
+  GateKeeperKpis,
   LoopHealthKpis,
   MetaMetricsReport,
 } from './metaTypes';
@@ -47,7 +47,7 @@ describe('metaTypes', () => {
 
   it('accepts a literal satisfying MetaRunState', () => {
     const run: MetaRunState = {
-      role: 't800',
+      role: 'handler',
       task: 'D-20260101-001',
       started_at: '2026-01-01T00:00:00Z',
       finished_at: '2026-01-01T00:05:00Z',
@@ -55,11 +55,11 @@ describe('metaTypes', () => {
       status: 'completed',
     };
 
-    expect(run.role).toBe('t800');
+    expect(run.role).toBe('handler');
   });
 
   it('accepts a literal satisfying MetaMetricsReport', () => {
-    const gandalf: GandalfKpis = {
+    const handler: HandlerKpis = {
       total_decisions: 3,
       avg_latency_secs: 120,
       min_latency_secs: 60,
@@ -70,7 +70,7 @@ describe('metaTypes', () => {
       avg_actions_per_decision: 1.5,
     };
 
-    const saruman: SarumanKpis = {
+    const gatekeeper: GateKeeperKpis = {
       total_reviews: 3,
       verdict_distribution: { agree: 1, challenge: 1, escalate: 1 },
       verdict_rates: { agree: 1 / 3, challenge: 1 / 3, escalate: 1 / 3 },
@@ -96,12 +96,12 @@ describe('metaTypes', () => {
 
     const report: MetaMetricsReport = {
       generated_at: '2026-01-01T00:00:00Z',
-      gandalf,
-      saruman,
+      handler,
+      gatekeeper,
       loop_health: loopHealth,
     };
 
-    expect(report.gandalf.total_decisions).toBe(3);
+    expect(report.handler.total_decisions).toBe(3);
   });
 
   it('boundary: confidence accepts 0 and 1', () => {

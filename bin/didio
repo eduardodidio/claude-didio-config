@@ -22,8 +22,10 @@ case "$SUBCMD" in
   compile-skills)  exec "$DIDIO_HOME/bin/didio-compile-skills.sh" "$@" ;;
   providers)       exec "$DIDIO_HOME/bin/didio-providers.sh" "$@" ;;
   resume-pending)  exec "$DIDIO_HOME/bin/didio-resume-pending.sh" "$@" ;;
-  t800)            exec "$DIDIO_HOME/bin/didio-t800.sh" "$@" ;;
-  t1000)           exec "$DIDIO_HOME/bin/didio-t1000.sh" "$@" ;;
+  handler)         exec "$DIDIO_HOME/bin/didio-handler.sh" "$@" ;;
+  gatekeeper)      exec "$DIDIO_HOME/bin/didio-gatekeeper.sh" "$@" ;;
+  t800)            exec "$DIDIO_HOME/bin/didio-handler.sh" "$@" ;;   # backward-compat alias
+  t1000)           exec "$DIDIO_HOME/bin/didio-gatekeeper.sh" "$@" ;; # backward-compat alias
   decisions)       exec "$DIDIO_HOME/bin/didio-decisions.sh" "$@" ;;
   meta-metrics)    exec "$DIDIO_HOME/bin/didio-meta-metrics.sh" "$@" ;;
   graphify)          exec "$DIDIO_HOME/bin/didio-graphify.sh" "$@" ;;
@@ -42,7 +44,8 @@ Usage:
 
   didio spawn-agent <role> <feature-id> <task-file> [extra-prompt]
       Launch a single agent in a clean bash context via 'claude -p'.
-      Roles: architect | developer | techlead | qa | readiness | tea | t800 | t1000
+      Roles: architect | developer | techlead | qa | readiness | tea | handler | gatekeeper
+      Aliases: t800 -> handler, t1000 -> gatekeeper
       Logs streamed to logs/agents/<feature>-<role>-<taskid>-<ts>.jsonl
 
   didio run-wave <feature-id> <wave-number>
@@ -86,22 +89,24 @@ Usage:
       validate  Check only the providers actually used by roles in the
                 active config; exits 1 listing any missing CLI binaries.
 
-  didio t800 <feature-id> <brief-or-request-file> [extra-prompt]
-      Spawn Gandalf strategic orchestrator. Produces decision records
-      in logs/decisions/. If auto_governance=true, spawns Saruman after.
-      Disabled by default (meta_agents.t800.enabled).
+  didio handler <feature-id> <brief-or-request-file> [extra-prompt]
+      Spawn Handler strategic orchestrator. Produces decision records
+      in logs/decisions/. If auto_governance=true, spawns GateKeeper after.
+      Disabled by default (meta_agents.handler.enabled).
+      Alias: didio t800
 
-  didio t1000 --decision <id> | --pending
-      Spawn Saruman governance reviewer on a Gandalf decision.
+  didio gatekeeper --decision <id> | --pending
+      Spawn GateKeeper governance reviewer on a Handler decision.
       Reviews the decision for biases and blind spots.
-      Disabled by default (meta_agents.t1000.enabled).
+      Disabled by default (meta_agents.gatekeeper.enabled).
+      Alias: didio t1000
 
   didio decisions --recent [N] | --status <s> | --detail <id>
-      View decision log. Lists, filters, or shows detail of Gandalf
+      View decision log. Lists, filters, or shows detail of Handler
       decision records from logs/decisions/.
 
   didio meta-metrics [--root <path>]
-      Compute meta-agent KPI report from live logs (Gandalf + Saruman).
+      Compute meta-agent KPI report from live logs (Handler + GateKeeper).
       Writes logs/agents/meta-metrics.json and prints a text report.
 
   didio graphify [args...]

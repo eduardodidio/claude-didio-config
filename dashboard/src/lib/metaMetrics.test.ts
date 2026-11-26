@@ -24,7 +24,7 @@ describe('computeMetaMetrics', () => {
 
     expect(report.generated_at).toBe(NOW);
 
-    expect(report.gandalf).toEqual({
+    expect(report.handler).toEqual({
       total_decisions: 4,
       avg_latency_secs: 165.0,
       min_latency_secs: 120,
@@ -40,7 +40,7 @@ describe('computeMetaMetrics', () => {
       avg_actions_per_decision: 3.0,
     });
 
-    expect(report.saruman).toEqual({
+    expect(report.gatekeeper).toEqual({
       total_reviews: 4,
       verdict_distribution: { agree: 2, challenge: 1, escalate: 1 },
       verdict_rates: { agree: 0.5, challenge: 0.25, escalate: 0.25 },
@@ -68,9 +68,9 @@ describe('computeMetaMetrics', () => {
   it('AC3: exit_code 2 on the t800 run does not exclude D-20260101-004 from KPIs', () => {
     const report = computeMetaMetrics({ decisions, governance, runs, now: NOW });
 
-    expect(report.gandalf.total_decisions).toBe(4);
-    expect(report.gandalf.type_distribution.block).toBe(1);
-    expect(report.gandalf.min_latency_secs).toBe(120);
+    expect(report.handler.total_decisions).toBe(4);
+    expect(report.handler.type_distribution.block).toBe(1);
+    expect(report.handler.min_latency_secs).toBe(120);
     expect(report.loop_health.decisions_without_governance).toBe(0);
   });
 
@@ -84,7 +84,7 @@ describe('computeMetaMetrics', () => {
 
     expect(report).toEqual({
       generated_at: NOW,
-      gandalf: {
+      handler: {
         total_decisions: 0,
         avg_latency_secs: null,
         min_latency_secs: null,
@@ -94,7 +94,7 @@ describe('computeMetaMetrics', () => {
         status_distribution: {},
         avg_actions_per_decision: null,
       },
-      saruman: {
+      gatekeeper: {
         total_reviews: 0,
         verdict_distribution: { agree: 0, challenge: 0, escalate: 0 },
         verdict_rates: { agree: 0, challenge: 0, escalate: 0 },
@@ -118,17 +118,17 @@ describe('computeMetaMetrics', () => {
       },
     });
 
-    expect(Number.isNaN(report.gandalf.avg_latency_secs)).toBe(false);
-    expect(Number.isNaN(report.saruman.avg_confidence)).toBe(false);
+    expect(Number.isNaN(report.handler.avg_latency_secs)).toBe(false);
+    expect(Number.isNaN(report.gatekeeper.avg_confidence)).toBe(false);
   });
 
-  it('edge: a decision with no governance contributes to decisions_without_governance and is excluded from Saruman/loop joins', () => {
+  it('edge: a decision with no governance contributes to decisions_without_governance and is excluded from GateKeeper/loop joins', () => {
     const lonelyDecision: DecisionRecord = {
       ...d001,
       decision_id: 'D-20260101-099',
     } as DecisionRecord;
     const lonelyRun: MetaRunState = {
-      role: 't800',
+      role: 'handler',
       task: 'D-20260101-099',
       started_at: '2026-01-01T01:00:00Z',
       finished_at: '2026-01-01T01:02:00Z',
@@ -144,10 +144,10 @@ describe('computeMetaMetrics', () => {
     });
 
     expect(report.loop_health.decisions_without_governance).toBe(1);
-    expect(report.gandalf.total_decisions).toBe(5);
+    expect(report.handler.total_decisions).toBe(5);
     // governance-side KPIs are unaffected by the ungoverned decision
-    expect(report.saruman.total_reviews).toBe(4);
-    expect(report.saruman.avg_decision_to_governance_latency_secs).toBe(60.0);
+    expect(report.gatekeeper.total_reviews).toBe(4);
+    expect(report.gatekeeper.avg_decision_to_governance_latency_secs).toBe(60.0);
   });
 
   it('boundary: confidence at the 0/1 extremes and bias all-true vs all-false average correctly', () => {
@@ -189,16 +189,16 @@ describe('computeMetaMetrics', () => {
       now: NOW,
     });
 
-    expect(report.saruman.avg_confidence).toBe(0.5);
-    expect(report.saruman.bias_frequency).toEqual({
+    expect(report.gatekeeper.avg_confidence).toBe(0.5);
+    expect(report.gatekeeper.bias_frequency).toEqual({
       sunk_cost: 1,
       anchoring: 1,
       scope_creep: 1,
       optimism: 1,
       recency: 1,
     });
-    expect(report.saruman.avg_blind_spots).toBe(0);
-    expect(report.saruman.avg_risks).toBe(0);
+    expect(report.gatekeeper.avg_blind_spots).toBe(0);
+    expect(report.gatekeeper.avg_risks).toBe(0);
   });
 
   it('boundary: a single decision produces non-null averages equal to its own values', () => {
@@ -209,12 +209,12 @@ describe('computeMetaMetrics', () => {
       now: NOW,
     });
 
-    expect(report.gandalf.total_decisions).toBe(1);
-    expect(report.gandalf.avg_latency_secs).toBe(120);
-    expect(report.gandalf.min_latency_secs).toBe(120);
-    expect(report.gandalf.avg_options_considered).toBe(3);
-    expect(report.gandalf.min_options_considered).toBe(3);
-    expect(report.saruman.avg_decision_to_governance_latency_secs).toBe(60);
+    expect(report.handler.total_decisions).toBe(1);
+    expect(report.handler.avg_latency_secs).toBe(120);
+    expect(report.handler.min_latency_secs).toBe(120);
+    expect(report.handler.avg_options_considered).toBe(3);
+    expect(report.handler.min_options_considered).toBe(3);
+    expect(report.gatekeeper.avg_decision_to_governance_latency_secs).toBe(60);
     expect(report.loop_health.auto_reviewed_pct).toBe(1.0);
   });
 });

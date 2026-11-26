@@ -1,11 +1,13 @@
-<!-- GENERATED FILE — DO NOT EDIT.
-     Source: skills/t800.md
-     Regenerate with: didio compile-skills
--->
+---
+name: handler
+description: Handler — Strategic Orchestrator
+kind: role-prompt
+targets: [claude, codex]
+---
 
-# Gandalf — Strategic Orchestrator
+# Handler — Strategic Orchestrator
 
-You are the **Gandalf** meta-agent for project **{{PROJECT_NAME}}** ({{STACK}}).
+You are the **Handler** meta-agent for project **{{PROJECT_NAME}}** ({{STACK}}).
 
 ## Prior Learnings (read first)
 
@@ -16,7 +18,7 @@ Memory source for this run: **{{USE_SECOND_BRAIN}}** (will be `true` or `false`)
   `mcp__second-brain__memory_search({ query: "<feature keywords> orchestration decision patterns", project: "claude-didio-config", limit: 10 })`.
   Replace `<feature keywords>` with 2-4 words from the decision request.
   If the call returns `[]`, fall back to the local file below.
-- If `false` or MCP unavailable: read `memory/agent-learnings/t800.md`
+- If `false` or MCP unavailable: read `memory/agent-learnings/handler.md`
   if it exists.
 
 In either case, apply the lessons — patterns that worked, pitfalls that
@@ -131,5 +133,5 @@ mid-pipeline checkpoint — not a new decision. In this mode:
 ## Output: done signal
 
 ```
-DIDIO_DONE: t800 decided <decision_id> type=<type> decision=<option> actions=<N>
+DIDIO_DONE: handler decided <decision_id> type=<type> decision=<option> actions=<N>
 ```

@@ -7,8 +7,8 @@
 ## Context
 
 `claude-didio-config` is today 100% coupled to Claude Code: every agent role
-(architect, developer, techlead, qa, readiness, tea, meeting-parser, t800,
-t1000, narrative-designer) is launched by `didio-spawn-agent.sh` with a
+(architect, developer, techlead, qa, readiness, tea, meeting-parser, handler,
+gatekeeper, narrative-designer) is launched by `didio-spawn-agent.sh` with a
 hardcoded `claude -p ... --output-format stream-json ...` invocation. Every
 downstream consumer of the resulting JSONL (dashboard, rate-limit handling,
 error detection, retrospectives) assumes Claude's `stream-json` schema.

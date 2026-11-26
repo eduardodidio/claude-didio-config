@@ -1,14 +1,14 @@
 ---
 name: governance-review
-description: Run Saruman governance review on a Gandalf decision
+description: Run GateKeeper governance review on a Handler decision
 kind: command
 targets: [claude, codex]
 ---
 
-# /governance-review — Saruman Governance Review
+# /governance-review — GateKeeper Governance Review
 
-You are executing an on-demand governance review of a Gandalf decision
-using the Saruman meta-agent.
+You are executing an on-demand governance review of a Handler decision
+using the GateKeeper meta-agent.
 
 ## Input
 
@@ -16,9 +16,9 @@ The user provides: `$ARGUMENTS` (optional decision-id, e.g. `D-20260605-001`)
 
 ## Pre-flight Checks
 
-1. Read `didio.config.json` and check `meta_agents.t1000.enabled`.
+1. Read `didio.config.json` and check `meta_agents.gatekeeper.enabled`.
    If `false` or missing, inform the user:
-   > Saruman is disabled. To enable: set `meta_agents.t1000.enabled: true`
+   > GateKeeper is disabled. To enable: set `meta_agents.gatekeeper.enabled: true`
    > in `didio.config.json`.
 
 2. Ensure `logs/decisions/` and `logs/governance/` directories exist.
@@ -30,7 +30,7 @@ The user provides: `$ARGUMENTS` (optional decision-id, e.g. `D-20260605-001`)
 Run via Bash:
 
 ```bash
-didio t1000 --decision <decision-id>
+didio gatekeeper --decision <decision-id>
 ```
 
 ### If no decision-id provided
@@ -54,8 +54,8 @@ didio t1000 --decision <decision-id>
    - Confidence level
 
 3. If verdict is **challenge**:
-   - Ask user if they want to re-run Gandalf with the feedback
-   - If yes, spawn Gandalf in re-evaluate mode
+   - Ask user if they want to re-run Handler with the feedback
+   - If yes, spawn Handler in re-evaluate mode
 
 4. If verdict is **escalate**:
    - Clearly communicate that the pipeline is blocked
@@ -64,7 +64,7 @@ didio t1000 --decision <decision-id>
 
 ## Notes
 
-- Saruman operates with restricted context (only reads decision records,
+- GateKeeper operates with restricted context (only reads decision records,
   CLAUDE.md, and didio.config.json) — this is intentional
 - Use this for on-demand reviews of decisions that weren't auto-reviewed
 - Governance reports persist in `logs/governance/` for audit trail

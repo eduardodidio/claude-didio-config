@@ -45,7 +45,7 @@ t800 latency = `finished_at − started_at` of the matching `t800` run
 decision→governance latency = `t1000.finished_at − t800.finished_at` for the
 same decision id.
 
-## Expected `GandalfKpis`
+## Expected `HandlerKpis`
 
 | field | value |
 |---|---|
@@ -58,7 +58,7 @@ same decision id.
 | `status_distribution` | `{ executed: 2, partial: 1, blocked: 1 }` |
 | `avg_actions_per_decision` | `3.0`  ((2+4+3+3)/4) |
 
-## Expected `SarumanKpis`
+## Expected `GateKeeperKpis`
 
 | field | value |
 |---|---|

@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# didio-t1000.sh — Saruman Governance Reviewer launcher
+# didio-gatekeeper.sh — GateKeeper Governance Reviewer launcher
 #
 # Usage:
-#   didio t1000 --decision <decision-id>
-#   didio t1000 --pending
+#   didio gatekeeper --decision <decision-id>
+#   didio gatekeeper --pending
 #
-# Spawns the Saruman meta-agent to review a decision produced by Gandalf.
-# The Saruman reads ONLY the decision record, CLAUDE.md, and didio.config.json.
+# Spawns the GateKeeper meta-agent to review a decision produced by Handler.
+# The GateKeeper reads ONLY the decision record, CLAUDE.md, and didio.config.json.
 
 set -euo pipefail
 
@@ -26,25 +26,25 @@ fi
 if [[ "${1:-}" = "--help" || "${1:-}" = "-h" ]]; then
   cat <<'EOF'
 USAGE:
-  didio t1000 --decision <decision-id>
-  didio t1000 --pending
+  didio gatekeeper --decision <decision-id>
+  didio gatekeeper --pending
 
-Spawns the Saruman governance reviewer to audit a Gandalf decision.
+Spawns the GateKeeper governance reviewer to audit a Handler decision.
 
 OPTIONS:
   --decision <id>   Review a specific decision (e.g. D-20260605-001)
   --pending         Find and review all decisions with status=pending
   --help, -h        Show this help and exit.
 
-REQUIRES: meta_agents.t1000.enabled = true in didio.config.json
+REQUIRES: meta_agents.gatekeeper.enabled = true in didio.config.json
 EOF
   exit 0
 fi
 
-# Check if Saruman is enabled
-T1000_ENABLED="$(didio_t1000_enabled)"
-if [[ "$T1000_ENABLED" != "true" ]]; then
-  echo "[didio-t1000] Saruman is disabled. Set meta_agents.t1000.enabled=true in didio.config.json" >&2
+# Check if GateKeeper is enabled
+GATEKEEPER_ENABLED="$(didio_gatekeeper_enabled)"
+if [[ "$GATEKEEPER_ENABLED" != "true" ]]; then
+  echo "[didio-gatekeeper] GateKeeper is disabled. Set meta_agents.gatekeeper.enabled=true in didio.config.json" >&2
   exit 1
 fi
 
@@ -64,7 +64,7 @@ case "${1:-}" in
     REVIEW_PENDING=true
     ;;
   *)
-    echo "[didio-t1000] usage: didio t1000 --decision <id> | --pending" >&2
+    echo "[didio-gatekeeper] usage: didio gatekeeper --decision <id> | --pending" >&2
     exit 1
     ;;
 esac
@@ -74,26 +74,26 @@ review_decision() {
   local decision_file="$DECISIONS_DIR/${decision_id}.json"
 
   if [[ ! -f "$decision_file" ]]; then
-    echo "[didio-t1000] decision not found: $decision_file" >&2
+    echo "[didio-gatekeeper] decision not found: $decision_file" >&2
     return 2
   fi
 
-  echo "[didio-t1000] reviewing $decision_id..." >&2
+  echo "[didio-gatekeeper] reviewing $decision_id..." >&2
 
-  # Spawn Saruman with restricted context
-  "$DIDIO_HOME/bin/didio-spawn-agent.sh" t1000 "META" "$decision_file" \
+  # Spawn GateKeeper with restricted context
+  "$DIDIO_HOME/bin/didio-spawn-agent.sh" gatekeeper "META" "$decision_file" \
     "RESTRICTED_CONTEXT=true — You may ONLY read: this decision record, CLAUDE.md, didio.config.json, and other files in logs/decisions/. Do NOT read any other files."
   local exit_code=$?
 
   if [[ $exit_code -ne 0 ]]; then
-    echo "[didio-t1000] Saruman review failed for $decision_id (exit=$exit_code)" >&2
+    echo "[didio-gatekeeper] GateKeeper review failed for $decision_id (exit=$exit_code)" >&2
     return $exit_code
   fi
 
   # Check if governance report was produced
   local gov_file="$GOVERNANCE_DIR/G-${decision_id}.json"
   if [[ ! -f "$gov_file" ]]; then
-    echo "[didio-t1000] WARNING: no governance report produced for $decision_id" >&2
+    echo "[didio-gatekeeper] WARNING: no governance report produced for $decision_id" >&2
     return 0
   fi
 
@@ -120,16 +120,16 @@ with open(dec_path, 'w') as f:
     json.dump(d, f, indent=2)
 PY
 
-  echo "[didio-t1000] verdict for $decision_id: $verdict" >&2
+  echo "[didio-gatekeeper] verdict for $decision_id: $verdict" >&2
 
   # Handle escalation
   if [[ "$verdict" == "escalate" ]]; then
-    ESCALATION_BLOCKS="$(didio_read_config_path 'meta_agents.t1000.escalation_blocks_pipeline' 'true')"
+    ESCALATION_BLOCKS="$(didio_read_config_path 'meta_agents.gatekeeper.escalation_blocks_pipeline' 'true')"
     if [[ "$ESCALATION_BLOCKS" == "true" ]]; then
-      echo "[didio-t1000] ESCALATION: pipeline blocked for $decision_id" >&2
-      echo "[didio-t1000]   Decision: $decision_file" >&2
-      echo "[didio-t1000]   Report:   $gov_file" >&2
-      echo "[didio-t1000]   Action:   Human review required before pipeline can proceed" >&2
+      echo "[didio-gatekeeper] ESCALATION: pipeline blocked for $decision_id" >&2
+      echo "[didio-gatekeeper]   Decision: $decision_file" >&2
+      echo "[didio-gatekeeper]   Report:   $gov_file" >&2
+      echo "[didio-gatekeeper]   Action:   Human review required before pipeline can proceed" >&2
       return 3
     fi
   fi
@@ -154,9 +154,9 @@ with open('$f') as fp:
     fi
   done
   if [[ $FOUND -eq 0 ]]; then
-    echo "[didio-t1000] no pending decisions found" >&2
+    echo "[didio-gatekeeper] no pending decisions found" >&2
   else
-    echo "[didio-t1000] reviewed $FOUND pending decision(s)" >&2
+    echo "[didio-gatekeeper] reviewed $FOUND pending decision(s)" >&2
   fi
 else
   review_decision "$DECISION_ID"

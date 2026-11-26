@@ -200,13 +200,6 @@ didio_is_economy() {
   echo "${val:-false}"
 }
 
-# Returns "true" or "false".
-didio_is_highlander() {
-  local val
-  val="$(didio_read_config highlander)"
-  echo "${val:-false}"
-}
-
 # Returns "true" or "false". Default false (conservative: opt-in).
 didio_second_brain_enabled() {
   local config
@@ -253,23 +246,42 @@ PY
 }
 
 # Returns "true" or "false". Default false (opt-in).
-didio_t800_enabled() {
-  didio_read_config_path 'meta_agents.t800.enabled' 'false'
+didio_handler_enabled() {
+  didio_read_config_path 'meta_agents.handler.enabled' 'false'
 }
 
 # Returns "true" or "false". Default false (opt-in).
+didio_gatekeeper_enabled() {
+  didio_read_config_path 'meta_agents.gatekeeper.enabled' 'false'
+}
+
+# Backward-compat aliases — call the new canonical functions.
+didio_t800_enabled() {
+  didio_handler_enabled
+}
+
 didio_t1000_enabled() {
-  didio_read_config_path 'meta_agents.t1000.enabled' 'false'
+  didio_gatekeeper_enabled
 }
 
 # Returns "true" or "false". Default true.
 didio_auto_governance() {
-  didio_read_config_path 'meta_agents.t800.auto_governance' 'true'
+  didio_read_config_path 'meta_agents.handler.auto_governance' 'true'
 }
 
-# Returns the review mode for Saruman. Default "post-decision".
+# Returns the review mode for GateKeeper. Default "post-decision".
 didio_governance_review_mode() {
-  didio_read_config_path 'meta_agents.t1000.review_mode' 'post-decision'
+  didio_read_config_path 'meta_agents.gatekeeper.review_mode' 'post-decision'
+}
+
+# Returns the display name for Handler from persona config. Default "Handler".
+didio_handler_name() {
+  didio_read_config_path 'persona.handler_name' 'Handler'
+}
+
+# Returns the display name for GateKeeper from persona config. Default "GateKeeper".
+didio_gatekeeper_name() {
+  didio_read_config_path 'persona.gatekeeper_name' 'GateKeeper'
 }
 
 # Returns "true" or "false". Default true (if the config section exists but
@@ -356,7 +368,6 @@ with open('$config') as f:
 badges = []
 if c.get('turbo', False): badges.append('TURBO')
 if c.get('economy', False): badges.append('ECONOMY')
-if c.get('highlander', False): badges.append('HIGHLANDER')
 
 economy = c.get('economy', False)
 key = 'models_economy' if economy else 'models'

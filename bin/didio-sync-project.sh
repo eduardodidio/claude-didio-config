@@ -198,7 +198,7 @@ if [[ -f "$COMPILE_SCRIPT" ]]; then
   if [[ -f "$CONFIG_LIB" ]]; then
     # shellcheck source=/dev/null
     source "$CONFIG_LIB"
-    for _role in architect developer techlead qa readiness tea t800 t1000; do
+    for _role in architect developer techlead qa readiness tea handler gatekeeper; do
       if [[ "$(didio_provider_for_role "$_role" 2>/dev/null || echo claude)" == "codex" ]]; then
         COMPILE_TARGET="all"
         break
@@ -397,7 +397,7 @@ if [[ $DRY_RUN -eq 0 ]]; then
   mkdir -p "$TARGET_LEARNINGS"
 fi
 
-for role in architect developer techlead qa readiness tea t800 t1000; do
+for role in architect developer techlead qa readiness tea handler gatekeeper; do
   src="$TEMPLATE_LEARNINGS/$role.md"
   dst="$TARGET_LEARNINGS/$role.md"
 
@@ -449,7 +449,7 @@ else
   else
     log_action "NO_CHANGE" "logs/agents/.gitkeep (already exists)"
   fi
-  # Gandalf/Saruman decision and governance log directories
+  # Handler/GateKeeper decision and governance log directories
   for subdir in decisions decisions/_requests governance; do
     if [[ ! -d "$TARGET/logs/$subdir" ]]; then
       if [[ $DRY_RUN -eq 0 ]]; then
@@ -500,12 +500,12 @@ elif [[ ! -f "$DST_CFG" ]]; then
   if [[ $DRY_RUN -eq 0 ]]; then
     cp "$SRC_CFG" "$DST_CFG"
 
-    # --- Interactive prompts: Gandalf Gate & TEA (default: enabled) ---
-    # Gandalf Gate (t800) — strategic orchestrator that validates decisions
-    # before features proceed, with optional Saruman (t1000) governance review.
+    # --- Interactive prompts: Handler Gate & TEA (default: enabled) ---
+    # Handler Gate — strategic orchestrator that validates decisions
+    # before features proceed, with optional GateKeeper governance review.
     # TEA — Test Architect agent that produces structured test plans before
     # developers write tests.
-    GANDALF_ENABLED=true
+    HANDLER_ENABLED=true
     TEA_ENABLED=true
 
     if [[ -t 0 ]]; then
@@ -513,14 +513,14 @@ elif [[ ! -f "$DST_CFG" ]]; then
       echo -e "${BOLD}Optional agents configuration:${RESET}"
       echo ""
 
-      echo -e "${CYAN}Gandalf Gate (t800/t1000)${RESET} — meta-agente estrategico que valida"
-      echo -e "  decisoes antes de features serem executadas. Inclui o Saruman (t1000)"
+      echo -e "${CYAN}Handler Gate (handler/gatekeeper)${RESET} — meta-agente estrategico que valida"
+      echo -e "  decisoes antes de features serem executadas. Inclui o GateKeeper"
       echo -e "  como revisao de governanca independente. Adiciona ~2-4 min por feature"
       echo -e "  mas garante decisoes estruturadas e auditaveis."
-      printf "${CYAN}[didio-install]${RESET} Ativar Gandalf Gate? [Y/n] "
-      read -r ans_gandalf
-      case "${ans_gandalf:-Y}" in
-        n|N|no|NO) GANDALF_ENABLED=false ;;
+      printf "${CYAN}[didio-install]${RESET} Ativar Handler Gate? [Y/n] "
+      read -r ans_handler
+      case "${ans_handler:-Y}" in
+        n|N|no|NO) HANDLER_ENABLED=false ;;
       esac
 
       echo ""
@@ -535,8 +535,8 @@ elif [[ ! -f "$DST_CFG" ]]; then
       echo ""
     else
       # Non-interactive: respect env vars, default to enabled
-      case "${DIDIO_GANDALF_GATE:-yes}" in
-        no|n|0) GANDALF_ENABLED=false ;;
+      case "${DIDIO_HANDLER_GATE:-${DIDIO_GANDALF_GATE:-yes}}" in
+        no|n|0) HANDLER_ENABLED=false ;;
       esac
       case "${DIDIO_TEA:-yes}" in
         no|n|0) TEA_ENABLED=false ;;
@@ -545,21 +545,21 @@ elif [[ ! -f "$DST_CFG" ]]; then
 
     # Apply choices to the copied config
     if command -v python3 &>/dev/null; then
-      python3 - "$DST_CFG" "$GANDALF_ENABLED" "$TEA_ENABLED" <<'PY'
+      python3 - "$DST_CFG" "$HANDLER_ENABLED" "$TEA_ENABLED" <<'PY'
 import json, sys
-cfg_path, gandalf, tea = sys.argv[1], sys.argv[2] == "true", sys.argv[3] == "true"
+cfg_path, handler, tea = sys.argv[1], sys.argv[2] == "true", sys.argv[3] == "true"
 with open(cfg_path) as f:
     cfg = json.load(f)
 cfg.setdefault("tea", {})["enabled"] = tea
-cfg.setdefault("meta_agents", {}).setdefault("t800", {})["enabled"] = gandalf
-cfg.setdefault("meta_agents", {}).setdefault("t1000", {})["enabled"] = gandalf
+cfg.setdefault("meta_agents", {}).setdefault("handler", {})["enabled"] = handler
+cfg.setdefault("meta_agents", {}).setdefault("gatekeeper", {})["enabled"] = handler
 with open(cfg_path, "w") as f:
     json.dump(cfg, f, indent=2)
     f.write("\n")
 PY
     fi
   fi
-  log_action "ADDED" "didio.config.json (gandalf=${GANDALF_ENABLED:-true}, tea=${TEA_ENABLED:-true})"
+  log_action "ADDED" "didio.config.json (handler=${HANDLER_ENABLED:-true}, tea=${TEA_ENABLED:-true})"
 else
   MERGE_CFG_RESULT=$(python3 - "$SRC_CFG" "$DST_CFG" "$DRY_RUN" <<'PY'
 import json, sys

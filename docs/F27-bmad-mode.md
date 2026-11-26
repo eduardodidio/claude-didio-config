@@ -1,5 +1,10 @@
 # F27 — Modo BMAD (Greenfield + Brownfield)
 
+> **Historical Reference** — This document describes the BMAD integration
+> as originally shipped in F27. Naming personas (Gandalf/Saruman for
+> meta-agents) have since been replaced by Handler/GateKeeper in operational
+> code (F29A). The concepts and command mappings below remain accurate.
+
 ## 1. Visão geral
 
 O modo BMAD é uma camada **aditiva** sobre o pipeline didio existente
@@ -12,7 +17,7 @@ O modo BMAD é uma camada **aditiva** sobre o pipeline didio existente
   cobrem apenas os primitives que faltam para Greenfield (GF) e Brownfield
   (BF).
 - Um **selector `/bmad <greenfield|brownfield>`** encadeia upstream→downstream,
-  pausando na fronteira de fase e reusando os gates existentes (Gandalf,
+  pausando na fronteira de fase e reusando os gates existentes (Handler,
   readiness/F10, TEA/F13).
 - Nenhum agente novo foi criado — as personas BMAD (PB/AIE/QE) mapeiam para
   os agentes didio atuais (`architect`, `developer`, `tea`, `qa`).
@@ -66,7 +71,7 @@ de iniciar o downstream (que dispara Waves de desenvolvimento). O gate de
 `check-impl-readiness` (que delega a `/check-readiness`, F10) decide se o
 downstream pode começar: se `BLOCKED`, o selector pára antes de avançar.
 Passos marcados `(opt)` são oferecidos, não forçados. O selector não
-reimplementa Gandalf (t800) nem o gate TEA (F13) — apenas invoca os comandos
+reimplementa Handler nem o gate TEA (F13) — apenas invoca os comandos
 que já os disparam.
 
 ## 4. Tabela alias → base → agente → estado

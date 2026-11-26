@@ -10,9 +10,9 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import type {
   BiasName,
-  GandalfKpis,
+  HandlerKpis,
   LoopHealthKpis,
-  SarumanKpis,
+  GateKeeperKpis,
   Verdict,
 } from '@/lib/metaTypes';
 
@@ -75,18 +75,18 @@ function MetaAgentsSkeleton() {
   );
 }
 
-interface GandalfSectionProps {
-  kpis: GandalfKpis;
+interface HandlerSectionProps {
+  kpis: HandlerKpis;
 }
 
-function GandalfSection({ kpis }: GandalfSectionProps) {
+function HandlerSection({ kpis }: HandlerSectionProps) {
   const typeDist = Object.entries(kpis.type_distribution ?? {});
   const statusDist = Object.entries(kpis.status_distribution ?? {});
 
   return (
-    <Card data-testid="gandalf-section">
+    <Card data-testid="handler-section">
       <CardHeader className="pb-2">
-        <CardTitle className="text-base">Gandalf</CardTitle>
+        <CardTitle className="text-base">Handler (Orchestrator)</CardTitle>
         <CardDescription>Decision KPIs</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -94,31 +94,31 @@ function GandalfSection({ kpis }: GandalfSectionProps) {
           <Stat
             label="Total decisions"
             value={fmtNum(kpis.total_decisions)}
-            testId="gandalf-total-decisions"
+            testId="handler-total-decisions"
           />
           <Stat
             label="Avg latency (s)"
             value={fmtNum(kpis.avg_latency_secs)}
-            testId="gandalf-avg-latency"
+            testId="handler-avg-latency"
           />
           <Stat
             label="Min latency (s)"
             value={fmtNum(kpis.min_latency_secs)}
-            testId="gandalf-min-latency"
+            testId="handler-min-latency"
           />
           <Stat
             label="Avg options"
             value={fmtNum(kpis.avg_options_considered)}
-            testId="gandalf-avg-options"
+            testId="handler-avg-options"
           />
           <Stat
             label="Avg actions"
             value={fmtNum(kpis.avg_actions_per_decision)}
-            testId="gandalf-avg-actions"
+            testId="handler-avg-actions"
           />
         </div>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <div data-testid="gandalf-type-distribution" className="space-y-1">
+          <div data-testid="handler-type-distribution" className="space-y-1">
             <div className="text-xs text-muted-foreground uppercase tracking-wide">
               Type distribution
             </div>
@@ -129,7 +129,7 @@ function GandalfSection({ kpis }: GandalfSectionProps) {
               <DistRow key={name} name={name} count={count} />
             ))}
           </div>
-          <div data-testid="gandalf-status-distribution" className="space-y-1">
+          <div data-testid="handler-status-distribution" className="space-y-1">
             <div className="text-xs text-muted-foreground uppercase tracking-wide">
               Status distribution
             </div>
@@ -146,19 +146,19 @@ function GandalfSection({ kpis }: GandalfSectionProps) {
   );
 }
 
-interface SarumanSectionProps {
-  kpis: SarumanKpis;
+interface GateKeeperSectionProps {
+  kpis: GateKeeperKpis;
 }
 
-function SarumanSection({ kpis }: SarumanSectionProps) {
+function GateKeeperSection({ kpis }: GateKeeperSectionProps) {
   const verdictDist = kpis.verdict_distribution ?? {};
   const verdictRates = kpis.verdict_rates ?? {};
   const biasFreq = kpis.bias_frequency ?? {};
 
   return (
-    <Card data-testid="saruman-section">
+    <Card data-testid="gatekeeper-section">
       <CardHeader className="pb-2">
-        <CardTitle className="text-base">Saruman</CardTitle>
+        <CardTitle className="text-base">GateKeeper (Governance)</CardTitle>
         <CardDescription>Governance review KPIs</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -166,30 +166,30 @@ function SarumanSection({ kpis }: SarumanSectionProps) {
           <Stat
             label="Total reviews"
             value={fmtNum(kpis.total_reviews)}
-            testId="saruman-total-reviews"
+            testId="gatekeeper-total-reviews"
           />
           <Stat
             label="Avg confidence"
             value={fmtNum(kpis.avg_confidence)}
-            testId="saruman-avg-confidence"
+            testId="gatekeeper-avg-confidence"
           />
           <Stat
             label="Avg blind spots"
             value={fmtNum(kpis.avg_blind_spots)}
-            testId="saruman-avg-blind-spots"
+            testId="gatekeeper-avg-blind-spots"
           />
           <Stat
             label="Avg risks"
             value={fmtNum(kpis.avg_risks)}
-            testId="saruman-avg-risks"
+            testId="gatekeeper-avg-risks"
           />
         </div>
         <Stat
           label="Avg decision→governance latency (s)"
           value={fmtNum(kpis.avg_decision_to_governance_latency_secs)}
-          testId="saruman-avg-decision-latency"
+          testId="gatekeeper-avg-decision-latency"
         />
-        <div data-testid="saruman-verdict-distribution" className="space-y-1">
+        <div data-testid="gatekeeper-verdict-distribution" className="space-y-1">
           <div className="text-xs text-muted-foreground uppercase tracking-wide">
             Verdicts
           </div>
@@ -197,7 +197,7 @@ function SarumanSection({ kpis }: SarumanSectionProps) {
             <div
               key={verdict}
               className="flex items-center justify-between text-sm"
-              data-testid={`saruman-verdict-${verdict}`}
+              data-testid={`gatekeeper-verdict-${verdict}`}
             >
               <span className="text-muted-foreground">{verdict}</span>
               <span className="tabular-nums font-medium">
@@ -206,7 +206,7 @@ function SarumanSection({ kpis }: SarumanSectionProps) {
             </div>
           ))}
         </div>
-        <div data-testid="saruman-bias-frequency" className="space-y-1">
+        <div data-testid="gatekeeper-bias-frequency" className="space-y-1">
           <div className="text-xs text-muted-foreground uppercase tracking-wide">
             Bias frequency
           </div>
@@ -228,7 +228,7 @@ function LoopHealthSection({ kpis }: LoopHealthSectionProps) {
     <Card data-testid="loop-health-section">
       <CardHeader className="pb-2">
         <CardTitle className="text-base">Loop health</CardTitle>
-        <CardDescription>Gandalf ↔ Saruman feedback loop</CardDescription>
+        <CardDescription>Handler ↔ GateKeeper feedback loop</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
@@ -277,8 +277,8 @@ export function MetaAgents() {
   }
 
   const report = query.data;
-  const gandalf = report.gandalf ?? ({} as GandalfKpis);
-  const saruman = report.saruman ?? ({} as SarumanKpis);
+  const handler = report.handler ?? ({} as HandlerKpis);
+  const gatekeeper = report.gatekeeper ?? ({} as GateKeeperKpis);
   const loopHealth = report.loop_health ?? ({} as LoopHealthKpis);
 
   return (
@@ -289,8 +289,8 @@ export function MetaAgents() {
       className="space-y-6"
       data-testid="meta-agents-view"
     >
-      <GandalfSection kpis={gandalf} />
-      <SarumanSection kpis={saruman} />
+      <HandlerSection kpis={handler} />
+      <GateKeeperSection kpis={gatekeeper} />
       <LoopHealthSection kpis={loopHealth} />
     </motion.div>
   );

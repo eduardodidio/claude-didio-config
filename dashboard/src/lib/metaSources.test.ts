@@ -78,21 +78,21 @@ describe('metaSources', () => {
   });
 
   describe('loadRunState', () => {
-    it('happy path: loads all 8 run entries (4 t800 + 4 t1000)', () => {
+    it('happy path: loads all 8 run entries (4 handler + 4 gatekeeper)', () => {
       const runs = loadRunState(STATE_JSON_PATH);
 
       expect(runs).toHaveLength(8);
-      expect(runs.filter((r) => r.role === 't800')).toHaveLength(4);
-      expect(runs.filter((r) => r.role === 't1000')).toHaveLength(4);
+      expect(runs.filter((r) => r.role === 'handler')).toHaveLength(4);
+      expect(runs.filter((r) => r.role === 'gatekeeper')).toHaveLength(4);
     });
 
     it('edge: missing state.json returns []', () => {
       expect(loadRunState(MISSING_STATE_PATH)).toEqual([]);
     });
 
-    it('boundary (AC3): the t800 run for D-20260101-004 is loaded despite exit_code 2', () => {
+    it('boundary (AC3): the handler run for D-20260101-004 is loaded despite exit_code 2', () => {
       const runs = loadRunState(STATE_JSON_PATH);
-      const run = runs.find((r) => r.role === 't800' && r.task === 'D-20260101-004');
+      const run = runs.find((r) => r.role === 'handler' && r.task === 'D-20260101-004');
 
       expect(run).toBeDefined();
       expect(run?.exit_code).toBe(2);

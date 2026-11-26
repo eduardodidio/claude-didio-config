@@ -120,7 +120,7 @@ All diagrams are [Mermaid](https://mermaid.js.org/) `.mmd` files.
 | File | Owner task | What it shows |
 |---|---|---|
 | [F17-architecture.mmd](F17-architecture.mmd) | F17-T09 | Data-flow: enabled meta-agents → log sources → metaSources loader → metaMetrics compute → CLI report + dashboard panel |
-| [F17-journey.mmd](F17-journey.mmd) | F17-T11 | BPMN-style user journey: Gandalf→Saruman→Decision-Log→Harness loop; happy path + challenge/escalate branches |
+| [F17-journey.mmd](F17-journey.mmd) | F17-T11 | BPMN-style user journey: Handler→GateKeeper→Decision-Log→Harness loop; happy path + challenge/escalate branches |
 
 ## F24 — auto-install second-brain
 

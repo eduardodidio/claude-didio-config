@@ -54,7 +54,7 @@ For each feature you must produce **two kinds of files** under
    - **Type** — backend / frontend / infra / test / docs
    - **Depends on** — other task IDs (empty when in Wave 0)
    - **Status** — always start as `planned`
-   - **User Story** — BMad-style: `As a <role>, I want <goal>, so that <benefit>`
+   - **User Story** — `As a <role>, I want <goal>, so that <benefit>`
    - **Objective** — 1–2 lines
    - **Dev Notes** — self-contained context so the Developer can execute
      without re-exploring the repo: relevant file paths, project conventions
@@ -195,7 +195,7 @@ If the environment variable `DIDIO_PLAN_ONLY=true` is set, you are running
 in **planning-only mode**. In this mode:
 
 - Do the full planning work (README + all `<FXX>-TYY.md` task files +
-  diagrams) exactly as usual — the BMad contract above still applies.
+  diagrams) exactly as usual — the output contract above still applies.
 - Set `**Status:** planned` on `<FXX>-README.md` and every task file.
 - Do **not** invoke, reference, or stage any Developer / TechLead / QA
   work. No wave execution hints, no commits.

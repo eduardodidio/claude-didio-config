@@ -1,23 +1,23 @@
 %% F17 — Meta-Agent Performance Monitoring — User Journey (BPMN-style swimlanes)
-%% Owner: F17-T11. Full Gandalf→Saruman→Decision-Log→Harness loop.
+%% Owner: F17-T11. Full Handler→GateKeeper→Decision-Log→Harness loop.
 %% Happy path (solid arrows) + challenge branch + escalate branch (dashed).
 flowchart TD
   subgraph OWNER["Lane: Dogfood owner"]
     A["Pose a strategic question\n(request or brief file)"]
-    MANUAL["./didio t1000 --decision ID\n(manual governance trigger)"]
+    MANUAL["./didio gatekeeper --decision ID\n(manual governance trigger)"]
     ESCALATE_HND["Review blocking escalation\nhuman decision required"]
     Z["Read KPIs: CLI report\nor dashboard panel"]
   end
 
-  subgraph GANDALF["Lane: Gandalf — Orchestrator (t800)"]
-    B["./didio t800 FXX request"]
+  subgraph HANDLER_LANE["Lane: Handler — Strategic Orchestrator"]
+    B["./didio handler FXX request"]
     C["Weigh options_considered[]\npros / cons per option"]
     D["Write D-*.json\nstatus=pending\nlogs/decisions/"]
     AUTO{"auto_governance\n= true?"}
     REEVAL["Accept / reject\nchallenge points\nwrite re_evaluation block\nstatus=ratified"]
   end
 
-  subgraph SARUMAN["Lane: Saruman — Governance Reviewer (t1000)"]
+  subgraph GATEKEEPER_LANE["Lane: GateKeeper — Governance Reviewer"]
     S_LOAD["Load DecisionRecord\nfrom D-*.json"]
     S_BIAS["5-axis bias check\nsunk_cost · anchoring\nscope_creep · optimism · recency"]
     S_BLIND["Enumerate blind_spots[]\nand risks[]"]
@@ -35,7 +35,7 @@ flowchart TD
 
   subgraph HARNESS["Lane: Monitoring Harness"]
     H_LOAD["metaSources.ts\nglob + load artifacts\nskips exit_code\nvalid JSON = success (AC3)"]
-    H_KPI["metaMetrics.ts\npure KPI compute\nGandalf · Saruman · Loop health"]
+    H_KPI["metaMetrics.ts\npure KPI compute\nHandler · GateKeeper · Loop health"]
     H_CLI["scripts/meta-metrics.ts\n./bin/didio meta-metrics\nprints report + writes JSON"]
     H_DASH["views/MetaAgents.tsx\n/meta-agents dashboard panel"]
   end

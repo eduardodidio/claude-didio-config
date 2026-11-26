@@ -18,8 +18,8 @@ OUTPUT:
   stdout                                Human-readable text report
 
 SOURCES:
-  logs/decisions/D-*.json               Gandalf decision records
-  logs/governance/G-*.json              Saruman governance reports
+  logs/decisions/D-*.json               Handler decision records
+  logs/governance/G-*.json              GateKeeper governance reports
   logs/agents/state.json                Agent run state (latency, exit_code)
 EOF
   exit 0

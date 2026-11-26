@@ -6,7 +6,8 @@
 # Usage:
 #   didio-spawn-agent.sh <role> <feature-id> <task-file> [extra-prompt]
 #
-# Roles: architect | developer | techlead | qa | readiness | tea | t800 | t1000
+# Roles: architect | developer | techlead | qa | readiness | tea | handler | gatekeeper
+# Aliases: t800 -> handler, t1000 -> gatekeeper
 #
 # The agent prompt is composed as:
 #   <role-prompt-from-agents/prompts/>  +  task context  +  optional extra
@@ -55,7 +56,10 @@ EOF
   exit 0
 fi
 
-ROLE="${1:?role required: architect|developer|techlead|qa|readiness|tea|t800|t1000|meeting-parser}"
+ROLE="${1:?role required: architect|developer|techlead|qa|readiness|tea|handler|gatekeeper|meeting-parser}"
+# Backward-compat aliases
+[[ "$ROLE" == "t800" ]] && ROLE="handler"
+[[ "$ROLE" == "t1000" ]] && ROLE="gatekeeper"
 FEATURE="${2:?feature-id required (e.g. F01)}"
 TASK_FILE="${3:?task-file required (absolute or relative path)}"
 EXTRA="${4:-}"

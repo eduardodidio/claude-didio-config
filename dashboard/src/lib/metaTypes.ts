@@ -54,7 +54,7 @@ export interface MetaRunState {
   status: string;
 }
 
-export interface GandalfKpis {
+export interface HandlerKpis {
   total_decisions: number;
   avg_latency_secs: number | null;
   min_latency_secs: number | null;
@@ -65,7 +65,7 @@ export interface GandalfKpis {
   avg_actions_per_decision: number | null;
 }
 
-export interface SarumanKpis {
+export interface GateKeeperKpis {
   total_reviews: number;
   verdict_distribution: Record<Verdict, number>;
   verdict_rates: Record<Verdict, number>;
@@ -85,8 +85,8 @@ export interface LoopHealthKpis {
 
 export interface MetaMetricsReport {
   generated_at: string;
-  gandalf: GandalfKpis;
-  saruman: SarumanKpis;
+  handler: HandlerKpis;
+  gatekeeper: GateKeeperKpis;
   loop_health: LoopHealthKpis;
 }
 

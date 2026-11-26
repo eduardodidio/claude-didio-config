@@ -4,7 +4,7 @@ import type { MetaMetricsReport } from './metaTypes';
 
 const sampleReport: MetaMetricsReport = {
   generated_at: '2026-04-11T10:00:00Z',
-  gandalf: {
+  handler: {
     total_decisions: 3,
     avg_latency_secs: 120,
     min_latency_secs: 60,
@@ -14,7 +14,7 @@ const sampleReport: MetaMetricsReport = {
     status_distribution: { executed: 2, blocked: 1 },
     avg_actions_per_decision: 1.5,
   },
-  saruman: {
+  gatekeeper: {
     total_reviews: 3,
     verdict_distribution: { agree: 1, challenge: 1, escalate: 1 },
     verdict_rates: { agree: 1 / 3, challenge: 1 / 3, escalate: 1 / 3 },
@@ -54,29 +54,29 @@ describe('fetchMetaMetrics', () => {
       json: async () => sampleReport,
     });
     const result = await fetchMetaMetrics();
-    expect(result.gandalf.total_decisions).toBe(3);
-    expect(result.saruman.total_reviews).toBe(3);
+    expect(result.handler.total_decisions).toBe(3);
+    expect(result.gatekeeper.total_reviews).toBe(3);
     expect(result.loop_health.challenge_round_trips).toBe(2);
     expect(globalThis.fetch).toHaveBeenCalledWith('./meta-metrics.json', {
       cache: 'no-store',
     });
   });
 
-  it('tolerates the empty seed (gandalf/saruman/loop_health = {})', async () => {
+  it('tolerates the empty seed (handler/gatekeeper/loop_health = {})', async () => {
     (globalThis.fetch as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
       ok: true,
       status: 200,
       json: async () => ({
         generated_at: '',
-        gandalf: {},
-        saruman: {},
+        handler: {},
+        gatekeeper: {},
         loop_health: {},
       }),
     });
     const result = await fetchMetaMetrics();
     expect(result.generated_at).toBe('');
-    expect(result.gandalf).toEqual({});
-    expect(result.saruman).toEqual({});
+    expect(result.handler).toEqual({});
+    expect(result.gatekeeper).toEqual({});
     expect(result.loop_health).toEqual({});
   });
 

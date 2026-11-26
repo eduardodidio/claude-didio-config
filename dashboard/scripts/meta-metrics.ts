@@ -14,8 +14,8 @@ OUTPUT:
   stdout                                Human-readable text report
 
 SOURCES:
-  logs/decisions/D-*.json               Gandalf decision records
-  logs/governance/G-*.json              Saruman governance reports
+  logs/decisions/D-*.json               Handler decision records
+  logs/governance/G-*.json              GateKeeper governance reports
   logs/agents/state.json                Agent run state (latency, exit_code)
 
 EXIT CODES:
@@ -28,14 +28,14 @@ function pad(label: string, width: number): string {
 }
 
 function printReport(report: MetaMetricsReport): void {
-  const { gandalf: g, saruman: s, loop_health: l } = report;
+  const { handler: g, gatekeeper: s, loop_health: l } = report;
 
   console.log('\n  ════════════════════════════════════════════════════');
   console.log('  didio meta-metrics — Meta-Agent KPI Report');
   console.log(`  Generated: ${report.generated_at}`);
   console.log('  ════════════════════════════════════════════════════\n');
 
-  console.log('  ── Gandalf (Orchestrator) ─────────────────────────');
+  console.log('  ── Handler (Orchestrator) ─────────────────────────');
   console.log(`  ${pad('Total decisions', 36)} ${g.total_decisions}`);
   console.log(`  ${pad('Avg latency (secs)', 36)} ${g.avg_latency_secs ?? 'n/a'}`);
   console.log(`  ${pad('Min latency (secs)', 36)} ${g.min_latency_secs ?? 'n/a'}`);
@@ -55,7 +55,7 @@ function printReport(report: MetaMetricsReport): void {
     }
   }
 
-  console.log('\n  ── Saruman (Governance) ───────────────────────────');
+  console.log('\n  ── GateKeeper (Governance) ───────────────────────────');
   console.log(`  ${pad('Total reviews', 36)} ${s.total_reviews}`);
   console.log(`  ${pad('Avg confidence', 36)} ${s.avg_confidence ?? 'n/a'}`);
   console.log(`  ${pad('Avg blind spots', 36)} ${s.avg_blind_spots ?? 'n/a'}`);

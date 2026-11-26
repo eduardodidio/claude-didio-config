@@ -29,7 +29,7 @@ fi
 
 if [[ ! -d "$DECISIONS_DIR" ]]; then
   echo "[didio-decisions] no decisions directory at $DECISIONS_DIR" >&2
-  echo "[didio-decisions] run 'didio t800' to create your first decision" >&2
+  echo "[didio-decisions] run 'didio handler' to create your first decision" >&2
   exit 0
 fi
 

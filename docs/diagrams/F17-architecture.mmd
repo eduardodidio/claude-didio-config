@@ -3,9 +3,9 @@
 %% pure compute into the CLI report and the dashboard panel.
 flowchart LR
   subgraph META["Meta-agents (instrumented, enabled=true)"]
-    GANDALF["Gandalf / t800\nbin/didio-t800.sh"]
-    SARUMAN["Saruman / t1000\nbin/didio-t1000.sh"]
-    GANDALF -->|auto_governance| SARUMAN
+    HANDLER["Handler\nbin/didio-handler.sh"]
+    GATEKEEPER["GateKeeper\nbin/didio-gatekeeper.sh"]
+    HANDLER -->|auto_governance| GATEKEEPER
   end
 
   subgraph SOURCES["Log sources (disk = ground truth)"]
@@ -14,13 +14,13 @@ flowchart LR
     STATE["logs/agents/state.json\n(started/finished, exit_code, role)"]
   end
 
-  GANDALF --> DEC
-  SARUMAN --> GOV
+  HANDLER --> DEC
+  GATEKEEPER --> GOV
   META --> STATE
 
   subgraph HARNESS["Monitoring harness"]
     LOADER["metaSources.ts\n(node:fs glob; skips exit_code,\nvalid JSON = success)"]
-    COMPUTE["metaMetrics.ts\n(pure compute KPIs)\nGandalf · Saruman · Loop health"]
+    COMPUTE["metaMetrics.ts\n(pure compute KPIs)\nHandler · GateKeeper · Loop health"]
     TYPES["metaTypes.ts\n(DecisionRecord · GovernanceReport\n· MetaMetricsReport)"]
     LOADER --> COMPUTE
     TYPES -.types.-> LOADER

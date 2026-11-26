@@ -6,8 +6,8 @@ export async function fetchMetaMetrics(): Promise<MetaMetricsReport> {
   const raw = await res.json();
   return {
     generated_at: raw.generated_at ?? '',
-    gandalf: raw.gandalf ?? {},
-    saruman: raw.saruman ?? {},
+    handler: raw.handler ?? {},
+    gatekeeper: raw.gatekeeper ?? {},
     loop_health: raw.loop_health ?? {},
   } as MetaMetricsReport;
 }

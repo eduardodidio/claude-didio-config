@@ -20,15 +20,16 @@ Run ONLY the Architect. Do **not** invoke Developer, TechLead, or QA. Do
 (User Story + Dev Notes + Testing per task), ready for later execution via
 `/create-feature <FXX>`.
 
-## Step 0 — Gandalf Strategic Gate (conditional)
+## Step 0 — Handler Strategic Gate (conditional)
 
-Before any agent runs, check if the Gandalf strategic orchestrator is enabled:
+Before any agent runs, check if the Handler strategic orchestrator is enabled:
 
 ```bash
-T800_ENABLED=$(python3 -c "import json; c=json.load(open('didio.config.json')); print(c.get('meta_agents',{}).get('t800',{}).get('enabled', False))" 2>/dev/null || echo "False")
+HANDLER_ENABLED=$(python3 -c "import json; c=json.load(open('didio.config.json')); print(c.get('meta_agents',{}).get('handler',{}).get('enabled', False))" 2>/dev/null || echo "False")
+# Backward compat: was T800_ENABLED / meta_agents.t800
 ```
 
-If `T800_ENABLED` is `False` (default): **skip this step silently** and proceed to Step 1.
+If `HANDLER_ENABLED` is `False` (default): **skip this step silently** and proceed to Step 1.
 
 If `True`:
 1. Write a decision request file to `logs/decisions/_requests/<FXX>-<timestamp>.md`:
@@ -42,28 +43,28 @@ If `True`:
 
 2. Run:
    ```bash
-   didio t800 <FXX> logs/decisions/_requests/<FXX>-<timestamp>.md
+   didio handler <FXX> logs/decisions/_requests/<FXX>-<timestamp>.md
    ```
 
 3. Find the latest decision record in `logs/decisions/D-*.json`.
 
 4. Read its `status` field:
    - If `escalated`: **STOP the pipeline.** Print:
-     > Gandalf/Saruman escalated this decision. Human review required.
+     > Handler/GateKeeper escalated this decision. Human review required.
      > Decision: logs/decisions/<id>.json
      > Governance: logs/governance/G-<id>.json
    - If `executed` or `reviewed` with governance verdict `agree`: **proceed** to Step 1.
    - If governance verdict `challenge` was resolved: **proceed** to Step 1.
 
-5. Read the `actions` array. If the Gandalf recommends a different action
+5. Read the `actions` array. If the Handler recommends a different action
    than `plan-feature` or `create-feature` (e.g. `skip`, `research`),
    **STOP** and inform the user:
-   > Gandalf recommends: <action> instead of plan-feature.
+   > Handler recommends: <action> instead of plan-feature.
    > Rationale: <rationale from decision record>
-   > Run the recommended command or override with DIDIO_SKIP_T800=1.
+   > Run the recommended command or override with DIDIO_SKIP_HANDLER=1.
 
-**Bypass:** if `DIDIO_SKIP_T800=1` is set, skip with a visible yellow warning:
-> Warning: Gandalf gate bypassed via DIDIO_SKIP_T800=1
+**Bypass:** if `DIDIO_SKIP_HANDLER=1` is set, skip with a visible yellow warning:
+> Warning: Handler gate bypassed via DIDIO_SKIP_HANDLER=1
 
 ## Step 1 — Architect (PLAN_ONLY)
 
@@ -101,5 +102,5 @@ Summarize to the user:
 - NEVER run Developer/TechLead/QA in this flow.
 - NEVER run `didio run-wave` in this flow.
 - ALWAYS set `DIDIO_PLAN_ONLY=true` when spawning the Architect here.
-- NEVER skip the Gandalf gate silently when enabled. The only valid bypass
-  is `DIDIO_SKIP_T800=1` set explicitly by the user, with a visible warning.
+- NEVER skip the Handler gate silently when enabled. The only valid bypass
+  is `DIDIO_SKIP_HANDLER=1` set explicitly by the user, with a visible warning.

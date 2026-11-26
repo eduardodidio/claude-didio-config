@@ -24,7 +24,7 @@ if [[ -d "$DASHBOARD_DIST" && -f "$DASHBOARD_DIST/index.html" ]]; then
   [[ -f "$LOG_DIR/state.json" ]] || echo '{"generated_at":"","agents":[]}' > "$LOG_DIR/state.json"
   # Seed meta-metrics.json so the first fetch doesn't 404
   [[ -f "$LOG_DIR/meta-metrics.json" ]] || \
-    echo '{"generated_at":"","gandalf":{},"saruman":{},"loop_health":{}}' \
+    echo '{"generated_at":"","handler":{},"gatekeeper":{},"loop_health":{}}' \
     > "$LOG_DIR/meta-metrics.json"
   "$DIDIO_HOME/bin/didio-log-watcher.sh" &
   WATCHER_PID=$!

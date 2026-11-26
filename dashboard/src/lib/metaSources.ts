@@ -112,7 +112,7 @@ export function loadRunState(stateJsonPath: string): MetaRunState[] {
     }
 
     const run = agent as unknown as MetaRunState;
-    if (run.role === 't800' || run.role === 't1000') {
+    if (run.role === 'handler' || run.role === 'gatekeeper' || run.role === 't800' || run.role === 't1000') {
       runs.push(run);
     }
   }

@@ -1,4 +1,4 @@
-# Agent Learnings — Gandalf (Strategic Orchestrator)
+# Agent Learnings — Handler (Strategic Orchestrator)
 
 _Placeholder. QA acrescenta secoes `## <FXX> — <YYYY-MM-DD>` aqui durante a
 ceremony de retrospectiva (ver `templates/agents/prompts/qa.md`)._
