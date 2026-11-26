@@ -1,0 +1,162 @@
+{
+  "version": "1.0.0",
+  "description": "DOB (Didio Orchestrator Benchmark) dimension definitions",
+  "dimensions": [
+    {
+      "id": "task_decomposition",
+      "name": "Task Decomposition Quality",
+      "description": "Granularity, independence, and completeness of task breakdown by the Architect",
+      "weight": 1.0,
+      "range": { "min": 0, "max": 10 },
+      "rubric": {
+        "0-2": "Tasks are monolithic, tightly coupled, or missing key work items",
+        "3-5": "Reasonable decomposition with some coupling or gaps in coverage",
+        "6-8": "Clean, independent tasks with minor optimization opportunities",
+        "9-10": "Optimal decomposition — minimal, independent, complete, well-ordered waves"
+      }
+    },
+    {
+      "id": "parallel_efficiency",
+      "name": "Parallel Execution Efficiency",
+      "description": "How well waves utilize parallelism — ratio of useful work vs idle wait time",
+      "weight": 1.0,
+      "range": { "min": 0, "max": 10 },
+      "rubric": {
+        "0-2": "Mostly sequential execution, waves have single tasks or heavy dependencies",
+        "3-5": "Some parallelism but significant idle time or underutilized waves",
+        "6-8": "Good wave utilization with minor bottlenecks in 1-2 waves",
+        "9-10": "Near-optimal parallelism — all waves fully utilized, minimal idle time"
+      }
+    },
+    {
+      "id": "context_isolation",
+      "name": "Context Isolation",
+      "description": "Absence of cross-agent context contamination between spawned agents",
+      "weight": 1.0,
+      "range": { "min": 0, "max": 10 },
+      "rubric": {
+        "0-2": "Frequent context leakage causing incorrect assumptions across agents",
+        "3-5": "Occasional contamination visible in agent outputs or decisions",
+        "6-8": "Rare contamination, mostly clean isolation with minor leaks",
+        "9-10": "Perfect isolation — each agent operates solely on its assigned context"
+      }
+    },
+    {
+      "id": "token_efficiency",
+      "name": "Token Efficiency",
+      "description": "Tokens consumed per delivered line of code (lower is better, scored inversely)",
+      "weight": 1.0,
+      "range": { "min": 0, "max": 10 },
+      "rubric": {
+        "0-2": "Extreme token waste — excessive retries, verbose prompts, redundant reads",
+        "3-5": "Above-average consumption with identifiable waste patterns",
+        "6-8": "Efficient usage with minor optimization opportunities",
+        "9-10": "Optimal token economy — minimal waste, targeted reads, concise prompts"
+      }
+    },
+    {
+      "id": "test_coverage_delta",
+      "name": "Test Coverage Delta",
+      "description": "Improvement in test coverage after feature completion vs before",
+      "weight": 1.0,
+      "range": { "min": 0, "max": 10 },
+      "rubric": {
+        "0-2": "No tests added or tests are superficial/non-functional",
+        "3-5": "Basic happy-path tests, missing edge cases and error handling",
+        "6-8": "Good coverage including edge cases, minor gaps in boundary testing",
+        "9-10": "Comprehensive coverage — happy path, edge cases, error handling, boundary values"
+      }
+    },
+    {
+      "id": "diagram_accuracy",
+      "name": "Diagram Accuracy",
+      "description": "How accurately diagrams reflect the actual implementation",
+      "weight": 1.0,
+      "range": { "min": 0, "max": 10 },
+      "rubric": {
+        "0-2": "Diagrams missing or completely disconnected from implementation",
+        "3-5": "Diagrams exist but have significant inaccuracies or missing components",
+        "6-8": "Diagrams mostly accurate with minor discrepancies",
+        "9-10": "Diagrams perfectly mirror implementation — all components, flows, and decisions"
+      }
+    },
+    {
+      "id": "guardrail_compliance",
+      "name": "Guardrail Compliance",
+      "description": "Adherence to security guardrails defined in CLAUDE.md",
+      "weight": 1.0,
+      "range": { "min": 0, "max": 10 },
+      "rubric": {
+        "0-2": "Multiple guardrail violations (force push, secrets committed, etc.)",
+        "3-5": "Minor violations or close calls that required manual intervention",
+        "6-8": "Full compliance with minor stylistic deviations",
+        "9-10": "Perfect compliance — all git, code, and infra guardrails followed"
+      }
+    },
+    {
+      "id": "recovery_resilience",
+      "name": "Recovery Resilience",
+      "description": "Ability to recover from rate limits, failures, and interruptions",
+      "weight": 1.0,
+      "range": { "min": 0, "max": 10 },
+      "rubric": {
+        "0-2": "Failures cause complete pipeline stops with no recovery",
+        "3-5": "Some recovery possible but requires significant manual intervention",
+        "6-8": "Automated recovery for common failures, manual for rare edge cases",
+        "9-10": "Fully resilient — auto-recovery from rate limits, graceful degradation on failures"
+      }
+    },
+    {
+      "id": "learning_retention",
+      "name": "Learning Retention",
+      "description": "Correct application of agent-learnings from previous features",
+      "weight": 1.0,
+      "range": { "min": 0, "max": 10 },
+      "rubric": {
+        "0-2": "Past learnings ignored, same mistakes repeated",
+        "3-5": "Some learnings applied but key patterns missed",
+        "6-8": "Most learnings correctly applied, minor oversights",
+        "9-10": "All relevant learnings applied — patterns repeated, pitfalls avoided"
+      }
+    },
+    {
+      "id": "pipeline_autonomy",
+      "name": "Pipeline Autonomy",
+      "description": "Degree of autonomous execution without human intervention",
+      "weight": 1.0,
+      "range": { "min": 0, "max": 10 },
+      "rubric": {
+        "0-2": "Requires constant human intervention to proceed",
+        "3-5": "Multiple intervention points but some stages run autonomously",
+        "6-8": "Mostly autonomous with 1-2 expected intervention points",
+        "9-10": "Fully autonomous — no human intervention required from start to finish"
+      }
+    },
+    {
+      "id": "time_to_feature",
+      "name": "Time to Feature",
+      "description": "Wall-clock time from pipeline start to QA approval (excluding rate-limit waits)",
+      "weight": 1.0,
+      "range": { "min": 0, "max": 10 },
+      "rubric": {
+        "0-2": "Extremely slow — multiple hours for a simple feature",
+        "3-5": "Slower than expected with identifiable bottlenecks",
+        "6-8": "Reasonable time with minor optimization opportunities",
+        "9-10": "Fast delivery — pipeline stages complete efficiently without waste"
+      }
+    },
+    {
+      "id": "rework_rate",
+      "name": "Rework Rate",
+      "description": "Frequency of TechLead/QA rejections requiring developer rework",
+      "weight": 1.0,
+      "range": { "min": 0, "max": 10 },
+      "rubric": {
+        "0-2": "Most tasks rejected, requiring multiple rework cycles",
+        "3-5": "Several rejections with significant rework needed",
+        "6-8": "Rare rejections, mostly minor fixes required",
+        "9-10": "Zero rejections — all tasks pass TechLead and QA on first attempt"
+      }
+    }
+  ]
+}

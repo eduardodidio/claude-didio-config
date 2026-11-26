@@ -1,0 +1,35 @@
+flowchart LR
+    subgraph Operator["Operator"]
+        A1["Prepare fixture\n(or use existing)"]
+        A2["Run benchmark"]
+        A3["Score results"]
+        A4["Review summary"]
+        A5["Compare vs baseline"]
+        A6["Investigate regressions"]
+        A7["Fix and re-run"]
+    end
+
+    subgraph CLI["CLI Commands"]
+        B1["didio dob-run\n--fixture X --k 3"]
+        B2["didio dob-score\n<results-dir>"]
+        B3["didio dob-regression\n<baseline> <current>"]
+    end
+
+    subgraph Output["Artifacts"]
+        C1["run-*/metrics.json"]
+        C2["summary.json"]
+        C3["verdict JSON\n(PASS/FAIL)"]
+    end
+
+    subgraph Decision["Gate Decision"]
+        D1{PASS?}
+        D2["Ship / merge"]
+        D3["Block / investigate"]
+    end
+
+    A1 --> A2 --> B1 --> C1
+    C1 --> A3 --> B2 --> C2
+    C2 --> A4 --> A5 --> B3 --> C3
+    C3 --> D1
+    D1 -->|Yes| D2
+    D1 -->|No| D3 --> A6 --> A7 --> A2

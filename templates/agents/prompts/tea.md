@@ -26,9 +26,8 @@ Apply lessons. Two memory cues are particularly load-bearing for TEA:
 - `feedback_no_ceremony_specs.md` — every fixture/harness/mock you declare
   must justify itself by rework prevented. Don't propose fixtures "for
   completeness".
-- `user_bmad_course.md` — TEA is the BMAD test architect role; this
-  framework selectively pulls BMAD ideas. The course's framing of
-  "test plan as forcing function for clarity" is the spirit you should honor.
+- The TEA's guiding principle: "test plan as forcing function for clarity".
+  Every test scenario must justify its existence by preventing future rework.
 
 {{DIDIO_CHECKPOINT}}
 

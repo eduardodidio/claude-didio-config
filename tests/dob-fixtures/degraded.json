@@ -1,0 +1,19 @@
+{
+  "name": "degraded",
+  "description": "Intentionally poor scores for regression testing",
+  "version": "1.0.0",
+  "metrics": {
+    "task_decomposition": { "values": [3, 4, 3] },
+    "parallel_efficiency": { "values": [2, 3, 2] },
+    "context_isolation": { "values": [4, 3, 4] },
+    "token_efficiency": { "values": [2, 2, 3] },
+    "test_coverage_delta": { "values": [3, 3, 2] },
+    "diagram_accuracy": { "values": [3, 2, 3] },
+    "guardrail_compliance": { "values": [5, 4, 5] },
+    "recovery_resilience": { "values": [3, 3, 2] },
+    "learning_retention": { "values": [2, 3, 2] },
+    "pipeline_autonomy": { "values": [1, 2, 1] },
+    "time_to_feature": { "values": [3, 2, 3] },
+    "rework_rate": { "values": [2, 3, 2] }
+  }
+}

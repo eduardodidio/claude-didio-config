@@ -1,0 +1,45 @@
+flowchart TB
+    subgraph Config["Configuration Layer"]
+        CFG["didio.config.json\n(dob block)"]
+        DIM["docs/dob-dimensions.json\n(12 dimensions + rubrics)"]
+    end
+
+    subgraph Fixtures["Fixture Layer"]
+        FIX["tests/dob-fixtures/*.json\n(synthetic metric values)"]
+    end
+
+    subgraph Runner["DOB Runner"]
+        RUN["bin/didio-dob-runner.sh"]
+        RUN1["run-1/metrics.json"]
+        RUN2["run-2/metrics.json"]
+        RUN3["run-3/metrics.json"]
+    end
+
+    subgraph Scorer["DOB Scorer"]
+        SCR["bin/didio-dob-scorer.sh"]
+        SUM["summary.json\n(mean, stddev, weighted)"]
+    end
+
+    subgraph Gate["Regression Gate"]
+        REG["bin/didio-dob-regression.sh"]
+        PASS["EXIT 0: PASS"]
+        FAIL["EXIT 1: FAIL"]
+    end
+
+    subgraph Storage["Results Storage"]
+        RES["logs/dob-results/\n<fixture>/<timestamp>/"]
+    end
+
+    CFG -->|k, paths| RUN
+    DIM -->|dimension IDs| RUN
+    FIX -->|metric values| RUN
+    RUN --> RUN1 & RUN2 & RUN3
+    RUN1 & RUN2 & RUN3 --> RES
+    RES --> SCR
+    DIM -->|weights| SCR
+    SCR --> SUM
+    SUM -->|current| REG
+    SUM -->|baseline| REG
+    CFG -->|threshold_pct| REG
+    REG --> PASS
+    REG --> FAIL

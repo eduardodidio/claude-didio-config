@@ -45,6 +45,9 @@ case "$SUBCMD" in
   learnings-import)  exec "$DIDIO_HOME/bin/didio-learnings-import.sh" "$@" ;;
   learnings-sync)    exec "$DIDIO_HOME/bin/didio-learnings-sync.sh" "$@" ;;
   machine-scan)      exec "$DIDIO_HOME/bin/didio-machine-scan.sh" "$@" ;;
+  dob-run)           exec "$DIDIO_HOME/bin/didio-dob-runner.sh" "$@" ;;
+  dob-score)         exec "$DIDIO_HOME/bin/didio-dob-scorer.sh" "$@" ;;
+  dob-regression)    exec "$DIDIO_HOME/bin/didio-dob-regression.sh" "$@" ;;
   blackhawk)
     BH_SUB="${1:-}"
     shift || true

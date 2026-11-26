@@ -255,6 +255,14 @@ o estado atual do código. Inclua arquitetura e jornada do usuário (BPMN).
   `permissions.defaultMode: "auto"` e mantém um allow-list liberal como
   fallback. Waves rodam sem prompts. Só use em projetos sandboxed.
 
+- **DOB Benchmark (F33)**
+  Framework para comparacao objetiva de orquestradores de agentes e modelos LLM.
+  12 dimensoes de avaliacao (decomposicao, paralelismo, isolamento, tokens,
+  cobertura, diagramas, guardrails, resiliencia, aprendizado, autonomia, tempo,
+  retrabalho), K=3 runs por configuracao, regression gate para CI.
+  `didio dob-run`, `didio dob-score`, `didio dob-regression`.
+  Ver `docs/dob-protocol.md` para a metodologia completa.
+
 ---
 
 ## Layout do projeto depois do bootstrap
@@ -384,6 +392,16 @@ state tracking and external control:
   suggests scheduling for pipeline resumption when budget runs low.
 - **Install flow:** Persona setup (custom Handler/GateKeeper names),
   machine-aware parallelism suggestion, feature toggle confirmation.
+
+**F33 (DOB Benchmark + BMAD Purge)** ✅ DOB (Didio Orchestrator Benchmark)
+framework with 12 evaluation dimensions, K=3 runs per configuration. Runner
+(`didio dob-run`), scorer (`didio dob-score`), and regression gate
+(`didio dob-regression`) scripts. 4 fixture profiles (example, baseline-v1,
+degraded, minimal) for synthetic benchmarking. Smoke test (14 checks) and
+integration test (26 checks) passing. Completed BMAD purge: removed remaining
+operational references from 5 files (tea.md prompts, didio.md menus), deleted
+4 obsolete F27 test files. Historical BMAD docs preserved as reference.
+ADR-0011 documenting DOB design and BMAD purge rationale.
 
 ---
 

@@ -1,0 +1,19 @@
+{
+  "name": "baseline-v1",
+  "description": "Good baseline representing a well-optimized pipeline run",
+  "version": "1.0.0",
+  "metrics": {
+    "task_decomposition": { "values": [9, 8, 9] },
+    "parallel_efficiency": { "values": [8, 8, 7] },
+    "context_isolation": { "values": [10, 9, 10] },
+    "token_efficiency": { "values": [7, 8, 7] },
+    "test_coverage_delta": { "values": [8, 9, 8] },
+    "diagram_accuracy": { "values": [8, 8, 9] },
+    "guardrail_compliance": { "values": [10, 10, 10] },
+    "recovery_resilience": { "values": [8, 7, 8] },
+    "learning_retention": { "values": [7, 8, 7] },
+    "pipeline_autonomy": { "values": [7, 7, 8] },
+    "time_to_feature": { "values": [8, 7, 8] },
+    "rework_rate": { "values": [9, 9, 8] }
+  }
+}

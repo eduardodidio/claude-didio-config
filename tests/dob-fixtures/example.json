@@ -1,0 +1,19 @@
+{
+  "name": "example",
+  "description": "Synthetic fixture for smoke testing",
+  "version": "1.0.0",
+  "metrics": {
+    "task_decomposition": { "values": [7, 8, 7] },
+    "parallel_efficiency": { "values": [6, 7, 6] },
+    "context_isolation": { "values": [9, 9, 8] },
+    "token_efficiency": { "values": [5, 6, 5] },
+    "test_coverage_delta": { "values": [8, 7, 8] },
+    "diagram_accuracy": { "values": [7, 7, 7] },
+    "guardrail_compliance": { "values": [10, 10, 9] },
+    "recovery_resilience": { "values": [6, 7, 6] },
+    "learning_retention": { "values": [5, 5, 6] },
+    "pipeline_autonomy": { "values": [4, 5, 4] },
+    "time_to_feature": { "values": [7, 6, 7] },
+    "rework_rate": { "values": [8, 8, 9] }
+  }
+}

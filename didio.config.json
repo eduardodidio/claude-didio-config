@@ -204,5 +204,16 @@
       "height": 600,
       "position": "bottom-right"
     }
+  },
+  "dob": {
+    "enabled": false,
+    "k": 3,
+    "fixtures_dir": "tests/dob-fixtures",
+    "results_dir": "logs/dob-results",
+    "dimensions_schema": "docs/dob-dimensions.json",
+    "regression": {
+      "threshold_pct": 10,
+      "block_on_regression": true
+    }
   }
 }

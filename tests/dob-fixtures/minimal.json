@@ -1,0 +1,19 @@
+{
+  "name": "minimal",
+  "description": "Minimal feature benchmark — 1 wave, 2 tasks, mid-range scores",
+  "version": "1.0.0",
+  "metrics": {
+    "task_decomposition": { "values": [6, 5, 6] },
+    "parallel_efficiency": { "values": [5, 5, 4] },
+    "context_isolation": { "values": [7, 6, 7] },
+    "token_efficiency": { "values": [5, 5, 6] },
+    "test_coverage_delta": { "values": [5, 6, 5] },
+    "diagram_accuracy": { "values": [5, 5, 5] },
+    "guardrail_compliance": { "values": [8, 7, 8] },
+    "recovery_resilience": { "values": [5, 5, 4] },
+    "learning_retention": { "values": [4, 5, 4] },
+    "pipeline_autonomy": { "values": [5, 4, 5] },
+    "time_to_feature": { "values": [6, 5, 6] },
+    "rework_rate": { "values": [6, 6, 5] }
+  }
+}
