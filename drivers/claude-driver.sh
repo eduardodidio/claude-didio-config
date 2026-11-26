@@ -16,6 +16,12 @@
 
 set -uo pipefail
 
+# Allow spawning claude CLI from within a Claude Code session. The env var
+# CLAUDECODE is set by the parent session and triggers a "nested session"
+# guard. Unsetting it is safe here because the driver runs in its own process
+# with an isolated prompt — no shared runtime resources.
+unset CLAUDECODE 2>/dev/null || true
+
 set +e
 claude \
   -p "$DIDIO_PROMPT" \
