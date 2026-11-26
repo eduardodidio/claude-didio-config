@@ -44,30 +44,35 @@ case "$SUBCMD" in
   learnings-export)  exec "$DIDIO_HOME/bin/didio-learnings-export.sh" "$@" ;;
   learnings-import)  exec "$DIDIO_HOME/bin/didio-learnings-import.sh" "$@" ;;
   learnings-sync)    exec "$DIDIO_HOME/bin/didio-learnings-sync.sh" "$@" ;;
-  overlord)
-    OVERLORD_SUB="${1:-}"
+  machine-scan)      exec "$DIDIO_HOME/bin/didio-machine-scan.sh" "$@" ;;
+  blackhawk)
+    BH_SUB="${1:-}"
     shift || true
-    case "$OVERLORD_SUB" in
-      monitor)  exec "$DIDIO_HOME/bin/didio-overlord-monitor.sh" "$@" ;;
-      triage)   exec "$DIDIO_HOME/bin/didio-overlord-triage.sh" "$@" ;;
-      promote)  exec "$DIDIO_HOME/bin/didio-overlord-promote.sh" "$@" ;;
-      defer)    exec "$DIDIO_HOME/bin/didio-overlord-defer.sh" "$@" ;;
+    case "$BH_SUB" in
+      monitor)  exec "$DIDIO_HOME/bin/didio-blackhawk-monitor.sh" "$@" ;;
+      triage)   exec "$DIDIO_HOME/bin/didio-blackhawk-triage.sh" "$@" ;;
+      promote)  exec "$DIDIO_HOME/bin/didio-blackhawk-promote.sh" "$@" ;;
+      defer)    exec "$DIDIO_HOME/bin/didio-blackhawk-defer.sh" "$@" ;;
       help|--help|-h|"")
-        echo "Usage: didio overlord <subcommand> [args...]"
+        echo "Usage: didio blackhawk <subcommand> [args...]"
         echo ""
         echo "Subcommands:"
         echo "  monitor   Run governance pattern detection + strategic cards"
-        echo "  triage    Run Overlord triage on War Room cards"
+        echo "  triage    Run Black Hawk Alpha triage on War Room cards"
         echo "  promote   Promote a triaged card to a Standard Board feature"
         echo "  defer     Defer a card with rationale"
         echo ""
-        echo "Run 'didio overlord <subcommand> --help' for details."
+        echo "Run 'didio blackhawk <subcommand> --help' for details."
         ;;
       *)
-        echo "didio overlord: unknown subcommand '$OVERLORD_SUB'. Try 'didio overlord help'." >&2
+        echo "didio blackhawk: unknown subcommand '$BH_SUB'. Try 'didio blackhawk help'." >&2
         exit 1
         ;;
     esac
+    ;;
+  overlord)
+    # Backward-compat alias: overlord -> blackhawk
+    exec "$0" blackhawk "$@"
     ;;
   menu|"")         exec "$DIDIO_HOME/bin/didio-menu.sh" "$@" ;;
   version)       echo "didio $(cat "$DIDIO_HOME/VERSION" 2>/dev/null || echo dev)" ;;
@@ -81,7 +86,7 @@ Usage:
 
   didio spawn-agent <role> <feature-id> <task-file> [extra-prompt]
       Launch a single agent in a clean bash context via 'claude -p'.
-      Roles: architect | developer | techlead | qa | readiness | tea | handler | gatekeeper
+      Roles: architect | developer | techlead | qa | readiness | tea | handler | gatekeeper | blackhawk-alpha
       Aliases: t800 -> handler, t1000 -> gatekeeper
       Logs streamed to logs/agents/<feature>-<role>-<taskid>-<ts>.jsonl
 
@@ -183,13 +188,14 @@ Usage:
       Manage War Room cards (incoming ideas, requests, signals).
       Cards are stored as JSON in logs/warroom/cards/.
 
-  didio overlord triage [--dry-run]
-  didio overlord promote <card-id>
-  didio overlord defer <card-id>
-  didio overlord monitor
-      Overlord strategic command. Triage incoming War Room cards,
+  didio blackhawk triage [--dry-run]
+  didio blackhawk promote <card-id>
+  didio blackhawk defer <card-id>
+  didio blackhawk monitor
+      Black Hawk Alpha strategic command. Triage incoming War Room cards,
       promote cards to features, defer cards with rationale, or
       monitor governance patterns.
+      (Alias: didio overlord ... still works for backward compatibility.)
 
   didio action-listener [--interval SECS] [--once]
       Poll logs/agents/actions/ for operator action JSON files and
@@ -221,14 +227,14 @@ Usage:
       Bidirectional sync: exports local learnings then imports from
       other projects in <shared-repo-path>/learnings/.
 
-  didio overlord monitor [--dry-run] [--since YYYY-MM-DD] [--continuous]
-      Run Overlord governance pattern detection. Scans decision/governance
+  didio blackhawk monitor [--dry-run] [--since YYYY-MM-DD] [--continuous]
+      Run Black Hawk Alpha governance pattern detection. Scans decision/governance
       logs for repeated challenges, blocked pipelines, low confidence,
       escalation frequency, stale flags, and token budget pressure.
       Creates strategic War Room cards when patterns are detected.
 
-  didio overlord triage [args...]
-      Run Overlord triage on War Room cards.
+  didio blackhawk triage [args...]
+      Run Black Hawk Alpha triage on War Room cards.
 
   didio resume-pending [--feature FXX] [--dry-run] [--max-retries N]
       Scan logs/agents/_pending/ and re-spawn rate-limited jobs whose
@@ -247,6 +253,11 @@ Usage:
   didio pipeline-resume <feature-id>
       Resume a paused pipeline. Creates a resume signal file so the
       pipeline continues from the stage where it paused.
+
+  didio machine-scan [--json] [--quiet] [--write]
+      Detect hardware (CPU, RAM, OS, arch, Rust, claude sessions) and
+      suggest optimal max_parallel for agent parallelism.
+      --json outputs machine-readable JSON. --write updates didio.config.json.
 
   didio version
       Print framework version.

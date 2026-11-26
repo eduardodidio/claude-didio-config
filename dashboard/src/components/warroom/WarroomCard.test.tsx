@@ -118,7 +118,7 @@ describe('WarroomCard', () => {
     expect(screen.queryByTestId('card-priority-WR-20261126-001')).not.toBeInTheDocument();
   });
 
-  it('renders overlord assessment indicator when assessment exists', () => {
+  it('renders Black Hawk Alpha assessment indicator when assessment exists', () => {
     const card = makeCard({
       overlord_assessment: {
         assessed_at: '2026-11-26T10:30:00Z',

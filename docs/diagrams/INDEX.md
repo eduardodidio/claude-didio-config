@@ -136,12 +136,12 @@ All diagrams are [Mermaid](https://mermaid.js.org/) `.mmd` files.
 | [F30-architecture.mmd](F30-architecture.mmd) | F30-T13 | Three-layer architecture: React Dashboard (KanbanBoard, Governance, FlagPanel, ActionButtons, hooks) -> File-Based Communication Layer (flags, actions, state, pipeline, meta-metrics) -> Shell Scripts (action-listener, flags-lib, learnings) -> Agent Pipeline (Architect, Developer, TechLead, QA) |
 | [F30-journey.mmd](F30-journey.mmd) | F30-T13 | Operator journey: open dashboard -> view Kanban board -> check flags -> click action button -> confirmation (destructive) -> action JSON written -> listener processes -> board updates; alternate paths to Governance view (token budget, decision history, flag analytics) and card detail |
 
-## F31 — War Room + Overlord Strategic Agent
+## F31 — War Room + Black Hawk Alpha Strategic Agent
 
 | File | Owner task | What it shows |
 |---|---|---|
-| [F31-architecture.mmd](F31-architecture.mmd) | F31-T13 | War Room data flow (card sources, file layer, dashboard), Overlord triage flow (knowledge base, assessment, promotion bridge), agent hierarchy (Overlord above Handler/GateKeeper above standard pipeline), governance monitoring loop |
-| [F31-journey.mmd](F31-journey.mmd) | F31-T13 | Four user flows: (1) operator adds card via dashboard, (2) operator adds card via CLI, (3) Overlord triages incoming cards (promote/defer/archive/needs_input), (4) governance monitoring detects patterns and creates strategic cards |
+| [F31-architecture.mmd](F31-architecture.mmd) | F31-T13 | War Room data flow (card sources, file layer, dashboard), Black Hawk Alpha triage flow (knowledge base, assessment, promotion bridge), agent hierarchy (Black Hawk Alpha above Handler/GateKeeper above standard pipeline), governance monitoring loop |
+| [F31-journey.mmd](F31-journey.mmd) | F31-T13 | Four user flows: (1) operator adds card via dashboard, (2) operator adds card via CLI, (3) Black Hawk Alpha triages incoming cards (promote/defer/archive/needs_input), (4) governance monitoring detects patterns and creates strategic cards |
 
 ## F24 — auto-install second-brain
 

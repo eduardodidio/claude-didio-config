@@ -43,10 +43,10 @@ tap() {
 
 for script in \
   "$BIN/didio-warroom.sh" \
-  "$BIN/didio-overlord-triage.sh" \
-  "$BIN/didio-overlord-promote.sh" \
-  "$BIN/didio-overlord-defer.sh" \
-  "$BIN/didio-overlord-monitor.sh"; do
+  "$BIN/didio-blackhawk-triage.sh" \
+  "$BIN/didio-blackhawk-promote.sh" \
+  "$BIN/didio-blackhawk-defer.sh" \
+  "$BIN/didio-blackhawk-monitor.sh"; do
 
   name="$(basename "$script")"
   if [[ ! -f "$script" ]]; then

@@ -16,13 +16,13 @@ export const WARROOM_COLUMN_LABELS: Record<WarRoomStatus, string> = {
 // Card source
 export type CardSource = 'operator' | 'agent' | 'external';
 
-// Priority levels (shared with Overlord assessment)
+// Priority levels (shared with Black Hawk Alpha assessment)
 export type Priority = 'low' | 'medium' | 'high' | 'max';
 
-// Overlord recommendation
+// Black Hawk Alpha recommendation (type name kept as OverlordRecommendation for backward compat with card JSON)
 export type OverlordRecommendation = 'promote' | 'defer' | 'archive' | 'needs_input';
 
-// Overlord assessment object
+// Black Hawk Alpha assessment object (type name kept as OverlordAssessment for backward compat with card JSON)
 export interface OverlordAssessment {
   assessed_at: string;
   recommendation: OverlordRecommendation;

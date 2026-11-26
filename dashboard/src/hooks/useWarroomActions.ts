@@ -46,7 +46,7 @@ export function useUpdateCard() {
 
 /**
  * Mutation hook to request triage of a card.
- * Posts the card with status set to 'triaging' so the Overlord agent picks it up.
+ * Posts the card with status set to 'triaging' so the Black Hawk Alpha agent picks it up.
  */
 export function useTriageCard() {
   const queryClient = useQueryClient();

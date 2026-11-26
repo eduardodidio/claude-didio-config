@@ -104,7 +104,7 @@ describe('warroomTypes', () => {
       },
       promoted_to: 'F33',
       tags: [],
-      source_agent: 'overlord-monitor',
+      source_agent: 'blackhawk-alpha',
       source_feature: 'F30',
     };
     expect(card.overlord_assessment?.recommendation).toBe('promote');

@@ -49,7 +49,7 @@
       "model": "opus",
       "fallback": "sonnet"
     },
-    "overlord": {
+    "blackhawk_alpha": {
       "model": "opus",
       "fallback": "sonnet"
     }
@@ -87,7 +87,7 @@
       "model": "sonnet",
       "fallback": "haiku"
     },
-    "overlord": {
+    "blackhawk_alpha": {
       "model": "sonnet",
       "fallback": "haiku"
     }
@@ -132,20 +132,14 @@
       "review_mode": "post-decision",
       "escalation_blocks_pipeline": true
     },
-    "overlord": {
+    "blackhawk_alpha": {
       "enabled": true,
-      "observes": ["handler", "gatekeeper"],
+      "observes": [
+        "handler",
+        "gatekeeper"
+      ],
       "can_raise_cards": true
     }
-  },
-  "overlord": {
-    "enabled": true,
-    "auto_triage": true,
-    "triage_interval_minutes": 30,
-    "knowledge_sources": ["adr", "learnings", "retrospectives"],
-    "max_concurrent_promotions": 2,
-    "promotion_requires_confirmation": false,
-    "defer_auto_archive_days": 30
   },
   "research": {
     "web_search_budget": 5,
@@ -187,5 +181,28 @@
     "check_interval_minutes": 10,
     "suggest_scheduling": true,
     "schedule_method": "at"
+  },
+  "blackhawk": {
+    "enabled": true,
+    "auto_triage": true,
+    "triage_interval_minutes": 30,
+    "knowledge_sources": [
+      "adr",
+      "learnings",
+      "retrospectives"
+    ],
+    "max_concurrent_promotions": 2,
+    "promotion_requires_confirmation": false,
+    "defer_auto_archive_days": 30,
+    "auto_launch": true,
+    "silent_mode": false,
+    "avatar_path": "",
+    "notification_sound": true,
+    "chat_history_days": 30,
+    "desktop_app": {
+      "width": 400,
+      "height": 600,
+      "position": "bottom-right"
+    }
   }
 }

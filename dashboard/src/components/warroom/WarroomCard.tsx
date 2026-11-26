@@ -195,7 +195,7 @@ export function WarroomCard({ card, onSelect }: WarroomCardProps) {
             </Badge>
           )}
 
-          {/* Overlord assessment indicator */}
+          {/* Black Hawk Alpha assessment indicator */}
           {assessment && (
             <div
               className={`flex items-center gap-1 text-xs ${RECOMMENDATION_CONFIG[assessment.recommendation].colorClass}`}

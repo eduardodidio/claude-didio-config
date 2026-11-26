@@ -346,14 +346,14 @@ ${body:-(empty)}
 
 EOF
 
-  # Show Overlord assessment if present
+  # Show Black Hawk Alpha assessment if present
   local assessment
   assessment="$(_card_field "$card_file" "overlord_assessment")"
   if [[ -z "$assessment" || "$assessment" == "{}" ]]; then
-    echo "Overlord Assessment:"
+    echo "Black Hawk Alpha Assessment:"
     echo "  (not yet triaged)"
   else
-    echo "Overlord Assessment:"
+    echo "Black Hawk Alpha Assessment:"
     # Parse assessment fields
     local rec assess_priority rationale promoted_as
     rec="$(python3 -c "
@@ -465,7 +465,7 @@ USAGE:
       --format json    Output as JSON array
 
   didio warroom show <card_id>
-      Display full details of a card, including Overlord assessment if present.
+      Display full details of a card, including Black Hawk Alpha assessment if present.
 
   didio warroom move <card_id> <status>
       Move a card to a new status.

@@ -236,9 +236,9 @@ export function TriagePanel({ card, onClose }: TriagePanelProps) {
             </div>
           )}
 
-          {/* ---- Overlord Assessment ---- */}
+          {/* ---- Black Hawk Alpha Assessment ---- */}
           <div className="border-t pt-4">
-            <h3 className="text-sm font-semibold mb-3">Overlord Assessment</h3>
+            <h3 className="text-sm font-semibold mb-3">Black Hawk Alpha Assessment</h3>
 
             {assessment ? (
               <div
@@ -285,7 +285,7 @@ export function TriagePanel({ card, onClose }: TriagePanelProps) {
                 className="flex items-center gap-2 text-sm text-muted-foreground py-4"
               >
                 <Clock className="h-4 w-4" />
-                <span>Not yet triaged by Overlord</span>
+                <span>Not yet triaged by Black Hawk Alpha</span>
               </div>
             )}
           </div>

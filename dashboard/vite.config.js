@@ -95,6 +95,67 @@ function kanbanJsonPlugin() {
                     }
                 });
             }); });
+            // GET /warroom-cards.json — aggregated War Room cards
+            server.middlewares.use('/warroom-cards.json', function (_req, res) { return __awaiter(_this, void 0, void 0, function () {
+                var cardsDir, cards;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            cardsDir = path.resolve(__dirname, '../logs/warroom/cards');
+                            return [4 /*yield*/, aggregateJsonDir(cardsDir)];
+                        case 1:
+                            cards = _a.sent();
+                            res.setHeader('Content-Type', 'application/json');
+                            res.setHeader('Cache-Control', 'no-store');
+                            res.end(JSON.stringify(cards));
+                            return [2 /*return*/];
+                    }
+                });
+            }); });
+            // POST /api/warroom-cards — write War Room card JSON file
+            server.middlewares.use('/api/warroom-cards', function (req, res) { return __awaiter(_this, void 0, void 0, function () {
+                var body, cardsDir, filename, _a;
+                return __generator(this, function (_b) {
+                    switch (_b.label) {
+                        case 0:
+                            if (req.method !== 'POST') {
+                                res.statusCode = 405;
+                                res.end(JSON.stringify({ error: 'Method not allowed' }));
+                                return [2 /*return*/];
+                            }
+                            _b.label = 1;
+                        case 1:
+                            _b.trys.push([1, 5, , 6]);
+                            return [4 /*yield*/, readBody(req)];
+                        case 2:
+                            body = _b.sent();
+                            if (!body.card_id || typeof body.card_id !== 'string') {
+                                res.statusCode = 400;
+                                res.setHeader('Content-Type', 'application/json');
+                                res.end(JSON.stringify({ error: 'Missing or invalid card_id' }));
+                                return [2 /*return*/];
+                            }
+                            cardsDir = path.resolve(__dirname, '../logs/warroom/cards');
+                            return [4 /*yield*/, fs.mkdir(cardsDir, { recursive: true })];
+                        case 3:
+                            _b.sent();
+                            filename = "".concat(body.card_id, ".json");
+                            return [4 /*yield*/, fs.writeFile(path.join(cardsDir, filename), JSON.stringify(body, null, 2))];
+                        case 4:
+                            _b.sent();
+                            res.setHeader('Content-Type', 'application/json');
+                            res.end(JSON.stringify({ ok: true, file: filename }));
+                            return [3 /*break*/, 6];
+                        case 5:
+                            _a = _b.sent();
+                            res.statusCode = 400;
+                            res.setHeader('Content-Type', 'application/json');
+                            res.end(JSON.stringify({ error: 'Invalid JSON body' }));
+                            return [3 /*break*/, 6];
+                        case 6: return [2 /*return*/];
+                    }
+                });
+            }); });
             // POST /api/actions — write action JSON file
             server.middlewares.use('/api/actions', function (req, res) { return __awaiter(_this, void 0, void 0, function () {
                 var body, actionsDir, filename, _a;

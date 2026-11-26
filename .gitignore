@@ -36,6 +36,14 @@ logs/agents/actions/archive/*.json
 # F31 — War Room card runtime artifacts (preserve directories)
 logs/warroom/cards/*.json
 
+# F32 — Black Hawk Desktop chat history
+logs/blackhawk/*.jsonl
+
 # Python bytecode
 __pycache__/
 *.pyc
+
+# F32 — Black Hawk Desktop build artifacts
+blackhawk-desktop/node_modules/
+blackhawk-desktop/src-tauri/target/
+blackhawk-desktop/dist/

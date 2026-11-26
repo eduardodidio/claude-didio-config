@@ -404,32 +404,65 @@ didio_find_feature_dir() {
   return 1
 }
 
-# --- Overlord helpers ---
+# --- Black Hawk Alpha helpers ---
 
 # Returns "true" or "false". Default true.
-didio_overlord_enabled() {
-  didio_read_config_path 'overlord.enabled' 'true'
+didio_blackhawk_enabled() {
+  didio_read_config_path 'blackhawk.enabled' 'true'
 }
 
 # Returns "true" or "false". Default true.
-didio_overlord_auto_triage() {
-  didio_read_config_path 'overlord.auto_triage' 'true'
+didio_blackhawk_auto_triage() {
+  didio_read_config_path 'blackhawk.auto_triage' 'true'
 }
 
 # Returns triage interval in minutes. Default 30.
-didio_overlord_triage_interval() {
-  didio_read_config_path 'overlord.triage_interval_minutes' '30'
+didio_blackhawk_triage_interval() {
+  didio_read_config_path 'blackhawk.triage_interval_minutes' '30'
 }
 
 # Returns max concurrent promotions. Default 2.
-didio_overlord_max_promotions() {
-  didio_read_config_path 'overlord.max_concurrent_promotions' '2'
+didio_blackhawk_max_promotions() {
+  didio_read_config_path 'blackhawk.max_concurrent_promotions' '2'
 }
 
-# Returns overlord.knowledge_sources as a JSON array. Default '["adr", "learnings", "retrospectives"]'.
-didio_overlord_knowledge_sources() {
-  didio_read_config_path 'overlord.knowledge_sources' '["adr", "learnings", "retrospectives"]'
+# Returns blackhawk.knowledge_sources as a JSON array. Default '["adr", "learnings", "retrospectives"]'.
+didio_blackhawk_knowledge_sources() {
+  didio_read_config_path 'blackhawk.knowledge_sources' '["adr", "learnings", "retrospectives"]'
 }
+
+# --- Black Hawk Desktop helpers ---
+
+# Returns "true" or "false". Default true.
+didio_blackhawk_auto_launch() {
+  didio_read_config_path 'blackhawk.auto_launch' 'true'
+}
+
+# Returns "true" or "false". Default false.
+didio_blackhawk_silent_mode() {
+  didio_read_config_path 'blackhawk.silent_mode' 'false'
+}
+
+# Returns the custom avatar path. Default "" (use built-in).
+didio_blackhawk_avatar_path() {
+  didio_read_config_path 'blackhawk.avatar_path' ''
+}
+
+# Returns chat history retention in days. Default 30.
+didio_blackhawk_chat_history_days() {
+  didio_read_config_path 'blackhawk.chat_history_days' '30'
+}
+
+# --- Backward-compat aliases (Overlord -> Black Hawk) ---
+didio_overlord_enabled()           { didio_blackhawk_enabled; }
+didio_overlord_auto_triage()       { didio_blackhawk_auto_triage; }
+didio_overlord_triage_interval()   { didio_blackhawk_triage_interval; }
+didio_overlord_max_promotions()    { didio_blackhawk_max_promotions; }
+didio_overlord_knowledge_sources() { didio_blackhawk_knowledge_sources; }
+didio_overlord_auto_launch()       { didio_blackhawk_auto_launch; }
+didio_overlord_silent_mode()       { didio_blackhawk_silent_mode; }
+didio_overlord_avatar_path()       { didio_blackhawk_avatar_path; }
+didio_overlord_chat_history_days() { didio_blackhawk_chat_history_days; }
 
 # --- Negotiation helpers ---
 

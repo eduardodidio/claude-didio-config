@@ -12,8 +12,8 @@ flowchart TD
         B3 --> B4["Card visible in\nINCOMING column"]
     end
 
-    subgraph Flow3["Flow 3: Overlord triages cards"]
-        C1["Operator runs:\ndidio overlord triage"] --> C2["Overlord gathers knowledge:\nADRs, learnings, features,\ndecisions, governance"]
+    subgraph Flow3["Flow 3: Black Hawk Alpha triages cards"]
+        C1["Operator runs:\ndidio blackhawk triage"] --> C2["Black Hawk Alpha gathers knowledge:\nADRs, learnings, features,\ndecisions, governance"]
         C2 --> C3{"For each\nINCOMING card"}
         C3 --> C4["Assess card against\nproject context"]
         C4 --> C5{"Recommendation?"}
@@ -26,7 +26,7 @@ flowchart TD
     end
 
     subgraph Flow4["Flow 4: Governance monitoring"]
-        D1["Overlord monitor scans:\nlogs/decisions/\nlogs/governance/"] --> D2{"Pattern detected?"}
+        D1["Black Hawk Alpha monitor scans:\nlogs/decisions/\nlogs/governance/"] --> D2{"Pattern detected?"}
         D2 -->|yes| D3["Creates strategic\nWar Room card"]
         D3 --> D4["Card enters INCOMING\nfor next triage cycle"]
         D2 -->|no| D5["No action\nMonitor sleeps"]

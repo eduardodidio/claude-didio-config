@@ -2,7 +2,7 @@ flowchart TB
     subgraph Sources["Card Sources"]
         OP["Operator (Dashboard)"]
         CLI["Operator (CLI)"]
-        AGT["Agent (Overlord Monitor)"]
+        AGT["Agent (Black Hawk Alpha Monitor)"]
     end
 
     subgraph Dashboard["React Dashboard"]
@@ -22,13 +22,13 @@ flowchart TB
 
     subgraph CLI_Scripts["Shell Scripts (bin/)"]
         DW["didio-warroom.sh\nadd | list | show | move"]
-        OT["didio-overlord-triage.sh\nassess incoming cards"]
-        OP2["didio-overlord-promote.sh\ncard -> feature stub"]
-        OD["didio-overlord-defer.sh\nmark card deferred"]
-        OM["didio-overlord-monitor.sh\nscan governance logs"]
+        OT["didio-blackhawk-triage.sh\nassess incoming cards"]
+        OP2["didio-blackhawk-promote.sh\ncard -> feature stub"]
+        OD["didio-blackhawk-defer.sh\nmark card deferred"]
+        OM["didio-blackhawk-monitor.sh\nscan governance logs"]
     end
 
-    subgraph Knowledge["Overlord Knowledge Base"]
+    subgraph Knowledge["Black Hawk Alpha Knowledge Base"]
         ADR["docs/adr/"]
         LEARN["memory/agent-learnings/"]
         FEAT["tasks/features/"]
@@ -37,7 +37,7 @@ flowchart TB
     end
 
     subgraph AgentHierarchy["Agent Hierarchy"]
-        OVERLORD["Overlord\n(strategic meta-agent)"]
+        OVERLORD["Black Hawk Alpha\n(strategic meta-agent)"]
         HANDLER["Handler\n(orchestration)"]
         GK["GateKeeper\n(governance)"]
         ARCH["Architect"]
@@ -67,7 +67,7 @@ flowchart TB
     WRC --> WRK
     WRV --> TP
 
-    %% Overlord triage flow
+    %% Black Hawk Alpha triage flow
     OT --> CARDS
     OT -.->|reads| Knowledge
     OT -->|writes assessment| CARDS

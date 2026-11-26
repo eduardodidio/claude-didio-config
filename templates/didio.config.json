@@ -1,11 +1,15 @@
 {
   "turbo": false,
   "economy": false,
-  
   "max_parallel": 0,
   "providers": {
-    "claude": { "bin": "claude", "default": true },
-    "codex": { "bin": "codex" }
+    "claude": {
+      "bin": "claude",
+      "default": true
+    },
+    "codex": {
+      "bin": "codex"
+    }
   },
   "_comment_provider_per_role": "Optional 'provider' key inside any models.<role> or models_economy.<role> entry selects 'claude' (default, used when absent) or 'codex' for that role, e.g. \"techlead\": { \"provider\": \"codex\", \"model\": \"gpt-5-codex\" }.",
   "models": {
@@ -51,7 +55,7 @@
       "model": "opus",
       "fallback": "sonnet"
     },
-    "overlord": {
+    "blackhawk_alpha": {
       "model": "opus",
       "fallback": "sonnet"
     }
@@ -93,7 +97,7 @@
       "model": "sonnet",
       "fallback": "haiku"
     },
-    "overlord": {
+    "blackhawk_alpha": {
       "model": "sonnet",
       "fallback": "haiku"
     }
@@ -129,18 +133,23 @@
     "enabled": true
   },
   "meta_agents": {
-    "handler": { "enabled": true, "auto_governance": true },
-    "gatekeeper": { "enabled": true, "review_mode": "post-decision", "escalation_blocks_pipeline": true },
-    "overlord": { "enabled": true, "observes": ["handler", "gatekeeper"], "can_raise_cards": true }
-  },
-  "overlord": {
-    "enabled": true,
-    "auto_triage": true,
-    "triage_interval_minutes": 30,
-    "knowledge_sources": ["adr", "learnings", "retrospectives"],
-    "max_concurrent_promotions": 2,
-    "promotion_requires_confirmation": false,
-    "defer_auto_archive_days": 30
+    "handler": {
+      "enabled": true,
+      "auto_governance": true
+    },
+    "gatekeeper": {
+      "enabled": true,
+      "review_mode": "post-decision",
+      "escalation_blocks_pipeline": true
+    },
+    "blackhawk_alpha": {
+      "enabled": true,
+      "observes": [
+        "handler",
+        "gatekeeper"
+      ],
+      "can_raise_cards": true
+    }
   },
   "research": {
     "web_search_budget": 5,
@@ -182,5 +191,28 @@
     "check_interval_minutes": 10,
     "suggest_scheduling": true,
     "schedule_method": "at"
+  },
+  "blackhawk": {
+    "enabled": true,
+    "auto_triage": true,
+    "triage_interval_minutes": 30,
+    "knowledge_sources": [
+      "adr",
+      "learnings",
+      "retrospectives"
+    ],
+    "max_concurrent_promotions": 2,
+    "promotion_requires_confirmation": false,
+    "defer_auto_archive_days": 30,
+    "auto_launch": true,
+    "silent_mode": false,
+    "avatar_path": "",
+    "notification_sound": true,
+    "chat_history_days": 30,
+    "desktop_app": {
+      "width": 400,
+      "height": 600,
+      "position": "bottom-right"
+    }
   }
 }
