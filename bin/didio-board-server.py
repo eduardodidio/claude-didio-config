@@ -184,7 +184,7 @@ class BoardHandler(BaseHTTPRequestHandler):
                     card = json.load(f)
                 card["status"] = new_status
                 import datetime
-                card["updated_at"] = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+                card["updated_at"] = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
                 with open(card_file, "w", encoding="utf-8") as f:
                     json.dump(card, f, ensure_ascii=False, indent=2)
                 self.send_json({"ok": True, "card_id": card_id, "status": new_status})
@@ -202,11 +202,11 @@ class BoardHandler(BaseHTTPRequestHandler):
             cards_dir = PROJECT_ROOT / "logs" / "warroom" / "cards"
             cards_dir.mkdir(parents=True, exist_ok=True)
             import datetime
-            today = datetime.datetime.utcnow().strftime("%Y%m%d")
+            today = datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%d")
             existing = sorted(cards_dir.glob(f"WR-{today}-*.json"))
             seq = len(existing) + 1
             card_id = f"WR-{today}-{seq:03d}"
-            now_iso = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+            now_iso = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
             card = {
                 "card_id": card_id, "title": title, "body": body_text,
                 "source": "operator", "status": "incoming",
