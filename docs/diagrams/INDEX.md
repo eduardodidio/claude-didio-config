@@ -157,6 +157,13 @@ All diagrams are [Mermaid](https://mermaid.js.org/) `.mmd` files.
 | [F35-architecture.mmd](F35-architecture.mmd) | F35-T07 | War Room data flow: card sources (CLI, agent, dashboard) -> card JSON -> triage CLI -> Black Hawk Alpha assessment -> promote bridge (directory + README creation) -> pipeline entry; includes defer/archive disposition paths |
 | [F35-journey.mmd](F35-journey.mmd) | F35-T07 | Operator journey: add card -> review in dashboard/CLI -> trigger triage -> Alpha assesses -> review recommendation -> approve promote -> feature directory created -> run pipeline -> feature shipped; decision points (promote vs defer) and error branches (no assessment, rate limit) |
 
+## F42 — Squad Dashboard Panel
+
+| File | Owner task | What it shows |
+|---|---|---|
+| [F42-architecture.mmd](F42-architecture.mmd) | F42 | Data flow: squad-report JSON -> Tauri bridge -> useSquadHealth hook -> SquadHealth view (scanner cards, correlations, scan button) -> 5th tab in App |
+| [F42-journey.mmd](F42-journey.mmd) | F42 | Operator journey: open app -> Squad tab -> view health or run scan -> refresh |
+
 ## F41 — Squad Orchestrator
 
 | File | Owner task | What it shows |

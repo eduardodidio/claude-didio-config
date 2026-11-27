@@ -403,6 +403,11 @@ operational references from 5 files (tea.md prompts, didio.md menus), deleted
 4 obsolete F27 test files. Historical BMAD docs preserved as reference.
 ADR-0011 documenting DOB design and BMAD purge rationale.
 
+**F42 (Squad Dashboard)** ✅ Visual health panel in Black Hawk Desktop app.
+5th tab "Squad" shows per-scanner status (Bravo/Charlie/Delta) with color-coded
+indicators, correlation alerts, and scan trigger button. React hook
+`useSquadHealth` polls squad-report JSON. 14 structural E2E tests. ADR-0020.
+
 **F41 (Squad Orchestrator)** ✅ Coordinated Bravo+Charlie+Delta scanning via
 single command `didio squad scan`. Cross-scanner correlation detects 5 compound
 risk patterns (pipeline+shell, spawn+state, secret+auto, token+multi,

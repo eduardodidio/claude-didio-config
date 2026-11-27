@@ -1,0 +1,13 @@
+%% F42 Squad Dashboard — Operator Journey
+
+flowchart TD
+    O_START(["Open Desktop App"]) --> TAB["Click Squad tab"]
+    TAB --> LOAD["useSquadHealth polls report"]
+    LOAD --> HAS{"Report\nexists?"}
+    HAS -->|yes| VIEW["View scanner statuses\n+ correlations"]
+    HAS -->|no| EMPTY["No report yet"]
+    EMPTY --> SCAN["Click Run Scan"]
+    VIEW --> SCAN
+    SCAN --> EXEC["triggerSquadScan()\n-> didio squad scan"]
+    EXEC --> REFRESH["Poll refresh after 2s"]
+    REFRESH --> VIEW

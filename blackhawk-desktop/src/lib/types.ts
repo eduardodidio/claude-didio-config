@@ -78,6 +78,30 @@ export interface TrayState {
   alertCount: number;
 }
 
+// ---- Squad health types ----
+
+export type ScannerStatus = 'ok' | 'warning' | 'critical' | 'disabled';
+
+export interface SquadCorrelation {
+  type: string;
+  detail: string;
+  severity: 'warning' | 'critical';
+  scanners: string[];
+}
+
+export interface SquadReport {
+  report_id: string;
+  timestamp: string;
+  squad_status: {
+    bravo: ScannerStatus;
+    charlie: ScannerStatus;
+    delta: ScannerStatus;
+  };
+  correlations: SquadCorrelation[];
+  overall_status: ScannerStatus;
+  cards_created: string[];
+}
+
 // ---- Tauri event payloads ----
 
 export interface BoardUpdateEvent {

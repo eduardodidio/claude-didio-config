@@ -1,4 +1,4 @@
-import { MessageSquare, LayoutDashboard, Bell, Settings } from "lucide-react";
+import { MessageSquare, LayoutDashboard, Bell, Settings, Shield } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { Avatar } from "@/components/Avatar";
@@ -6,6 +6,7 @@ import { Chat } from "@/views/Chat";
 import { BoardMini } from "@/views/BoardMini";
 import { Alerts } from "@/views/Alerts";
 import { Settings as SettingsView } from "@/views/Settings";
+import { SquadHealth } from "@/views/SquadHealth";
 import { useAlerts } from "@/hooks/useAlerts";
 
 function App() {
@@ -35,7 +36,7 @@ function App() {
       {/* Main content with tabs */}
       <Tabs defaultValue="chat" className="flex-1 flex flex-col">
         <div className="px-2 pt-2">
-          <TabsList className="w-full grid grid-cols-4">
+          <TabsList className="w-full grid grid-cols-5">
             <TabsTrigger value="chat" className="gap-1 text-xs">
               <MessageSquare className="h-3.5 w-3.5" />
               Chat
@@ -52,6 +53,10 @@ function App() {
                   {activeAlerts.length}
                 </span>
               )}
+            </TabsTrigger>
+            <TabsTrigger value="squad" className="gap-1 text-xs">
+              <Shield className="h-3.5 w-3.5" />
+              Squad
             </TabsTrigger>
             <TabsTrigger value="settings" className="gap-1 text-xs">
               <Settings className="h-3.5 w-3.5" />
@@ -72,6 +77,10 @@ function App() {
 
         <TabsContent value="alerts" className="flex-1 m-0">
           <Alerts />
+        </TabsContent>
+
+        <TabsContent value="squad" className="flex-1 m-0">
+          <SquadHealth />
         </TabsContent>
 
         <TabsContent value="settings" className="flex-1 m-0 overflow-y-auto">

@@ -1,7 +1,7 @@
 import { invoke } from '@tauri-apps/api/core';
 import { listen, type UnlistenFn } from '@tauri-apps/api/event';
 import type {
-  ChatMessage, BoardState, Alert, BlackHawkSettings,
+  ChatMessage, BoardState, Alert, BlackHawkSettings, SquadReport,
   BoardUpdateEvent, AlertUpdateEvent, ChatResponseEvent, TrayUpdateEvent,
 } from './types';
 
@@ -45,6 +45,18 @@ export async function getChatHistory(date?: string): Promise<ChatMessage[]> {
 
 export async function setSilentMode(enabled: boolean): Promise<void> {
   return invoke<void>('set_silent_mode', { enabled });
+}
+
+export async function getSquadReport(): Promise<SquadReport | null> {
+  try {
+    return await invoke<SquadReport | null>('get_squad_report');
+  } catch {
+    return null;
+  }
+}
+
+export async function triggerSquadScan(): Promise<string> {
+  return invoke<string>('execute_action', { command: 'didio squad scan --once' });
 }
 
 // ---- Event listeners (Rust -> Frontend) ----

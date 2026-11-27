@@ -1,0 +1,37 @@
+%% F42 Squad Dashboard — Architecture
+
+flowchart LR
+    subgraph Data["Data Layer"]
+        REPORT[("squad-report-*.json\nlogs/agents/")]
+    end
+
+    subgraph Bridge["Tauri Bridge"]
+        GET["getSquadReport()"]
+        TRIGGER["triggerSquadScan()"]
+    end
+
+    subgraph Hook["React Hook"]
+        USE["useSquadHealth()\npolling + scan trigger"]
+    end
+
+    subgraph View["SquadHealth View"]
+        HEADER["Overall status badge"]
+        CARDS["3 scanner cards\nBravo / Charlie / Delta"]
+        CORR["Correlation alerts"]
+        TS["Last scan timestamp"]
+        BTN["Scan button"]
+    end
+
+    subgraph App["App.tsx"]
+        TAB["5th tab: Squad"]
+    end
+
+    REPORT --> GET --> USE
+    TRIGGER --> USE
+    USE --> VIEW
+    USE --> HEADER
+    USE --> CARDS
+    USE --> CORR
+    USE --> TS
+    BTN --> TRIGGER
+    TAB --> View
