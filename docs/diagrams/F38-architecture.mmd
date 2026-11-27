@@ -1,0 +1,51 @@
+%% F38 Leadership Forum Presentation — Package Structure
+
+flowchart LR
+    subgraph Sources["Content Sources"]
+        FEATURES["37 shipped features\nF01-F37"]
+        ADRS["16 ADRs\ndocs/adr/"]
+        DIAGRAMS["40+ Mermaid diagrams\ndocs/diagrams/"]
+        LEARNINGS["Agent learnings\nmemory/agent-learnings/"]
+        MEMORY["Project memory\nMEMORY.md"]
+    end
+
+    subgraph Package["Presentation Package"]
+        SLIDES["leadership-forum-slides.md\n14 Marp slides"]
+        DEMO["demo-script.md\n8-step live demo"]
+        NOTES["Speaker notes\nembedded in slides"]
+    end
+
+    subgraph Sections["Slide Sections"]
+        S1["1. Hook / Problem"]
+        S2["2. 4-Agent Workflow"]
+        S3["3. Black Hawk Squad"]
+        S4["4. Two-Board System"]
+        S5["5. Journey F01-F37"]
+        S6["6. DOB Benchmark"]
+        S7["7. Bravo Intelligence"]
+        S8["8. Knowledge Mesh"]
+        S9["9. Guardrails"]
+        S10["10. Live Demo"]
+        S11["11. Roadmap"]
+    end
+
+    FEATURES --> SLIDES
+    ADRS --> SLIDES
+    DIAGRAMS --> SLIDES
+    LEARNINGS --> SLIDES
+    MEMORY --> SLIDES
+
+    SLIDES --> S1
+    SLIDES --> S2
+    SLIDES --> S3
+    SLIDES --> S4
+    SLIDES --> S5
+    SLIDES --> S6
+    SLIDES --> S7
+    SLIDES --> S8
+    SLIDES --> S9
+    SLIDES --> S10
+    SLIDES --> S11
+
+    S10 --> DEMO
+    SLIDES --> NOTES

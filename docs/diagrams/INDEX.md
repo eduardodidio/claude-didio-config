@@ -157,6 +157,13 @@ All diagrams are [Mermaid](https://mermaid.js.org/) `.mmd` files.
 | [F35-architecture.mmd](F35-architecture.mmd) | F35-T07 | War Room data flow: card sources (CLI, agent, dashboard) -> card JSON -> triage CLI -> Black Hawk Alpha assessment -> promote bridge (directory + README creation) -> pipeline entry; includes defer/archive disposition paths |
 | [F35-journey.mmd](F35-journey.mmd) | F35-T07 | Operator journey: add card -> review in dashboard/CLI -> trigger triage -> Alpha assesses -> review recommendation -> approve promote -> feature directory created -> run pipeline -> feature shipped; decision points (promote vs defer) and error branches (no assessment, rate limit) |
 
+## F38 — Leadership Forum Presentation Package
+
+| File | Owner task | What it shows |
+|---|---|---|
+| [F38-architecture.mmd](F38-architecture.mmd) | F38-T03 | Presentation package structure: content sources (features, ADRs, diagrams, learnings) -> slide deck (14 Marp slides) + demo script (8 steps) + speaker notes |
+| [F38-journey.mmd](F38-journey.mmd) | F38-T03 | Presentation flow: 14 slides in order -> live demo with 8 terminal steps -> Q&A; presenter and demo swimlanes |
+
 ## F37 — Knowledge Mesh Cross-Project
 
 | File | Owner task | What it shows |

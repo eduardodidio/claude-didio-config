@@ -403,6 +403,12 @@ operational references from 5 files (tea.md prompts, didio.md menus), deleted
 4 obsolete F27 test files. Historical BMAD docs preserved as reference.
 ADR-0011 documenting DOB design and BMAD purge rationale.
 
+**F38 (Leadership Forum Presentation)** ✅ Marp-compatible slide deck (14 slides)
+covering the full framework journey: 4-agent workflow, Black Hawk squad, two-board
+system, DOB benchmark, Bravo intelligence, Knowledge Mesh, guardrails, and roadmap.
+Live demo script with 8 steps + contingency fallbacks. Speaker notes embedded.
+ADR-0016.
+
 **F37 (Knowledge Mesh cross-project)** ✅ Cross-project knowledge sharing via
 mesh registry. `didio mesh register <path>` adds projects to the mesh.
 `didio mesh sync` broadcasts learnings from each project to all siblings using

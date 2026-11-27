@@ -1,0 +1,48 @@
+%% F38 Leadership Forum Presentation — Presentation Flow
+
+flowchart TD
+    subgraph PresenterLane["Presenter"]
+        P_START(["Start: open slides"])
+        P_HOOK["Slide 1-2: Problem + Solution"]
+        P_ARCH["Slide 3-4: Architecture + Black Hawk"]
+        P_BOARDS["Slide 5: Two-Board System"]
+        P_JOURNEY["Slide 6: Journey F01-F37"]
+        P_DOB["Slide 7: DOB Benchmark"]
+        P_INTEL["Slide 8-9: Bravo + Knowledge Mesh"]
+        P_GUARD["Slide 10: Guardrails"]
+        P_DEMO["Slide 11: Switch to terminal"]
+        P_NEXT["Slide 12-13: Roadmap + Numbers"]
+        P_END(["Slide 14: Q&A"])
+    end
+
+    subgraph DemoLane["Live Demo (terminal)"]
+        D1["1. Show framework structure"]
+        D2["2. Add War Room card"]
+        D3["3. Triage dry-run"]
+        D4["4. Show promoted feature"]
+        D5["5. Bravo scanner"]
+        D6["6. Knowledge Mesh query"]
+        D7["7. DOB results"]
+        D8["8. Wrap up with numbers"]
+    end
+
+    P_START --> P_HOOK
+    P_HOOK --> P_ARCH
+    P_ARCH --> P_BOARDS
+    P_BOARDS --> P_JOURNEY
+    P_JOURNEY --> P_DOB
+    P_DOB --> P_INTEL
+    P_INTEL --> P_GUARD
+    P_GUARD --> P_DEMO
+
+    P_DEMO --> D1
+    D1 --> D2
+    D2 --> D3
+    D3 --> D4
+    D4 --> D5
+    D5 --> D6
+    D6 --> D7
+    D7 --> D8
+
+    D8 --> P_NEXT
+    P_NEXT --> P_END
