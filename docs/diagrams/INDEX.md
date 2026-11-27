@@ -157,6 +157,13 @@ All diagrams are [Mermaid](https://mermaid.js.org/) `.mmd` files.
 | [F35-architecture.mmd](F35-architecture.mmd) | F35-T07 | War Room data flow: card sources (CLI, agent, dashboard) -> card JSON -> triage CLI -> Black Hawk Alpha assessment -> promote bridge (directory + README creation) -> pipeline entry; includes defer/archive disposition paths |
 | [F35-journey.mmd](F35-journey.mmd) | F35-T07 | Operator journey: add card -> review in dashboard/CLI -> trigger triage -> Alpha assesses -> review recommendation -> approve promote -> feature directory created -> run pipeline -> feature shipped; decision points (promote vs defer) and error branches (no assessment, rate limit) |
 
+## F36 — Black Hawk Bravo Intelligence Agent
+
+| File | Owner task | What it shows |
+|---|---|---|
+| [F36-architecture.mmd](F36-architecture.mmd) | F36-T10 | Intelligence data flow: data sources (pipeline state, flags, token budget, decisions, governance) -> Bravo scanners (4 parallel) -> report aggregator -> JSON report + War Room cards; Alpha observes Bravo's cards |
+| [F36-journey.mmd](F36-journey.mmd) | F36-T10 | Operator journey: enable Bravo -> run monitor (once/continuous/dry-run) -> scanners detect anomalies -> report written -> cards created for findings -> Alpha triages; decision points (dry-run vs live, findings exist vs none) |
+
 ## F24 — auto-install second-brain
 
 | File | Owner task | What it shows |

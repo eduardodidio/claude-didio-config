@@ -52,6 +52,11 @@
     "blackhawk_alpha": {
       "model": "opus",
       "fallback": "sonnet"
+    },
+    "bravo": {
+      "model": "sonnet",
+      "fallback": "haiku",
+      "effort": "medium"
     }
   },
   "models_economy": {
@@ -89,6 +94,10 @@
     },
     "blackhawk_alpha": {
       "model": "sonnet",
+      "fallback": "haiku"
+    },
+    "bravo": {
+      "model": "haiku",
       "fallback": "haiku"
     }
   },
@@ -139,6 +148,15 @@
         "gatekeeper"
       ],
       "can_raise_cards": true
+    },
+    "blackhawk_bravo": {
+      "enabled": true,
+      "observes": [
+        "handler",
+        "gatekeeper"
+      ],
+      "can_raise_cards": true,
+      "monitoring_interval_minutes": 15
     }
   },
   "research": {

@@ -403,6 +403,16 @@ operational references from 5 files (tea.md prompts, didio.md menus), deleted
 4 obsolete F27 test files. Historical BMAD docs preserved as reference.
 ADR-0011 documenting DOB design and BMAD purge rationale.
 
+**F36 (Black Hawk Bravo -- Intelligence Agent)** ✅ First NATO phonetic squad
+expansion. Bravo is a CI/CD intelligence sub-agent that scans pipeline health,
+flag status, token budget, and governance drift. Four modular scanners detect
+anomalies (stuck/failed pipelines, stale flags, blocked features, low
+confidence, escalation spikes). Findings are aggregated into JSON reports
+(`logs/agents/bravo-report-*.json`) and critical/warning anomalies automatically
+raise War Room cards for Alpha's strategic triage. CLI: `didio bravo monitor
+[--once|--continuous|--dry-run]`. 18 E2E tests with synthetic fixtures.
+ADR-0014 documenting the intelligence agent architecture.
+
 **F35 (War Room Live Fire)** ✅ Fixed the promote-to-pipeline bridge: `didio
 blackhawk promote` now creates the directory structure
 (`tasks/features/FXX-<slug>/FXX-README.md`) the Architect expects instead of a

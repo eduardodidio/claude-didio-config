@@ -73,6 +73,25 @@ case "$SUBCMD" in
         ;;
     esac
     ;;
+  bravo)
+    BR_SUB="${1:-monitor}"
+    shift || true
+    case "$BR_SUB" in
+      monitor)  exec "$DIDIO_HOME/bin/didio-bravo-monitor.sh" "$@" ;;
+      help|--help|-h|"")
+        echo "Usage: didio bravo <subcommand> [args...]"
+        echo ""
+        echo "Subcommands:"
+        echo "  monitor   Run Bravo intelligence scanner (default)"
+        echo ""
+        echo "Run 'didio bravo monitor --help' for details."
+        ;;
+      *)
+        echo "didio bravo: unknown subcommand '$BR_SUB'. Try 'didio bravo help'." >&2
+        exit 1
+        ;;
+    esac
+    ;;
   overlord)
     # Backward-compat alias: overlord -> blackhawk
     exec "$0" blackhawk "$@"

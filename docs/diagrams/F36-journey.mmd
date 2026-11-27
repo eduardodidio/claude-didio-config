@@ -1,0 +1,69 @@
+%% F36 Black Hawk Bravo — Operator Journey (BPMN-style)
+%% Operator workflow from configuration through monitoring to card triage.
+
+flowchart TD
+    subgraph OperatorLane["Operator"]
+        O_START(["Start: enable Bravo"])
+        O_CONFIG["Set meta_agents.blackhawk_bravo.enabled=true\nin didio.config.json"]
+        O_RUN["Run: didio bravo monitor"]
+        O_MODE{"Mode?"}
+        O_REVIEW["Review Bravo report\nlogs/agents/bravo-report-*.json"]
+        O_CARDS["Check new War Room cards\nfrom Bravo"]
+        O_DONE(["End: intelligence cycle complete"])
+    end
+
+    subgraph CLILane["CLI / didio bravo monitor"]
+        C_PREFLIGHT["Preflight:\nconfig exists, bravo enabled, python3"]
+        C_ONCE["--once: scan + exit"]
+        C_CONTINUOUS["--continuous: loop every N min"]
+        C_DRYRUN["--dry-run: scan, no cards"]
+    end
+
+    subgraph ScannerLane["Bravo Scanners"]
+        SC_PIPE["Pipeline scanner\nstuck, failed, paused"]
+        SC_FLAGS["Flag scanner\nblocked, stale, storm"]
+        SC_TOKEN["Token scanner\ncritical, burn rate"]
+        SC_DECISIONS["Decision scanner\nchallenges, confidence"]
+        SC_AGG["Aggregate: worst status\nWrite report JSON"]
+        SC_CARDS{"Findings\nexist?"}
+        SC_CREATE["Create War Room cards\nsource_agent=blackhawk-bravo"]
+        SC_SKIP["No cards needed"]
+    end
+
+    subgraph WarRoomLane["War Room"]
+        WR_CARD[("New card: incoming\ntags: bravo, intelligence")]
+        WR_ALPHA["Alpha triages\npromote / defer / archive"]
+    end
+
+    O_START --> O_CONFIG
+    O_CONFIG --> O_RUN
+    O_RUN --> C_PREFLIGHT
+    C_PREFLIGHT --> O_MODE
+
+    O_MODE -->|"--once"| C_ONCE
+    O_MODE -->|"--continuous"| C_CONTINUOUS
+    O_MODE -->|"--dry-run"| C_DRYRUN
+
+    C_ONCE --> SC_PIPE
+    C_CONTINUOUS --> SC_PIPE
+    C_DRYRUN --> SC_PIPE
+
+    SC_PIPE --> SC_FLAGS
+    SC_FLAGS --> SC_TOKEN
+    SC_TOKEN --> SC_DECISIONS
+    SC_DECISIONS --> SC_AGG
+
+    SC_AGG --> SC_CARDS
+    SC_CARDS -->|"yes + not dry-run"| SC_CREATE
+    SC_CARDS -->|"no or dry-run"| SC_SKIP
+
+    SC_CREATE --> WR_CARD
+    WR_CARD --> WR_ALPHA
+
+    SC_AGG --> O_REVIEW
+    SC_CREATE --> O_CARDS
+    SC_SKIP --> O_REVIEW
+    O_REVIEW --> O_DONE
+    O_CARDS --> O_DONE
+
+    WR_ALPHA -->|"promote"| O_DONE

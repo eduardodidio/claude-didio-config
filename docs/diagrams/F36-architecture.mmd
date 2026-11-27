@@ -1,0 +1,51 @@
+%% F36 Black Hawk Bravo — Intelligence Architecture (data-flow)
+%% Shows the intelligence pipeline from data sources through scanners to report + War Room cards.
+
+flowchart LR
+    subgraph Sources["Data Sources"]
+        PIPE[("pipeline-*.state.json\nlogs/agents/")]
+        FLAGS[("flags/*.json\nlogs/agents/flags/")]
+        TOKEN[("token-schedule-suggestion.json\nsession-budget.json")]
+        DECISIONS[("D-*.json\nlogs/decisions/")]
+        GOVERNANCE[("G-*.json\nlogs/governance/")]
+    end
+
+    subgraph Scanners["Bravo Scanners"]
+        S_PIPE["_bravo_scan_pipelines\nstuck, failed, paused, escalated"]
+        S_FLAGS["_bravo_scan_flags\nblocked, stale, storm"]
+        S_TOKEN["_bravo_scan_token\ncritical, warning, burn rate, stale"]
+        S_DECISIONS["_bravo_scan_decisions\nchallenges, confidence, escalations"]
+    end
+
+    subgraph Aggregator["Report Aggregator"]
+        WORST["_bravo_worst_status\nok | warning | critical"]
+        REPORT["_bravo_write_report\nbravo-report-*.json"]
+    end
+
+    subgraph Output["Output"]
+        REPORT_FILE[("logs/agents/\nbravo-report-*.json")]
+        CARD_CREATE["_bravo_create_cards\ngroup by type, dedup"]
+        CARDS[("logs/warroom/cards/\nWR-*.json\nsource_agent=blackhawk-bravo")]
+    end
+
+    subgraph AlphaObserves["Alpha Observes"]
+        ALPHA["Black Hawk Alpha\ntriages Bravo's cards"]
+    end
+
+    PIPE --> S_PIPE
+    FLAGS --> S_FLAGS
+    TOKEN --> S_TOKEN
+    DECISIONS --> S_DECISIONS
+    GOVERNANCE --> S_DECISIONS
+
+    S_PIPE --> WORST
+    S_FLAGS --> WORST
+    S_TOKEN --> WORST
+    S_DECISIONS --> WORST
+
+    WORST --> REPORT
+    REPORT --> REPORT_FILE
+
+    WORST -->|"findings"| CARD_CREATE
+    CARD_CREATE --> CARDS
+    CARDS -->|"incoming"| ALPHA
