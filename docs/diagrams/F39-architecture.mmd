@@ -1,0 +1,40 @@
+%% F39 Black Hawk Charlie — Monitoring Architecture (data-flow)
+
+flowchart LR
+    subgraph Sources["Data Sources"]
+        META[("*.meta.json\nlogs/agents/")]
+        FEATURES[("tasks/features/\nF*-*/F*-README.md")]
+        LEARNINGS[("memory/agent-learnings/\n*.md")]
+        STATE[("logs/agents/state.json")]
+    end
+
+    subgraph Scanners["Charlie Scanners"]
+        S_AGENTS["_charlie_scan_agents\nsuccess rate, duration, role errors"]
+        S_VELOCITY["_charlie_scan_velocity\nfeatures per window"]
+        S_LEARNINGS["_charlie_scan_learnings\ntotal entries, growth"]
+        S_WATCHER["_charlie_scan_watcher\nstate.json freshness"]
+    end
+
+    subgraph Output["Output"]
+        WORST["worst status\nok | warning | critical"]
+        REPORT[("charlie-report-*.json\nlogs/agents/")]
+        CARDS[("War Room cards\nsource_agent=blackhawk-charlie")]
+    end
+
+    subgraph Alpha["Alpha Observes"]
+        ALPHA["Black Hawk Alpha\ntriages Charlie's cards"]
+    end
+
+    META --> S_AGENTS
+    FEATURES --> S_VELOCITY
+    LEARNINGS --> S_LEARNINGS
+    STATE --> S_WATCHER
+
+    S_AGENTS --> WORST
+    S_VELOCITY --> WORST
+    S_LEARNINGS --> WORST
+    S_WATCHER --> WORST
+
+    WORST --> REPORT
+    WORST -->|"findings"| CARDS
+    CARDS -->|"incoming"| ALPHA

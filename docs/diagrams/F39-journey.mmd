@@ -1,0 +1,39 @@
+%% F39 Black Hawk Charlie — Operator Journey (BPMN-style)
+
+flowchart TD
+    subgraph Operator["Operator"]
+        O_START(["Enable Charlie"])
+        O_RUN["didio charlie monitor"]
+        O_MODE{"Mode?"}
+        O_REVIEW["Review health report"]
+        O_DONE(["End"])
+    end
+
+    subgraph CLI["CLI"]
+        C_ONCE["--once"]
+        C_CONTINUOUS["--continuous"]
+        C_DRYRUN["--dry-run"]
+    end
+
+    subgraph Scanners["Charlie Scanners"]
+        SC_AGENTS["Agent stats\nsuccess rate, duration"]
+        SC_VELOCITY["Feature velocity\nshipped per window"]
+        SC_LEARNINGS["Learnings growth\ntotal entries"]
+        SC_WATCHER["Watcher liveness\nstate.json age"]
+        SC_AGG["Aggregate + write report"]
+        SC_CARDS{"Findings?"}
+        SC_CREATE["Create War Room cards"]
+        SC_SKIP["No cards"]
+    end
+
+    O_START --> O_RUN --> O_MODE
+    O_MODE -->|once| C_ONCE --> SC_AGENTS
+    O_MODE -->|continuous| C_CONTINUOUS --> SC_AGENTS
+    O_MODE -->|dry-run| C_DRYRUN --> SC_AGENTS
+
+    SC_AGENTS --> SC_VELOCITY --> SC_LEARNINGS --> SC_WATCHER --> SC_AGG
+    SC_AGG --> SC_CARDS
+    SC_CARDS -->|"yes + not dry-run"| SC_CREATE
+    SC_CARDS -->|"no or dry-run"| SC_SKIP
+
+    SC_AGG --> O_REVIEW --> O_DONE

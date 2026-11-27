@@ -403,6 +403,12 @@ operational references from 5 files (tea.md prompts, didio.md menus), deleted
 4 obsolete F27 test files. Historical BMAD docs preserved as reference.
 ADR-0011 documenting DOB design and BMAD purge rationale.
 
+**F39 (Black Hawk Charlie -- Monitoring Agent)** ✅ Third NATO phonetic squad
+agent. Charlie monitors framework operational health: agent spawn success rates,
+feature velocity, learnings growth, and watcher liveness. Same scanner ->
+aggregator -> card pattern as Bravo. CLI: `didio charlie monitor
+[--once|--continuous|--dry-run]`. 12 E2E tests. ADR-0017.
+
 **F38 (Leadership Forum Presentation)** ✅ Marp-compatible slide deck (14 slides)
 covering the full framework journey: 4-agent workflow, Black Hawk squad, two-board
 system, DOB benchmark, Bravo intelligence, Knowledge Mesh, guardrails, and roadmap.

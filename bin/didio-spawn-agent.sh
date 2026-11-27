@@ -56,7 +56,7 @@ EOF
   exit 0
 fi
 
-ROLE="${1:?role required: architect|developer|techlead|qa|readiness|tea|handler|gatekeeper|post-review|meeting-parser|bravo}"
+ROLE="${1:?role required: architect|developer|techlead|qa|readiness|tea|handler|gatekeeper|post-review|meeting-parser|bravo|charlie}"
 # Backward-compat aliases
 [[ "$ROLE" == "t800" ]] && ROLE="handler"
 [[ "$ROLE" == "t1000" ]] && ROLE="gatekeeper"

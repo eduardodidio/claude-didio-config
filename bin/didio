@@ -76,6 +76,25 @@ case "$SUBCMD" in
   mesh)
     exec "$DIDIO_HOME/bin/didio-mesh.sh" "$@"
     ;;
+  charlie)
+    CH_SUB="${1:-monitor}"
+    shift || true
+    case "$CH_SUB" in
+      monitor)  exec "$DIDIO_HOME/bin/didio-charlie-monitor.sh" "$@" ;;
+      help|--help|-h|"")
+        echo "Usage: didio charlie <subcommand> [args...]"
+        echo ""
+        echo "Subcommands:"
+        echo "  monitor   Run Charlie health scanner (default)"
+        echo ""
+        echo "Run 'didio charlie monitor --help' for details."
+        ;;
+      *)
+        echo "didio charlie: unknown subcommand '$CH_SUB'. Try 'didio charlie help'." >&2
+        exit 1
+        ;;
+    esac
+    ;;
   bravo)
     BR_SUB="${1:-monitor}"
     shift || true
