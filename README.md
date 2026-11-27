@@ -403,6 +403,12 @@ operational references from 5 files (tea.md prompts, didio.md menus), deleted
 4 obsolete F27 test files. Historical BMAD docs preserved as reference.
 ADR-0011 documenting DOB design and BMAD purge rationale.
 
+**F41 (Squad Orchestrator)** ✅ Coordinated Bravo+Charlie+Delta scanning via
+single command `didio squad scan`. Cross-scanner correlation detects 5 compound
+risk patterns (pipeline+shell, spawn+state, secret+auto, token+multi,
+guardrails+shell). Combined squad report with per-scanner enable/disable.
+7 E2E tests. ADR-0019.
+
 **F40 (Black Hawk Delta -- Security Agent)** ✅ Fourth NATO phonetic squad agent.
 Delta scans for secrets (.env, *.pem, API keys), dangerous shell patterns
 (eval, rm -rf, curl|bash, chmod 777), guardrail completeness in CLAUDE.md,

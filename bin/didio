@@ -73,6 +73,23 @@ case "$SUBCMD" in
         ;;
     esac
     ;;
+  squad)
+    SQ_SUB="${1:-scan}"
+    shift || true
+    case "$SQ_SUB" in
+      scan)  exec "$DIDIO_HOME/bin/didio-squad-scan.sh" "$@" ;;
+      help|--help|-h|"")
+        echo "Usage: didio squad <subcommand> [args...]"
+        echo ""
+        echo "Subcommands:"
+        echo "  scan   Run coordinated Bravo+Charlie+Delta scan (default)"
+        ;;
+      *)
+        echo "didio squad: unknown subcommand '$SQ_SUB'. Try 'didio squad help'." >&2
+        exit 1
+        ;;
+    esac
+    ;;
   mesh)
     exec "$DIDIO_HOME/bin/didio-mesh.sh" "$@"
     ;;

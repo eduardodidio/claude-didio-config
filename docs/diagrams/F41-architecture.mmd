@@ -1,0 +1,34 @@
+%% F41 Squad Orchestrator — Architecture
+
+flowchart LR
+    subgraph Squad["didio squad scan"]
+        ORCH["Squad Orchestrator\nlib/squad-orchestrator.sh"]
+    end
+
+    subgraph Scanners["Individual Scanners"]
+        BRAVO["Bravo\npipeline, flags, token, decisions"]
+        CHARLIE["Charlie\nagents, velocity, learnings, watcher"]
+        DELTA["Delta\nsecrets, shell, guardrails, permissions"]
+    end
+
+    subgraph Correlation["Cross-Scanner Correlation"]
+        CORR["5 compound patterns:\npipeline+shell, spawn+state,\nsecret+auto, token+multi,\nguardrails+shell"]
+    end
+
+    subgraph Output["Output"]
+        REPORT[("squad-report-*.json\ncombined status")]
+        CARDS[("War Room cards\nsource_agent=blackhawk-squad")]
+        ALPHA["Alpha triages"]
+    end
+
+    ORCH --> BRAVO
+    ORCH --> CHARLIE
+    ORCH --> DELTA
+
+    BRAVO --> CORR
+    CHARLIE --> CORR
+    DELTA --> CORR
+
+    CORR --> REPORT
+    CORR -->|"compound findings"| CARDS
+    CARDS --> ALPHA

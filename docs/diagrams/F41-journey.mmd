@@ -1,0 +1,13 @@
+%% F41 Squad Orchestrator — Operator Journey
+
+flowchart TD
+    O_START(["didio squad scan"]) --> BRAVO["Run Bravo scanners"]
+    BRAVO --> CHARLIE["Run Charlie scanners"]
+    CHARLIE --> DELTA["Run Delta scanners"]
+    DELTA --> CORR["Cross-scanner correlation"]
+    CORR --> REPORT["Write combined report"]
+    REPORT --> CARDS{"Correlations\nfound?"}
+    CARDS -->|"yes + not dry-run"| CREATE["Create squad cards"]
+    CARDS -->|"no or dry-run"| SKIP["No cards"]
+    CREATE --> DONE(["End: summary printed"])
+    SKIP --> DONE
