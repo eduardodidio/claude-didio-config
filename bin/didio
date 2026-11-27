@@ -76,6 +76,25 @@ case "$SUBCMD" in
   mesh)
     exec "$DIDIO_HOME/bin/didio-mesh.sh" "$@"
     ;;
+  delta)
+    DL_SUB="${1:-scan}"
+    shift || true
+    case "$DL_SUB" in
+      scan)  exec "$DIDIO_HOME/bin/didio-delta-scan.sh" "$@" ;;
+      help|--help|-h|"")
+        echo "Usage: didio delta <subcommand> [args...]"
+        echo ""
+        echo "Subcommands:"
+        echo "  scan   Run Delta security scanner (default)"
+        echo ""
+        echo "Run 'didio delta scan --help' for details."
+        ;;
+      *)
+        echo "didio delta: unknown subcommand '$DL_SUB'. Try 'didio delta help'." >&2
+        exit 1
+        ;;
+    esac
+    ;;
   charlie)
     CH_SUB="${1:-monitor}"
     shift || true

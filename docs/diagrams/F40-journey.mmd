@@ -1,0 +1,22 @@
+%% F40 Black Hawk Delta — Operator Journey
+
+flowchart TD
+    subgraph Operator["Operator"]
+        O_START(["Enable Delta"])
+        O_RUN["didio delta scan"]
+        O_REVIEW["Review security report"]
+        O_FIX["Fix findings"]
+        O_DONE(["End"])
+    end
+
+    subgraph Scanners["Delta Scanners"]
+        SC_SECRETS["Secrets: .env, *.pem, tokens"]
+        SC_SHELL["Shell: eval, rm -rf, curl|bash"]
+        SC_GUARD["Guardrails: CLAUDE.md completeness"]
+        SC_PERMS["Permissions: settings.json"]
+        SC_AGG["Report + cards"]
+    end
+
+    O_START --> O_RUN --> SC_SECRETS
+    SC_SECRETS --> SC_SHELL --> SC_GUARD --> SC_PERMS --> SC_AGG
+    SC_AGG --> O_REVIEW --> O_FIX --> O_DONE

@@ -1,0 +1,40 @@
+%% F40 Black Hawk Delta — Security Architecture (data-flow)
+
+flowchart LR
+    subgraph Sources["Scan Targets"]
+        FILES[("Project files\n.env, *.pem, *.key")]
+        SCRIPTS[("Shell scripts\nbin/*.sh")]
+        CLAUDE[("CLAUDE.md\nguardrail rules")]
+        SETTINGS[(".claude/settings.json\npermissions")]
+    end
+
+    subgraph Scanners["Delta Scanners"]
+        S_SECRETS["_delta_scan_secrets\nfile patterns + content patterns"]
+        S_SHELL["_delta_scan_shell\neval, rm -rf, curl|bash, chmod 777"]
+        S_GUARD["_delta_scan_guardrails\nrequired sections present"]
+        S_PERMS["_delta_scan_permissions\nauto mode, broad allow"]
+    end
+
+    subgraph Output["Output"]
+        WORST["worst status"]
+        REPORT[("delta-report-*.json")]
+        CARDS[("War Room cards\nsource_agent=blackhawk-delta")]
+    end
+
+    subgraph Alpha["Alpha"]
+        ALPHA["Triages security cards"]
+    end
+
+    FILES --> S_SECRETS
+    SCRIPTS --> S_SHELL
+    CLAUDE --> S_GUARD
+    SETTINGS --> S_PERMS
+
+    S_SECRETS --> WORST
+    S_SHELL --> WORST
+    S_GUARD --> WORST
+    S_PERMS --> WORST
+
+    WORST --> REPORT
+    WORST -->|"findings"| CARDS
+    CARDS --> ALPHA

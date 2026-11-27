@@ -157,6 +157,13 @@ All diagrams are [Mermaid](https://mermaid.js.org/) `.mmd` files.
 | [F35-architecture.mmd](F35-architecture.mmd) | F35-T07 | War Room data flow: card sources (CLI, agent, dashboard) -> card JSON -> triage CLI -> Black Hawk Alpha assessment -> promote bridge (directory + README creation) -> pipeline entry; includes defer/archive disposition paths |
 | [F35-journey.mmd](F35-journey.mmd) | F35-T07 | Operator journey: add card -> review in dashboard/CLI -> trigger triage -> Alpha assesses -> review recommendation -> approve promote -> feature directory created -> run pipeline -> feature shipped; decision points (promote vs defer) and error branches (no assessment, rate limit) |
 
+## F40 — Black Hawk Delta Security Agent
+
+| File | Owner task | What it shows |
+|---|---|---|
+| [F40-architecture.mmd](F40-architecture.mmd) | F40-T09 | Security data flow: scan targets (files, scripts, CLAUDE.md, settings) -> 4 Delta scanners -> report + War Room cards |
+| [F40-journey.mmd](F40-journey.mmd) | F40-T09 | Operator journey: enable Delta -> run scan -> review report -> fix findings |
+
 ## F39 — Black Hawk Charlie Monitoring Agent
 
 | File | Owner task | What it shows |

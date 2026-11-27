@@ -403,6 +403,13 @@ operational references from 5 files (tea.md prompts, didio.md menus), deleted
 4 obsolete F27 test files. Historical BMAD docs preserved as reference.
 ADR-0011 documenting DOB design and BMAD purge rationale.
 
+**F40 (Black Hawk Delta -- Security Agent)** ✅ Fourth NATO phonetic squad agent.
+Delta scans for secrets (.env, *.pem, API keys), dangerous shell patterns
+(eval, rm -rf, curl|bash, chmod 777), guardrail completeness in CLAUDE.md,
+and overly permissive .claude/settings.json. CLI: `didio delta scan
+[--once|--continuous|--dry-run]`. 11 E2E tests. ADR-0018. Completes the core
+squad: Alpha (strategy), Bravo (CI/CD), Charlie (monitoring), Delta (security).
+
 **F39 (Black Hawk Charlie -- Monitoring Agent)** ✅ Third NATO phonetic squad
 agent. Charlie monitors framework operational health: agent spawn success rates,
 feature velocity, learnings growth, and watcher liveness. Same scanner ->
