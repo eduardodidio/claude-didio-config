@@ -73,6 +73,9 @@ case "$SUBCMD" in
         ;;
     esac
     ;;
+  mesh)
+    exec "$DIDIO_HOME/bin/didio-mesh.sh" "$@"
+    ;;
   bravo)
     BR_SUB="${1:-monitor}"
     shift || true

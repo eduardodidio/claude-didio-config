@@ -157,6 +157,13 @@ All diagrams are [Mermaid](https://mermaid.js.org/) `.mmd` files.
 | [F35-architecture.mmd](F35-architecture.mmd) | F35-T07 | War Room data flow: card sources (CLI, agent, dashboard) -> card JSON -> triage CLI -> Black Hawk Alpha assessment -> promote bridge (directory + README creation) -> pipeline entry; includes defer/archive disposition paths |
 | [F35-journey.mmd](F35-journey.mmd) | F35-T07 | Operator journey: add card -> review in dashboard/CLI -> trigger triage -> Alpha assesses -> review recommendation -> approve promote -> feature directory created -> run pipeline -> feature shipped; decision points (promote vs defer) and error branches (no assessment, rate limit) |
 
+## F37 — Knowledge Mesh Cross-Project
+
+| File | Owner task | What it shows |
+|---|---|---|
+| [F37-architecture.mmd](F37-architecture.mmd) | F37-T08 | Knowledge mesh data flow: projects -> registry -> mesh sync (export/import) + cross-project query -> attributed results; reuses existing learnings export/import infrastructure |
+| [F37-journey.mmd](F37-journey.mmd) | F37-T08 | Operator journey: register projects -> list mesh -> sync learnings across all siblings -> query cross-project patterns; validation and error branches |
+
 ## F36 — Black Hawk Bravo Intelligence Agent
 
 | File | Owner task | What it shows |

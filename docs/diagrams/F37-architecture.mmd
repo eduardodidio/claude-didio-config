@@ -1,0 +1,48 @@
+%% F37 Knowledge Mesh — Architecture (data-flow)
+%% Shows cross-project learnings flow through the mesh registry.
+
+flowchart LR
+    subgraph Projects["Didio-Managed Projects"]
+        PA["Project Alpha\nmemory/agent-learnings/*.md"]
+        PB["Project Beta\nmemory/agent-learnings/*.md"]
+        PC["Project Charlie\nmemory/agent-learnings/*.md"]
+    end
+
+    subgraph Registry["Mesh Registry"]
+        REG[("~/.didio/mesh-registry.json\nversion, projects[]")]
+    end
+
+    subgraph CLI["didio mesh CLI"]
+        REGISTER["register <path>\nadd project to mesh"]
+        LIST["list\nshow all projects"]
+        SYNC["sync\nexport + import all"]
+        QUERY["query <keywords>\nsearch across all"]
+    end
+
+    subgraph SyncFlow["Mesh Sync"]
+        EXPORT["didio-learnings-export.sh\nper project"]
+        JSON[("shared-learnings-export.json\nper project")]
+        IMPORT["didio-learnings-import.sh\ncross-project import"]
+    end
+
+    subgraph QueryFlow["Cross-Project Query"]
+        SCAN["Scan all projects'\nlearnings/*.md files"]
+        MATCH["Keyword match\nwith role/project filters"]
+        RESULTS["Attributed results\n[project] role feature: context"]
+    end
+
+    REGISTER --> REG
+    LIST --> REG
+
+    SYNC --> REG
+    REG -->|"for each project"| EXPORT
+    EXPORT --> JSON
+    JSON -->|"import to siblings"| IMPORT
+    IMPORT --> PA
+    IMPORT --> PB
+    IMPORT --> PC
+
+    QUERY --> REG
+    REG -->|"for each project"| SCAN
+    SCAN --> MATCH
+    MATCH --> RESULTS

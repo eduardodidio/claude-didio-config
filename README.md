@@ -403,6 +403,13 @@ operational references from 5 files (tea.md prompts, didio.md menus), deleted
 4 obsolete F27 test files. Historical BMAD docs preserved as reference.
 ADR-0011 documenting DOB design and BMAD purge rationale.
 
+**F37 (Knowledge Mesh cross-project)** ✅ Cross-project knowledge sharing via
+mesh registry. `didio mesh register <path>` adds projects to the mesh.
+`didio mesh sync` broadcasts learnings from each project to all siblings using
+the existing export/import infrastructure. `didio mesh query <keywords>` searches
+learnings across all registered projects with role/project filters. Registry at
+`~/.didio/mesh-registry.json` (user-level). 15 E2E tests. ADR-0015.
+
 **F36 (Black Hawk Bravo -- Intelligence Agent)** ✅ First NATO phonetic squad
 expansion. Bravo is a CI/CD intelligence sub-agent that scans pipeline health,
 flag status, token budget, and governance drift. Four modular scanners detect

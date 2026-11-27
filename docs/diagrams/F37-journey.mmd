@@ -1,0 +1,48 @@
+%% F37 Knowledge Mesh — Operator Journey (BPMN-style)
+
+flowchart TD
+    subgraph OperatorLane["Operator"]
+        O_START(["Start: set up knowledge mesh"])
+        O_REGISTER["Register projects:\ndidio mesh register <path>"]
+        O_LIST["View mesh:\ndidio mesh list"]
+        O_ACTION{"Action?"}
+        O_SYNC["Sync learnings:\ndidio mesh sync"]
+        O_QUERY["Search learnings:\ndidio mesh query <kw>"]
+        O_REVIEW["Review results"]
+        O_DONE(["End: knowledge shared"])
+    end
+
+    subgraph MeshLane["Mesh CLI"]
+        M_REG_OK{"Project\nvalid?"}
+        M_REG_ERR["Error: not a didio project\nor already registered"]
+        M_REG_ADD["Add to registry\n~/.didio/mesh-registry.json"]
+        M_SYNC_EXPORT["Phase 1: Export from each project"]
+        M_SYNC_IMPORT["Phase 2: Import to each from siblings"]
+        M_SYNC_UPDATE["Update last_sync in registry"]
+        M_QUERY_SCAN["Scan all projects' learnings"]
+        M_QUERY_FILTER["Apply role/project filters"]
+        M_QUERY_RESULTS["Return attributed results"]
+    end
+
+    O_START --> O_REGISTER
+    O_REGISTER --> M_REG_OK
+    M_REG_OK -->|"yes"| M_REG_ADD
+    M_REG_OK -->|"no"| M_REG_ERR
+    M_REG_ERR --> O_REGISTER
+    M_REG_ADD --> O_LIST
+    O_LIST --> O_ACTION
+
+    O_ACTION -->|"sync"| O_SYNC
+    O_ACTION -->|"query"| O_QUERY
+
+    O_SYNC --> M_SYNC_EXPORT
+    M_SYNC_EXPORT --> M_SYNC_IMPORT
+    M_SYNC_IMPORT --> M_SYNC_UPDATE
+    M_SYNC_UPDATE --> O_REVIEW
+
+    O_QUERY --> M_QUERY_SCAN
+    M_QUERY_SCAN --> M_QUERY_FILTER
+    M_QUERY_FILTER --> M_QUERY_RESULTS
+    M_QUERY_RESULTS --> O_REVIEW
+
+    O_REVIEW --> O_DONE

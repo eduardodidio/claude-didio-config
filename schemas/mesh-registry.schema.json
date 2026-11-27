@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Didio Mesh Registry",
+  "description": "Central registry of didio-managed projects for cross-project knowledge mesh.",
+  "type": "object",
+  "properties": {
+    "version": { "type": "integer", "const": 1 },
+    "projects": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string", "description": "Project name (from didio.config.json or directory basename)" },
+          "path": { "type": "string", "description": "Absolute path to the project root" },
+          "registered_at": { "type": "string", "format": "date-time" },
+          "last_sync": { "type": ["string", "null"], "format": "date-time" },
+          "learnings_count": { "type": "integer", "minimum": 0 }
+        },
+        "required": ["name", "path", "registered_at"]
+      }
+    }
+  },
+  "required": ["version", "projects"]
+}

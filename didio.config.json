@@ -223,6 +223,11 @@
       "position": "bottom-right"
     }
   },
+  "mesh": {
+    "enabled": true,
+    "registry_path": "~/.didio/mesh-registry.json",
+    "auto_sync_on_retro": true
+  },
   "dob": {
     "enabled": false,
     "k": 3,
