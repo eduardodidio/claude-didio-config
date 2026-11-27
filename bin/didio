@@ -90,6 +90,9 @@ case "$SUBCMD" in
         ;;
     esac
     ;;
+  board)
+    python3 "$DIDIO_HOME/bin/didio-board-server.py" "$@"
+    ;;
   mesh)
     exec "$DIDIO_HOME/bin/didio-mesh.sh" "$@"
     ;;
@@ -333,6 +336,13 @@ Usage:
   didio pipeline-resume <feature-id>
       Resume a paused pipeline. Creates a resume signal file so the
       pipeline continues from the stage where it paused.
+
+  didio board [--port PORT] [--no-open]
+      Start the Live Kanban Board server (default port 8844) and open in
+      browser. Serves a standalone HTML board with War Room and Standard
+      views, dark/light mode, auto-refresh from live project JSON data.
+      --port PORT  Use a custom port (default: 8844).
+      --no-open    Do not auto-open the browser.
 
   didio machine-scan [--json] [--quiet] [--write]
       Detect hardware (CPU, RAM, OS, arch, Rust, claude sessions) and

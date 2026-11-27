@@ -1,0 +1,9 @@
+graph LR
+  A["Operator runs<br/>didio board"] --> B["Python server starts<br/>port 8844"]
+  B --> C["Browser opens<br/>board.html"]
+  C --> D["JS fetches<br/>/api/warroom + /api/pipelines"]
+  D --> E["Board renders<br/>columns + cards"]
+  E --> F["User clicks tab<br/>War Room / Standard"]
+  F --> G["User clicks card<br/>Detail panel opens"]
+  E --> H["Auto-refresh 10s<br/>Data updates"]
+  E --> I["User toggles theme<br/>Dark / Light"]

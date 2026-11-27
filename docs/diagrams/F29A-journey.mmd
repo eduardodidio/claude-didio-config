@@ -1,0 +1,18 @@
+graph LR
+    subgraph "F29A — Corporate Rename Journey"
+        A["Operator triggers<br/>F29A rename"] --> B["Wave 0: Config<br/>schema evolution"]
+        B --> C["Wave 1: Parallel renames<br/>prompts + bin + memory + templates"]
+        C --> D["Wave 1: BMAD purge<br/>delete files + clean refs"]
+        D --> E["Wave 2: Dashboard<br/>types + views update"]
+        E --> F["Wave 3: Integration<br/>test + sync dry-run"]
+        F --> G["TechLead review"]
+        G --> H["QA validation"]
+        H --> I["Feature done<br/>~130 file operations"]
+    end
+
+    classDef start fill:#e3f2fd,stroke:#1565c0
+    classDef process fill:#f3e5f5,stroke:#7b1fa2
+    classDef done fill:#e8f5e9,stroke:#2e7d32
+    class A start
+    class B,C,D,E,F process
+    class G,H,I done

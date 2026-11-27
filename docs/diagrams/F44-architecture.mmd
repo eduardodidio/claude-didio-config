@@ -1,0 +1,14 @@
+graph TD
+  subgraph "F44 -- Live Kanban Board"
+    CLI["didio board"] --> SERVER["Python HTTP Server<br/>bin/didio-board-server.py"]
+    SERVER --> HTML["board.html SPA"]
+    SERVER --> API_WR["/api/warroom"]
+    SERVER --> API_PL["/api/pipelines"]
+    SERVER --> API_FT["/api/features"]
+    API_WR --> CARDS["logs/warroom/cards/*.json"]
+    API_PL --> STATES["logs/agents/pipeline-*.state.json"]
+    API_FT --> TASKS["tasks/features/*/"]
+    HTML --> FETCH["JS Fetch Client"]
+    FETCH --> API_WR
+    FETCH --> API_PL
+  end

@@ -1,0 +1,24 @@
+graph TD
+    subgraph "F29A — Corporate Standardization Architecture"
+        CONFIG["didio.config.json<br/>schema evolution"]
+        PROMPTS["agents/prompts/<br/>handler.md, gatekeeper.md"]
+        BIN["bin/ scripts<br/>didio-handler.sh, didio-gatekeeper.sh"]
+        MEMORY["memory/<br/>agent-learnings rename"]
+        TEMPLATES["templates/<br/>commands + prompts"]
+        DASHBOARD["dashboard/<br/>types + views"]
+        TESTS["tests/<br/>integration + sync"]
+    end
+
+    CONFIG --> PROMPTS
+    CONFIG --> BIN
+    CONFIG --> DASHBOARD
+    PROMPTS --> TEMPLATES
+    BIN --> TESTS
+    MEMORY --> TEMPLATES
+
+    classDef wave0 fill:#e1f5fe
+    classDef wave1 fill:#f3e5f5
+    classDef wave2 fill:#e8f5e9
+    class CONFIG wave0
+    class PROMPTS,BIN,MEMORY,TEMPLATES wave1
+    class DASHBOARD,TESTS wave2

@@ -403,6 +403,13 @@ operational references from 5 files (tea.md prompts, didio.md menus), deleted
 4 obsolete F27 test files. Historical BMAD docs preserved as reference.
 ADR-0011 documenting DOB design and BMAD purge rationale.
 
+**F44 (Live Kanban Board)** ✅ Standalone `didio board` command serving a
+zero-dependency Kanban board (Python 3 stdlib HTTP server + single HTML file).
+Two alternatable views: War Room (card triage columns) and Standard Board
+(pipeline status columns). Dark/light mode with localStorage persistence,
+auto-refresh every 10s from live project JSON data, card detail panel.
+JSON APIs: `/api/warroom`, `/api/pipelines`, `/api/features`. 8 E2E tests.
+
 **F42 (Squad Dashboard)** ✅ Visual health panel in Black Hawk Desktop app.
 5th tab "Squad" shows per-scanner status (Bravo/Charlie/Delta) with color-coded
 indicators, correlation alerts, and scan trigger button. React hook
