@@ -1,0 +1,66 @@
+%% F35 War Room Live Fire — Architecture (data-flow)
+%% Shows the War Room promotion pipeline from card creation to feature pipeline entry.
+
+flowchart LR
+    subgraph Sources["Card Sources"]
+        CLI["Operator CLI\ndidio warroom add"]
+        AGENT["Agent / Governance\nBlack Hawk monitor"]
+        DASH["Dashboard\n/warroom view"]
+    end
+
+    subgraph Cards["Cards Layer"]
+        JSON[("Card JSON files\nlogs/warroom/cards/*.json")]
+    end
+
+    subgraph Triage["Triage"]
+        TRIAGE_CLI["didio blackhawk triage"]
+        LIB["lib/blackhawk-triage.sh\n(consolidated logic)"]
+        ALPHA["Black Hawk Alpha\nassessment engine"]
+    end
+
+    subgraph Assessment["Assessment Outcomes"]
+        PROMOTE{"promote"}
+        DEFER{"defer"}
+        ARCHIVE{"archive"}
+    end
+
+    subgraph PromoteBridge["Promote Bridge"]
+        PROMOTE_CMD["didio blackhawk promote\nbin/didio-blackhawk-promote.sh"]
+        SLUGIFY["_slugify(title)"]
+        MKDIR["mkdir -p\ntasks/features/FXX-slug/"]
+        README["Write\nFXX-README.md"]
+    end
+
+    subgraph Pipeline["Pipeline Entry"]
+        FDIR[("tasks/features/\nFXX-slug/\nFXX-README.md")]
+        ARCHITECT["Architect agent\nreads FXX-README.md"]
+        WAVES["Wave execution\nDeveloper / TechLead / QA"]
+    end
+
+    subgraph Disposition["Defer / Archive"]
+        DEFER_DIR[("logs/warroom/cards/\nstatus: deferred")]
+        ARCHIVE_DIR[("logs/warroom/cards/\nstatus: archived")]
+    end
+
+    CLI -->|create card| JSON
+    AGENT -->|create card| JSON
+    DASH -->|create card| JSON
+
+    JSON -->|scan cards| TRIAGE_CLI
+    TRIAGE_CLI -->|delegates| LIB
+    LIB -->|invoke| ALPHA
+    ALPHA -->|verdict| PROMOTE
+    ALPHA -->|verdict| DEFER
+    ALPHA -->|verdict| ARCHIVE
+
+    PROMOTE -->|trigger| PROMOTE_CMD
+    PROMOTE_CMD -->|call| SLUGIFY
+    SLUGIFY -->|slug| MKDIR
+    MKDIR -->|dir created| README
+
+    README -->|feature stub| FDIR
+    FDIR -->|detected by| ARCHITECT
+    ARCHITECT -->|plans waves| WAVES
+
+    DEFER -->|update status| DEFER_DIR
+    ARCHIVE -->|update status| ARCHIVE_DIR

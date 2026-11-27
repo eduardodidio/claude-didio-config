@@ -403,6 +403,15 @@ operational references from 5 files (tea.md prompts, didio.md menus), deleted
 4 obsolete F27 test files. Historical BMAD docs preserved as reference.
 ADR-0011 documenting DOB design and BMAD purge rationale.
 
+**F35 (War Room Live Fire)** ✅ Fixed the promote-to-pipeline bridge: `didio
+blackhawk promote` now creates the directory structure
+(`tasks/features/FXX-<slug>/FXX-README.md`) the Architect expects instead of a
+loose temp file. Consolidated duplicated triage/promote logic from three
+locations into a single source of truth in `bin/didio-blackhawk-promote.sh`.
+E2E test validates the full card-create -> assess -> promote -> verify-directory
+flow. Operational runbook covers complete card lifecycle.
+ADR-0013 documenting the promotion fix and triage consolidation decisions.
+
 **F34 (Desktop Wiring)** ✅ Wired every Black Hawk Desktop component to its
 real backend data source. Chat spawns `claude -p` for AI responses with JSONL
 persistence. Board reads `logs/agents/pipeline-*.state.json` for real pipeline

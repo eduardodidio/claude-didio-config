@@ -1,0 +1,21 @@
+{
+  "card_id": "WR-TEST-002",
+  "title": "Add dark mode support to internal dashboard",
+  "body": "Several team members have requested dark mode for the internal dashboard. While it would improve developer experience during late-night on-call shifts, it is not critical to current deliverables.",
+  "source": "agent",
+  "created_at": "2026-11-25T16:00:00Z",
+  "updated_at": "2026-11-25T16:30:00Z",
+  "status": "incoming",
+  "priority_suggestion": "low",
+  "overlord_assessment": {
+    "assessed_at": "2026-11-25T16:30:00Z",
+    "recommendation": "defer",
+    "priority": "low",
+    "rationale": "Low priority, defer to next quarter",
+    "promoted_as": null
+  },
+  "promoted_to": null,
+  "tags": ["ui", "dx", "nice-to-have"],
+  "source_agent": "techlead",
+  "source_feature": null
+}

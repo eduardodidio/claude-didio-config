@@ -5,7 +5,7 @@
 #   didio blackhawk promote <card-id>
 #
 # Reads the card JSON, validates that overlord_assessment.recommendation=promote,
-# determines the next feature ID, creates a feature brief stub, updates the card,
+# determines the next feature ID, creates a feature directory with README, updates the card,
 # and prints the promotion summary.
 
 set -euo pipefail
@@ -101,7 +101,8 @@ Requirements:
 
 Actions:
   - Determines next feature ID (scans tasks/features/)
-  - Creates feature brief at tasks/features/<FXX>-_tmp-brief.md
+  - Creates feature directory: tasks/features/<FXX>-<slug>/
+  - Creates README: tasks/features/<FXX>-<slug>/<FXX>-README.md
   - Updates card: promoted_to="<FXX>", status="promoted"
   - Prints: "Promoted WR-XXX -> F<NN>: <title>"
 EOF
@@ -165,19 +166,24 @@ print(d.get('body', ''))
   local feature_id
   feature_id="$(_next_feature_id)"
 
-  # 5. Create feature brief at tasks/features/<FXX>-_tmp-brief.md
+  # 5. Create feature directory: tasks/features/<FXX>-<slug>/
   mkdir -p "$FEATURES_DIR"
-  local brief_file="$FEATURES_DIR/${feature_id}-_tmp-brief.md"
+  local slug
+  slug="$(_slugify "$title")"
+  local feature_dir="$FEATURES_DIR/${feature_id}-${slug}"
 
-  # Handle race condition: if brief already exists, increment
-  while [[ -f "$brief_file" ]] || [[ -d "$FEATURES_DIR/${feature_id}-"* ]]; do
+  # Handle race condition: if directory already exists, increment
+  while [[ -d "$feature_dir" ]]; do
     local num="${feature_id#F}"
     num=$((10#$num + 1))
     feature_id="$(printf 'F%02d' "$num")"
-    brief_file="$FEATURES_DIR/${feature_id}-_tmp-brief.md"
+    feature_dir="$FEATURES_DIR/${feature_id}-${slug}"
   done
 
-  cat > "$brief_file" <<EOF
+  mkdir -p "$feature_dir"
+
+  local readme_file="$feature_dir/${feature_id}-README.md"
+  cat > "$readme_file" <<EOF
 # ${feature_id} -- ${title}
 
 **Status:** planned
@@ -185,7 +191,7 @@ print(d.get('body', ''))
 
 ## Goal
 
-${body:-_(no body provided in War Room card)_}
+${body:-(no body provided in War Room card)}
 
 ## Wave Manifest
 
@@ -221,7 +227,8 @@ with open(card_file, 'w', encoding='utf-8') as f:
 
   # 7. Print summary
   echo "Promoted ${card_id} -> ${feature_id}: ${title}"
-  echo "  Brief: ${brief_file}"
+  echo "  Directory: ${feature_dir}"
+  echo "  README: ${readme_file}"
 }
 
 # ---------------------------------------------------------------------------

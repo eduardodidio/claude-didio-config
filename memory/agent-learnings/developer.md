@@ -135,3 +135,11 @@
 **What to avoid:** INDEX.md update continues to be missed (6th occurrence). Before marking Status: done on any diagram-creating task, run `grep -q "F<NN>" docs/diagrams/INDEX.md` and add the entry if missing. Also: tick AC checkboxes with brief evidence notes when marking Status: done -- this has been flagged since F02 and continues to recur.
 
 **Pattern to repeat:** For Tauri desktop apps, use structural grep checks in integration tests as a lightweight wiring verification gate -- catches missing imports/exports without needing a full E2E runtime. The `Mutex<()>` pattern for serializing CLI calls is simple and correct for single-user desktop apps.
+
+## F35 — 2026-11-26
+
+**What worked:** Python3 for JSON manipulation in bash scripts (`python3 -c "import json..."`) is safer than sed/awk/jq alternatives. The promote script uses `python3 -c` for all JSON reads and writes, avoiding quote-escaping bugs and malformed JSON risks. Test fixtures with pre-baked assessment JSON (WR-TEST-001/002/003) decoupled E2E tests from agent availability, keeping tests fast and deterministic.
+
+**What to avoid:** When consolidating duplicated logic, verify the delegation chain end-to-end: CLI → lib → implementation script. F35 found that `lib/blackhawk-triage.sh` delegated to the promote CLI, but the CLI itself was broken. The lib delegation was correct but the target was wrong. Always test the final script directly, not just the delegation path.
+
+**Pattern to repeat:** For any pipeline-stage test, prefer fixtures with pre-computed upstream outputs (e.g., card JSON with pre-baked `overlord_assessment`) over mocking or spawning real agents. This decouples test execution from agent availability. Use `mktemp -d` + `DIDIO_PROJECT_ROOT` override + `trap cleanup EXIT` for complete isolation from real data.

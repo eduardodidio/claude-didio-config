@@ -123,3 +123,11 @@
 **What to avoid:** When `cargo` is not on the default shell PATH (common on Windows/MINGW), explicitly add `$HOME/.cargo/bin` to PATH before running `cargo check`. The integration test script assumes `cargo` is on PATH -- this will fail in environments where it isn't.
 
 **Pattern to repeat:** For Tauri desktop app features, validate both Rust compilation (cargo check) and frontend tests (npm run test) independently. Structural grep checks in the integration test script serve as a fast wiring verification layer. Always fix BLOCKING TechLead items (like INDEX.md staleness) during QA rather than deferring.
+
+## F35 — 2026-11-26
+
+**What worked:** Live fire validation with real data (6 War Room cards through the full lifecycle) was more valuable than synthetic-only testing. The exercise uncovered the dry-run status issue (cards left in "triaging" after `--dry-run`) that unit tests alone would not have caught. Running E2E tests (19/19 TAP) before writing the QA report grounded the verdict in fresh evidence.
+
+**What to avoid:** When a feature has a known limitation (agent spawn exit 126 in nested context), document the workaround as a first-class test path rather than silently skipping. F35 correctly used manual assessment injection as the documented fallback, and the live fire report captures both the limitation and the workaround.
+
+**Pattern to repeat:** For features that fix a data-format bug (promote creating loose file vs directory), validate BOTH the corrected output format AND the error paths (no assessment, wrong recommendation, missing card) in the E2E test. The error paths are where the original bug would have silently produced wrong output — they need the most coverage.

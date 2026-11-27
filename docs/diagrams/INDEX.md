@@ -150,6 +150,13 @@ All diagrams are [Mermaid](https://mermaid.js.org/) `.mmd` files.
 | [F34-architecture.mmd](F34-architecture.mmd) | F34-T07 | Data flow from pipeline scripts and flags through disk layer, Rust backend (commands, watcher, notifications), to React frontend hooks and views |
 | [F34-journey.mmd](F34-journey.mmd) | F34-T07 | Operator journey: chat with Alpha via Claude CLI, view board with real pipeline state, notice tray alerts, click suggested actions |
 
+## F35 — War Room Live Fire + Promotion Flow Fix
+
+| File | Owner task | What it shows |
+|---|---|---|
+| [F35-architecture.mmd](F35-architecture.mmd) | F35-T07 | War Room data flow: card sources (CLI, agent, dashboard) -> card JSON -> triage CLI -> Black Hawk Alpha assessment -> promote bridge (directory + README creation) -> pipeline entry; includes defer/archive disposition paths |
+| [F35-journey.mmd](F35-journey.mmd) | F35-T07 | Operator journey: add card -> review in dashboard/CLI -> trigger triage -> Alpha assesses -> review recommendation -> approve promote -> feature directory created -> run pipeline -> feature shipped; decision points (promote vs defer) and error branches (no assessment, rate limit) |
+
 ## F24 — auto-install second-brain
 
 | File | Owner task | What it shows |

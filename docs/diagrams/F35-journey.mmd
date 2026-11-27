@@ -1,0 +1,65 @@
+%% F35 War Room Live Fire — User Journey (BPMN-style)
+%% Operator workflow from card creation through promotion to pipeline execution.
+
+flowchart TD
+    subgraph OperatorLane["Operator"]
+        O_START(["Start: strategic item identified"])
+        O_ADD["Add card via CLI or dashboard"]
+        O_REVIEW["Review cards in dashboard / CLI"]
+        O_TRIGGER["Trigger triage:\ndidio blackhawk triage"]
+        O_CHECK["Review Alpha recommendation"]
+        O_APPROVE{"Approve\npromotion?"}
+        O_CONFIRM["Confirm promote:\ndidio blackhawk promote"]
+        O_DEFER_CMD["Defer card:\ndidio blackhawk defer"]
+        O_PIPELINE["Run pipeline:\ndidio run-pipeline FXX"]
+        O_DONE(["End: feature shipped"])
+    end
+
+    subgraph SystemLane["CLI / Dashboard"]
+        S_CARD[("Card JSON created\nlogs/warroom/cards/")]
+        S_LIST["Card list / board view"]
+        S_NO_ASSESS{"Assessment\nexists?"}
+        S_ERR_NO_ASSESS["Error: no assessment\nrun triage first"]
+        S_RATE{"Rate limit\nhit?"}
+        S_ERR_RATE["Error: rate limited\nretry later"]
+    end
+
+    subgraph AlphaLane["Black Hawk Alpha"]
+        A_ASSESS["Assess card:\nurgency, impact, alignment"]
+        A_VERDICT["Produce verdict:\npromote / defer / archive"]
+    end
+
+    subgraph FSLane["File System"]
+        FS_MKDIR["Create directory:\ntasks/features/FXX-slug/"]
+        FS_README["Write FXX-README.md\nwith goal + wave stub"]
+        FS_FEATURE[("Feature directory\nready for Architect")]
+        FS_DEFERRED[("Card status: deferred")]
+    end
+
+    O_START --> O_ADD
+    O_ADD --> S_CARD
+    S_CARD --> O_REVIEW
+    O_REVIEW --> S_LIST
+    S_LIST --> O_TRIGGER
+
+    O_TRIGGER --> S_RATE
+    S_RATE -->|yes| S_ERR_RATE
+    S_ERR_RATE --> O_TRIGGER
+    S_RATE -->|no| A_ASSESS
+
+    A_ASSESS --> A_VERDICT
+    A_VERDICT --> O_CHECK
+    O_CHECK --> O_APPROVE
+
+    O_APPROVE -->|yes| O_CONFIRM
+    O_CONFIRM --> S_NO_ASSESS
+    S_NO_ASSESS -->|no| S_ERR_NO_ASSESS
+    S_ERR_NO_ASSESS --> O_TRIGGER
+    S_NO_ASSESS -->|yes| FS_MKDIR
+    FS_MKDIR --> FS_README
+    FS_README --> FS_FEATURE
+    FS_FEATURE --> O_PIPELINE
+    O_PIPELINE --> O_DONE
+
+    O_APPROVE -->|no / defer| O_DEFER_CMD
+    O_DEFER_CMD --> FS_DEFERRED

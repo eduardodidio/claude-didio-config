@@ -16,6 +16,10 @@
 #   0 = success
 #   1 = runtime error
 #   2 = config / preflight issue
+#
+# All triage logic (assess, promote, defer, gather_knowledge, etc.) lives in
+# lib/blackhawk-triage.sh. This script is a thin CLI that sources the lib
+# and dispatches based on arguments.
 
 set -euo pipefail
 
@@ -26,8 +30,6 @@ set -euo pipefail
 DIDIO_HOME="${DIDIO_HOME:-$HOME/.claude-didio-config}"
 PROJECT_ROOT="${DIDIO_PROJECT_ROOT:-$(pwd)}"
 CARDS_DIR="$PROJECT_ROOT/logs/warroom/cards"
-TRIAGE_LOG_DIR="$PROJECT_ROOT/logs/warroom"
-CONTEXT_FILE="$TRIAGE_LOG_DIR/.triage-context.md"
 
 # ---------------------------------------------------------------------------
 # Source config lib
@@ -44,11 +46,18 @@ else
   exit 2
 fi
 
-# Source triage library if it exists (T09 delivers lib/blackhawk-triage.sh)
+# ---------------------------------------------------------------------------
+# Source triage library (single source of truth for all triage functions)
+# ---------------------------------------------------------------------------
+
 TRIAGE_LIB="$PROJECT_ROOT/lib/blackhawk-triage.sh"
 if [[ -f "$TRIAGE_LIB" ]]; then
   # shellcheck disable=SC1090
   source "$TRIAGE_LIB"
+else
+  echo "[blackhawk-triage] ERROR: lib/blackhawk-triage.sh not found" >&2
+  echo "  Expected at: $TRIAGE_LIB" >&2
+  exit 2
 fi
 
 # ---------------------------------------------------------------------------
@@ -78,95 +87,6 @@ EXAMPLES:
   didio blackhawk triage --dry-run
   didio blackhawk triage --auto
 EOF
-}
-
-# ---------------------------------------------------------------------------
-# Timestamp helpers (portable across Git Bash / MINGW)
-# ---------------------------------------------------------------------------
-
-_now_iso() {
-  date -u +"%Y-%m-%dT%H:%M:%SZ"
-}
-
-_now_file_ts() {
-  date -u +"%Y%m%d-%H%M%S"
-}
-
-# ---------------------------------------------------------------------------
-# JSON helpers (python3 — always available, no jq dependency)
-# ---------------------------------------------------------------------------
-
-# Read a field from a card JSON file
-_card_field() {
-  local file="$1" field="$2"
-  python3 -c "
-import json, sys
-with open(sys.argv[1], 'r', encoding='utf-8') as f:
-    d = json.load(f)
-v = d.get(sys.argv[2])
-if v is None:
-    print('')
-elif isinstance(v, (dict, list)):
-    print(json.dumps(v))
-else:
-    print(str(v))
-" "$file" "$field" 2>/dev/null || echo ""
-}
-
-# Update a card JSON file (sets key=value, updates updated_at)
-_card_update() {
-  local file="$1" now
-  shift
-  now="$(_now_iso)"
-  python3 - "$file" "$now" "$@" <<'PY'
-import json, sys
-path = sys.argv[1]
-now = sys.argv[2]
-updates = {}
-i = 3
-while i < len(sys.argv):
-    key = sys.argv[i]
-    val = sys.argv[i+1]
-    # Auto-detect type
-    if val == "null":
-        updates[key] = None
-    elif val in ("true", "false"):
-        updates[key] = val == "true"
-    else:
-        try:
-            updates[key] = json.loads(val)
-        except (json.JSONDecodeError, ValueError):
-            updates[key] = val
-    i += 2
-
-with open(path, 'r', encoding='utf-8') as f:
-    d = json.load(f)
-for k, v in updates.items():
-    d[k] = v
-d['updated_at'] = now
-with open(path, 'w', encoding='utf-8') as f:
-    json.dump(d, f, indent=2)
-    f.write('\n')
-PY
-}
-
-# Read a nested assessment field
-_assessment_field() {
-  local file="$1" field="$2"
-  python3 -c "
-import json, sys
-with open(sys.argv[1], 'r', encoding='utf-8') as f:
-    d = json.load(f)
-a = d.get('overlord_assessment')
-if a and isinstance(a, dict):
-    v = a.get(sys.argv[2], '')
-    if isinstance(v, (dict, list)):
-        print(json.dumps(v))
-    else:
-        print(str(v) if v else '')
-else:
-    print('')
-" "$file" "$field" 2>/dev/null || echo ""
 }
 
 # ---------------------------------------------------------------------------
@@ -225,389 +145,7 @@ preflight() {
 }
 
 # ---------------------------------------------------------------------------
-# Knowledge gathering
-# ---------------------------------------------------------------------------
-
-gather_knowledge() {
-  # If the triage library provides this, delegate
-  if declare -F gather_knowledge_impl >/dev/null 2>&1; then
-    gather_knowledge_impl
-    return $?
-  fi
-
-  mkdir -p "$TRIAGE_LOG_DIR"
-
-  local adr_count=0 learnings_count=0 feature_count=0
-
-  {
-    echo "# Triage Knowledge Context"
-    echo ""
-    echo "Generated at: $(_now_iso)"
-    echo ""
-
-    # ADRs
-    echo "## Architecture Decision Records"
-    echo ""
-    if compgen -G "$PROJECT_ROOT/docs/adr/*.md" > /dev/null 2>&1; then
-      for f in "$PROJECT_ROOT"/docs/adr/*.md; do
-        [[ -f "$f" ]] || continue
-        adr_count=$((adr_count + 1))
-        echo "### $(basename "$f")"
-        cat "$f"
-        echo ""
-      done
-    fi
-    if [[ $adr_count -eq 0 ]]; then
-      echo "(no ADRs found)"
-      echo ""
-    fi
-
-    # Agent learnings
-    echo "## Agent Learnings"
-    echo ""
-    if compgen -G "$PROJECT_ROOT/memory/agent-learnings/*.md" > /dev/null 2>&1; then
-      for f in "$PROJECT_ROOT"/memory/agent-learnings/*.md; do
-        [[ -f "$f" ]] || continue
-        learnings_count=$((learnings_count + 1))
-        echo "### $(basename "$f")"
-        cat "$f"
-        echo ""
-      done
-    fi
-    if [[ $learnings_count -eq 0 ]]; then
-      echo "(no learnings found)"
-      echo ""
-    fi
-
-    # Existing features (for dedup)
-    echo "## Existing Features"
-    echo ""
-    if compgen -G "$PROJECT_ROOT/tasks/features/*/F*-README.md" > /dev/null 2>&1; then
-      for f in "$PROJECT_ROOT"/tasks/features/*/F*-README.md; do
-        [[ -f "$f" ]] || continue
-        feature_count=$((feature_count + 1))
-        echo "- $(basename "$(dirname "$f")"): $(head -1 "$f" | sed 's/^#\s*//')"
-      done
-    fi
-    if [[ $feature_count -eq 0 ]]; then
-      echo "(no existing features)"
-    fi
-    echo ""
-
-    # Recent decisions (last 10)
-    echo "## Recent Decisions"
-    echo ""
-    if compgen -G "$PROJECT_ROOT/logs/decisions/D-*.json" > /dev/null 2>&1; then
-      local dec_files
-      # Sort by name descending, take last 10
-      dec_files=("$PROJECT_ROOT"/logs/decisions/D-*.json)
-      local start=0
-      if [[ ${#dec_files[@]} -gt 10 ]]; then
-        start=$(( ${#dec_files[@]} - 10 ))
-      fi
-      for ((i=start; i<${#dec_files[@]}; i++)); do
-        echo "- $(basename "${dec_files[$i]}")"
-      done
-    else
-      echo "(no decisions found)"
-    fi
-    echo ""
-
-    # Recent governance reviews (last 10)
-    echo "## Recent Governance Reviews"
-    echo ""
-    if compgen -G "$PROJECT_ROOT/logs/governance/G-*.json" > /dev/null 2>&1; then
-      local gov_files
-      gov_files=("$PROJECT_ROOT"/logs/governance/G-*.json)
-      local start=0
-      if [[ ${#gov_files[@]} -gt 10 ]]; then
-        start=$(( ${#gov_files[@]} - 10 ))
-      fi
-      for ((i=start; i<${#gov_files[@]}; i++)); do
-        echo "- $(basename "${gov_files[$i]}")"
-      done
-    else
-      echo "(no governance reviews found)"
-    fi
-    echo ""
-
-  } > "$CONTEXT_FILE"
-
-  echo "$adr_count ADRs, $learnings_count learnings, $feature_count features"
-}
-
-# ---------------------------------------------------------------------------
-# Next feature ID allocation
-# ---------------------------------------------------------------------------
-
-_next_feature_id() {
-  local max=0
-  if compgen -G "$PROJECT_ROOT/tasks/features/F*-*" > /dev/null 2>&1; then
-    for d in "$PROJECT_ROOT"/tasks/features/F*-*/; do
-      [[ -d "$d" ]] || continue
-      local dirname
-      dirname="$(basename "$d")"
-      local num_str="${dirname%%-*}"
-      num_str="${num_str#F}"
-      local num
-      num=$((10#$num_str)) 2>/dev/null || continue
-      if [[ $num -gt $max ]]; then max=$num; fi
-    done
-  fi
-
-  local next=$((max + 1))
-  printf 'F%02d' "$next"
-}
-
-# ---------------------------------------------------------------------------
-# Promote card to feature
-# ---------------------------------------------------------------------------
-
-promote_card() {
-  local card_id="$1"
-  local card_file="$CARDS_DIR/${card_id}.json"
-
-  local title body promoted_as
-  title="$(_card_field "$card_file" "title")"
-  body="$(_card_field "$card_file" "body")"
-  promoted_as="$(_assessment_field "$card_file" "promoted_as")"
-
-  # Determine feature name from assessment or card title
-  local feature_name="${promoted_as:-$title}"
-
-  local feature_id
-  feature_id="$(_next_feature_id)"
-
-  # Create slug from feature name
-  local slug
-  slug="$(echo "$feature_name" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g; s/--*/-/g; s/^-//; s/-$//' | cut -c1-40)"
-
-  local feature_dir="$PROJECT_ROOT/tasks/features/${feature_id}-${slug}"
-
-  # Handle race condition: if directory exists, bump ID
-  while [[ -d "$feature_dir" ]]; do
-    local num="${feature_id#F}"
-    num=$((10#$num + 1))
-    feature_id="$(printf 'F%02d' "$num")"
-    feature_dir="$PROJECT_ROOT/tasks/features/${feature_id}-${slug}"
-  done
-
-  if [[ "$DRY_RUN" == "1" ]]; then
-    echo "  [DRY_RUN] Would create feature: ${feature_id} -- ${feature_name}"
-    echo "  [DRY_RUN] Directory: ${feature_dir}"
-    return 0
-  fi
-
-  mkdir -p "$feature_dir"
-
-  # Create feature README stub
-  cat > "$feature_dir/${feature_id}-README.md" <<READMEEOF
-# ${feature_id} -- ${feature_name}
-
-**Status:** planned
-**Origin:** War Room card ${card_id}
-
-## Goal
-
-${body:-(no description provided)}
-
-## Wave Manifest
-
-_To be planned by Architect._
-READMEEOF
-
-  # Update card: status = promoted, promoted_to = feature_id
-  _card_update "$card_file" \
-    "status" "promoted" \
-    "promoted_to" "$feature_id"
-
-  echo "${feature_id} -- ${feature_name}"
-}
-
-# ---------------------------------------------------------------------------
-# Defer card
-# ---------------------------------------------------------------------------
-
-defer_card() {
-  local card_id="$1"
-  local card_file="$CARDS_DIR/${card_id}.json"
-
-  if [[ "$DRY_RUN" == "1" ]]; then
-    echo "  [DRY_RUN] Would defer card: ${card_id}"
-    return 0
-  fi
-
-  _card_update "$card_file" "status" "deferred"
-}
-
-# ---------------------------------------------------------------------------
-# Archive card
-# ---------------------------------------------------------------------------
-
-archive_card() {
-  local card_id="$1"
-  local card_file="$CARDS_DIR/${card_id}.json"
-
-  if [[ "$DRY_RUN" == "1" ]]; then
-    echo "  [DRY_RUN] Would archive card: ${card_id}"
-    return 0
-  fi
-
-  _card_update "$card_file" "status" "archived"
-}
-
-# ---------------------------------------------------------------------------
-# Assess a single card
-# ---------------------------------------------------------------------------
-
-assess_card() {
-  local card_id="$1"
-  local card_file="$CARDS_DIR/${card_id}.json"
-
-  if [[ ! -f "$card_file" ]]; then
-    echo "[blackhawk-triage] ERROR: Card not found: ${card_id}" >&2
-    echo "  Expected file: ${card_file}" >&2
-    return 1
-  fi
-
-  # Validate card status
-  local status
-  status="$(_card_field "$card_file" "status")"
-  if [[ "$status" != "incoming" && "$status" != "triaging" ]]; then
-    echo "[blackhawk-triage] ERROR: Card ${card_id} has status '${status}'." >&2
-    echo "  Only 'incoming' or 'triaging' cards can be triaged." >&2
-    return 1
-  fi
-
-  if [[ "$DRY_RUN" == "1" ]]; then
-    local title
-    title="$(_card_field "$card_file" "title")"
-    echo "  [DRY_RUN] Would triage card: ${card_id} (\"${title}\")"
-    echo "  [DRY_RUN]   Set status -> triaging"
-    echo "  [DRY_RUN]   Spawn blackhawk-alpha agent with card + context"
-    echo "  [DRY_RUN]   Process assessment and update card"
-    return 0
-  fi
-
-  # Set status to triaging
-  _card_update "$card_file" "status" "triaging"
-
-  # Build task file for the blackhawk-alpha agent
-  local task_tmp
-  task_tmp="$(mktemp "${TMPDIR:-/tmp}/blackhawk-triage-XXXXXX.md")"
-
-  {
-    echo "# Black Hawk Alpha Triage Task"
-    echo ""
-    echo "## Mode: Single Card Triage"
-    echo ""
-    echo "TRIAGE_MODE=single"
-    echo "CARD_ID=${card_id}"
-    echo ""
-    echo "## Card to Triage"
-    echo ""
-    echo '```json'
-    cat "$card_file"
-    echo '```'
-    echo ""
-    echo "## Knowledge Context"
-    echo ""
-    if [[ -f "$CONTEXT_FILE" ]]; then
-      cat "$CONTEXT_FILE"
-    else
-      echo "(no context gathered)"
-    fi
-    echo ""
-    echo "## Instructions"
-    echo ""
-    echo "Assess this card following the triage process in your prompt."
-    echo "Write your assessment by updating the card JSON file at:"
-    echo "  ${card_file}"
-    echo ""
-    echo "Update the card with:"
-    echo "1. Set overlord_assessment object (recommendation, priority, rationale, knowledge_refs)"
-    echo "2. If recommending 'promote', include promoted_as with a suggested feature title"
-    echo "3. Do NOT change the card status -- the CLI will handle status transitions"
-  } > "$task_tmp"
-
-  # Spawn blackhawk-alpha agent
-  local spawn_script="$PROJECT_ROOT/bin/didio-spawn-agent.sh"
-  if [[ ! -f "$spawn_script" ]]; then
-    spawn_script="$DIDIO_HOME/bin/didio-spawn-agent.sh"
-  fi
-
-  local spawn_exit=0
-  DIDIO_TOLERATE_TOOL_ERRORS=1 \
-    "$spawn_script" blackhawk-alpha WARROOM "$task_tmp" \
-    "TRIAGE_MODE=single CARD_ID=${card_id}" || spawn_exit=$?
-
-  rm -f "$task_tmp"
-
-  if [[ $spawn_exit -ne 0 ]]; then
-    echo "[blackhawk-triage] WARN: Black Hawk Alpha agent exited with code ${spawn_exit}" >&2
-  fi
-
-  # Read the updated card to determine recommendation
-  local recommendation
-  recommendation="$(_assessment_field "$card_file" "recommendation")"
-
-  if [[ -z "$recommendation" ]]; then
-    echo "[blackhawk-triage] WARN: No assessment found in card after agent run." >&2
-    echo "  Card ${card_id} remains in 'triaging' status." >&2
-    return 0
-  fi
-
-  # Act on recommendation
-  local result_line=""
-  case "$recommendation" in
-    promote)
-      local promoted
-      promoted="$(promote_card "$card_id")"
-      local priority
-      priority="$(_assessment_field "$card_file" "priority")"
-      result_line="promote (${priority}) -> ${promoted}"
-      ;;
-    defer)
-      defer_card "$card_id"
-      local rationale
-      rationale="$(_assessment_field "$card_file" "rationale")"
-      result_line="defer -- ${rationale}"
-      ;;
-    archive)
-      archive_card "$card_id"
-      local rationale
-      rationale="$(_assessment_field "$card_file" "rationale")"
-      result_line="archive -- ${rationale}"
-      ;;
-    needs_input)
-      # Keep in triaging, raise flag for operator
-      local questions
-      questions="$(_assessment_field "$card_file" "questions")"
-      result_line="needs_input -- ${questions:-No specific questions provided}"
-
-      # Raise a flag if the flags lib is available
-      local flags_lib="$PROJECT_ROOT/bin/didio-flags-lib.sh"
-      if [[ -f "$flags_lib" ]]; then
-        # shellcheck disable=SC1090
-        source "$flags_lib"
-        if declare -F didio_flag_raise >/dev/null 2>&1; then
-          didio_flag_raise "blackhawk-needs-input" \
-            "Card ${card_id} needs operator input: ${questions:-see card}" \
-            "blackhawk-alpha" 2>/dev/null || true
-        fi
-      fi
-      ;;
-    *)
-      echo "[blackhawk-triage] WARN: Unknown recommendation '${recommendation}' for ${card_id}" >&2
-      result_line="unknown (${recommendation})"
-      ;;
-  esac
-
-  echo "$result_line"
-}
-
-# ---------------------------------------------------------------------------
-# Single-card triage
+# Single-card triage (thin wrapper around lib functions)
 # ---------------------------------------------------------------------------
 
 triage_single() {
@@ -617,14 +155,13 @@ triage_single() {
 
   # Gather knowledge
   printf '  Gathering knowledge sources... '
-  local knowledge_summary
-  knowledge_summary="$(gather_knowledge)"
-  echo "done (${knowledge_summary})"
+  gather_knowledge > /dev/null
+  echo "done"
 
-  # Run assessment
+  # Run assessment (lib sets status + writes overlord_assessment)
   printf '  Running Black Hawk Alpha assessment... '
-  local result
-  result="$(assess_card "$card_id")"
+  local recommendation
+  recommendation="$(assess_card "$card_id")"
   local exit_code=$?
   echo "done"
 
@@ -632,193 +169,30 @@ triage_single() {
     return $exit_code
   fi
 
-  # Print result
+  # If promoted, run the promotion flow to create feature directory
   local card_file="$CARDS_DIR/${card_id}.json"
-  local recommendation priority rationale promoted_as
-  recommendation="$(_assessment_field "$card_file" "recommendation")"
+  if [[ "$recommendation" == "promote" ]]; then
+    promote_card "$card_id"
+  fi
+
+  # Print result
+  local rec priority rationale
+  rec="$(_assessment_field "$card_file" "recommendation")"
   priority="$(_assessment_field "$card_file" "priority")"
   rationale="$(_assessment_field "$card_file" "rationale")"
 
-  if [[ -n "$recommendation" ]]; then
-    echo "  Recommendation: ${recommendation} (priority: ${priority})"
+  if [[ -n "$rec" ]]; then
+    echo "  Recommendation: ${rec} (priority: ${priority})"
     echo "  Rationale: ${rationale}"
 
-    if [[ "$recommendation" == "promote" ]]; then
-      local promoted_to
+    if [[ "$rec" == "promote" ]]; then
+      local promoted_to promoted_as
       promoted_to="$(_card_field "$card_file" "promoted_to")"
       promoted_as="$(_assessment_field "$card_file" "promoted_as")"
       echo "  Promoted as: ${promoted_to} -- ${promoted_as}"
     fi
   else
     echo "  (no assessment produced)"
-  fi
-}
-
-# ---------------------------------------------------------------------------
-# Batch triage
-# ---------------------------------------------------------------------------
-
-triage_batch() {
-  echo "Black Hawk Alpha batch triage starting..."
-
-  # Gather knowledge
-  printf '  Gathering knowledge sources... '
-  local knowledge_summary
-  knowledge_summary="$(gather_knowledge)"
-  echo "done (${knowledge_summary})"
-
-  # Find all incoming cards
-  local incoming_cards=()
-  if compgen -G "$CARDS_DIR/WR-*.json" > /dev/null 2>&1; then
-    for card_file in "$CARDS_DIR"/WR-*.json; do
-      [[ -f "$card_file" ]] || continue
-      local status
-      status="$(_card_field "$card_file" "status")"
-      if [[ "$status" == "incoming" ]]; then
-        local cid
-        cid="$(_card_field "$card_file" "card_id")"
-        incoming_cards+=("$cid")
-      fi
-    done
-  fi
-
-  local total=${#incoming_cards[@]}
-
-  if [[ $total -eq 0 ]]; then
-    echo "  No incoming cards to triage."
-    echo ""
-    echo "Triage complete: 0 cards processed"
-    return 0
-  fi
-
-  echo "  Found ${total} incoming cards"
-  echo ""
-
-  # Check max_concurrent_promotions
-  local max_promotions
-  max_promotions="$(didio_blackhawk_max_promotions)"
-  local current_promotions=0
-  if compgen -G "$CARDS_DIR/WR-*.json" > /dev/null 2>&1; then
-    for card_file in "$CARDS_DIR"/WR-*.json; do
-      [[ -f "$card_file" ]] || continue
-      local s
-      s="$(_card_field "$card_file" "status")"
-      if [[ "$s" == "promoted" ]]; then
-        current_promotions=$((current_promotions + 1))
-      fi
-    done
-  fi
-  local promotions_remaining=$((max_promotions - current_promotions))
-  if [[ $promotions_remaining -lt 0 ]]; then promotions_remaining=0; fi
-
-  # Process each card
-  local promote_count=0 defer_count=0 archive_count=0 needs_input_count=0
-  local results_json="["
-  local results_first=1
-  local idx=0
-
-  for card_id in "${incoming_cards[@]}"; do
-    idx=$((idx + 1))
-    local card_file="$CARDS_DIR/${card_id}.json"
-    local title
-    title="$(_card_field "$card_file" "title")"
-
-    printf '  [%d/%d] %s: "%s"\n' "$idx" "$total" "$card_id" "$title"
-
-    local result
-    result="$(assess_card "$card_id")"
-    local exit_code=$?
-
-    if [[ $exit_code -ne 0 ]]; then
-      printf '        -> ERROR (exit %d)\n' "$exit_code"
-      continue
-    fi
-
-    # Read recommendation from updated card
-    local rec priority rationale promoted_as promoted_to
-    rec="$(_assessment_field "$card_file" "recommendation")"
-    priority="$(_assessment_field "$card_file" "priority")"
-    rationale="$(_assessment_field "$card_file" "rationale")"
-
-    case "$rec" in
-      promote)
-        promote_count=$((promote_count + 1))
-        promoted_to="$(_card_field "$card_file" "promoted_to")"
-        promoted_as="$(_assessment_field "$card_file" "promoted_as")"
-        printf '        -> promote (%s) -> %s -- %s\n' "$priority" "$promoted_to" "$promoted_as"
-        ;;
-      defer)
-        defer_count=$((defer_count + 1))
-        printf '        -> defer (%s) -- %s\n' "$priority" "$rationale"
-        ;;
-      archive)
-        archive_count=$((archive_count + 1))
-        printf '        -> archive -- %s\n' "$rationale"
-        ;;
-      needs_input)
-        needs_input_count=$((needs_input_count + 1))
-        local questions
-        questions="$(_assessment_field "$card_file" "questions")"
-        printf '        -> needs_input -- %s\n' "${questions:-Need more information}"
-        ;;
-      *)
-        printf '        -> (no recommendation)\n'
-        ;;
-    esac
-
-    # Build results JSON entry
-    if [[ $results_first -eq 1 ]]; then results_first=0; else results_json+=","; fi
-    results_json+="$(python3 -c "
-import json, sys
-entry = {'card_id': sys.argv[1], 'recommendation': sys.argv[2]}
-if sys.argv[2] == 'promote':
-    entry['promoted_as'] = sys.argv[3]
-else:
-    entry['rationale'] = sys.argv[4]
-print(json.dumps(entry))
-" "$card_id" "${rec:-unknown}" "${promoted_as:-}" "${rationale:-}" 2>/dev/null || echo "{\"card_id\":\"$card_id\"}")"
-  done
-
-  results_json+="]"
-
-  echo ""
-  printf 'Triage complete: %d promoted, %d deferred, %d archived, %d needs_input\n' \
-    "$promote_count" "$defer_count" "$archive_count" "$needs_input_count"
-
-  # Write triage summary
-  if [[ "$DRY_RUN" != "1" ]]; then
-    mkdir -p "$TRIAGE_LOG_DIR"
-
-    local ts
-    ts="$(_now_file_ts)"
-    local summary_file="$TRIAGE_LOG_DIR/triage-${ts}.json"
-
-    # Determine triage sequence number for today
-    local today
-    today="$(date -u +%Y%m%d)"
-    local seq=1
-    if compgen -G "$TRIAGE_LOG_DIR/triage-${today}-*.json" > /dev/null 2>&1; then
-      seq=$(( $(ls -1 "$TRIAGE_LOG_DIR"/triage-"${today}"-*.json 2>/dev/null | wc -l) + 1 ))
-    fi
-
-    local triage_id
-    triage_id="$(printf 'OT-%s-%03d' "$today" "$seq")"
-
-    python3 -c "
-import json, sys
-summary = {
-    'triage_id': sys.argv[1],
-    'timestamp': sys.argv[2],
-    'cards_processed': int(sys.argv[3]),
-    'results': json.loads(sys.argv[4]),
-    'promotions_remaining': int(sys.argv[5])
-}
-with open(sys.argv[6], 'w', encoding='utf-8') as f:
-    json.dump(summary, f, indent=2)
-    f.write('\n')
-" "$triage_id" "$(_now_iso)" "$total" "$results_json" "$promotions_remaining" "$summary_file"
-
-    echo "Summary written to ${summary_file}"
   fi
 }
 
@@ -919,6 +293,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 export DRY_RUN
+export DIDIO_DRY_RUN="$DRY_RUN"
 
 # ---------------------------------------------------------------------------
 # Main

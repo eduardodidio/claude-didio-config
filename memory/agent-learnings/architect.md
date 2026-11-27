@@ -86,3 +86,11 @@
 **What to avoid:** When a task file describes a Tauri command that accepts a string parameter and passes it to `bash -c`, the architect MUST include a security note requiring mitigation (whitelist or confirmation gate). This was missed for `execute_action()` and caught only at TechLead review.
 
 **Pattern to repeat:** For any task that creates diagrams, include `grep -q "F<NN>" docs/diagrams/INDEX.md` as a mandatory AC. This is the 6th time INDEX.md was missed. Add this to the architect's standard AC template for diagram tasks.
+
+## F35 — 2026-11-26
+
+**What worked:** Structuring waves so the bug fix (T01: promote directory fix) and refactor (T02: triage consolidation) are separate parallel tasks in Wave 0 prevented the refactor from blocking the fix and allowed immediate testing of corrected behavior. The dependency graph was clean: Wave 0 (fix + refactor + fixtures) → Wave 1 (E2E + live fire) → Wave 2 (docs + diagrams). No cross-wave surprises.
+
+**What to avoid:** When a feature adds a new CLI command, mandate a single implementation location from Wave 0. F35 inherited a bug where promote logic was duplicated across 3 locations (CLI, triage inline, lib), each with divergent behavior. The Architect should mandate "single source of truth" as an explicit AC for any feature that creates or modifies a CLI entrypoint.
+
+**Pattern to repeat:** When a feature is "fix + refactor + validate", structure as: Wave 0 = fix + refactor (parallel, no shared files) + test fixtures; Wave 1 = E2E test + live fire validation (depends on Wave 0); Wave 2 = docs, ADR, diagrams (depends on Wave 1 results for the live fire report content). This three-wave shape cleanly separates code change, validation, and documentation.

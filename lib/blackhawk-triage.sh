@@ -586,5 +586,35 @@ with open(output_file, 'w', encoding='utf-8') as f:
 
   echo "[blackhawk-triage] Batch complete: processed=$cards_processed promote=$promote_count defer=$defer_count archive=$archive_count needs_input=$needs_input_count" >&2
   echo "[blackhawk-triage] Summary: $summary_file" >&2
-  echo "DIDIO_DONE: blackhawk-alpha triaged $cards_processed cards promote=$promote_count defer=$defer_count archive=$archive_count needs_input=$needs_input_count"
+  echo "Triage complete: $cards_processed cards processed (promote=$promote_count defer=$defer_count archive=$archive_count needs_input=$needs_input_count)"
+}
+
+# ---------------------------------------------------------------------------
+# CLI compatibility aliases (unprefixed wrappers)
+#
+# The CLI (bin/didio-blackhawk-triage.sh) calls these functions without
+# the _ot_ prefix. These aliases let the CLI source this lib and use the
+# functions directly.
+# ---------------------------------------------------------------------------
+
+_now_iso() { _ot_now_iso; }
+_card_field() { _ot_card_field "$@"; }
+
+# Read a nested field from the overlord_assessment object in a card JSON
+_assessment_field() {
+  local file="$1" field="$2"
+  python3 -c "
+import json, sys
+with open(sys.argv[1], 'r', encoding='utf-8') as f:
+    d = json.load(f)
+a = d.get('overlord_assessment')
+if a and isinstance(a, dict):
+    v = a.get(sys.argv[2], '')
+    if isinstance(v, (dict, list)):
+        print(json.dumps(v))
+    else:
+        print(str(v) if v else '')
+else:
+    print('')
+" "$file" "$field" 2>/dev/null || echo ""
 }

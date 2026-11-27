@@ -1,0 +1,32 @@
+{
+  "triage_id": "OT-20261126-001",
+  "timestamp": "2026-11-26T20:11:49Z",
+  "cards_processed": 6,
+  "results": [
+    {
+      "card_id": "WR-20261126-001",
+      "recommendation": "needs_input"
+    },
+    {
+      "card_id": "WR-20261126-002",
+      "recommendation": "needs_input"
+    },
+    {
+      "card_id": "WR-20261126-003",
+      "recommendation": "needs_input"
+    },
+    {
+      "card_id": "WR-20261126-004",
+      "recommendation": "needs_input"
+    },
+    {
+      "card_id": "WR-20261126-005",
+      "recommendation": "needs_input"
+    },
+    {
+      "card_id": "WR-20261126-006",
+      "recommendation": "needs_input"
+    }
+  ],
+  "promotions_remaining": 2
+}

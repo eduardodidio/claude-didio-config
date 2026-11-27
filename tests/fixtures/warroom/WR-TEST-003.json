@@ -1,0 +1,15 @@
+{
+  "card_id": "WR-TEST-003",
+  "title": "Investigate flaky integration test in CI",
+  "body": "The auth-service integration test has been intermittently failing on the main branch. Needs investigation to determine if it is a timing issue or a real regression.",
+  "source": "external",
+  "created_at": "2026-11-26T09:00:00Z",
+  "updated_at": null,
+  "status": "incoming",
+  "priority_suggestion": null,
+  "overlord_assessment": null,
+  "promoted_to": null,
+  "tags": ["ci", "flaky-test", "investigation"],
+  "source_agent": null,
+  "source_feature": null
+}

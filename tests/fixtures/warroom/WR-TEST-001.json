@@ -1,0 +1,21 @@
+{
+  "card_id": "WR-TEST-001",
+  "title": "Implement automated deployment pipeline for staging environment",
+  "body": "The current manual deployment process to staging takes 45 minutes and is error-prone. We need an automated pipeline that handles build, test, and deploy steps with proper rollback capability. This would reduce deployment time to under 5 minutes and eliminate human error in the process.",
+  "source": "operator",
+  "created_at": "2026-11-25T14:30:00Z",
+  "updated_at": "2026-11-25T15:00:00Z",
+  "status": "incoming",
+  "priority_suggestion": "high",
+  "overlord_assessment": {
+    "assessed_at": "2026-11-25T15:00:00Z",
+    "recommendation": "promote",
+    "priority": "high",
+    "rationale": "High-impact infrastructure improvement that directly reduces deployment friction and human error. Aligns with Q4 reliability goals.",
+    "promoted_as": "Test Feature -- promote flow validation"
+  },
+  "promoted_to": null,
+  "tags": ["infra", "automation", "deployment"],
+  "source_agent": null,
+  "source_feature": null
+}
