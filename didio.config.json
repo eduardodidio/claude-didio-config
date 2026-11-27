@@ -238,6 +238,10 @@
   },
   "blackhawk": {
     "enabled": true,
+    "auto_advance": true,
+    "auto_confidence_threshold": 0.8,
+    "auto_interval_minutes": 5,
+    "auto_max_promotions_per_cycle": 3,
     "auto_triage": true,
     "triage_interval_minutes": 30,
     "knowledge_sources": [

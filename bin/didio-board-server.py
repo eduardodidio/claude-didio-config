@@ -11,6 +11,7 @@ Environment:
     DIDIO_PROJECT_ROOT  Project root directory (default: cwd)
 """
 import argparse
+import datetime
 import glob
 import json
 import os
@@ -20,7 +21,7 @@ import threading
 import webbrowser
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from pathlib import Path
-from urllib.parse import urlparse
+from urllib.parse import parse_qs, urlparse
 
 PROJECT_ROOT = Path(os.environ.get("DIDIO_PROJECT_ROOT", os.getcwd()))
 SCRIPT_DIR = Path(__file__).resolve().parent
@@ -88,6 +89,43 @@ def get_features_data():
     return {"features": features}
 
 
+def get_alerts_dir():
+    """Return the alerts directory path, creating it if needed."""
+    d = PROJECT_ROOT / "logs" / "warroom" / "alerts"
+    d.mkdir(parents=True, exist_ok=True)
+    return d
+
+
+def get_alerts(include_all=False):
+    """Read alert JSON files, optionally filtering to pending only."""
+    alerts = read_json_files(get_alerts_dir() / "*.json")
+    if not include_all:
+        alerts = [a for a in alerts if a.get("status") == "pending"]
+    pending_count = sum(1 for a in alerts if a.get("status") == "pending")
+    return {"alerts": alerts, "pending_count": pending_count}
+
+
+def _now_iso():
+    return datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def _update_alert(alert_id, updates):
+    """Read an alert file, apply updates dict, write back. Returns (alert, error)."""
+    alerts_dir = get_alerts_dir()
+    alert_file = alerts_dir / f"{alert_id}.json"
+    if not alert_file.is_file():
+        return None, f"alert {alert_id} not found"
+    try:
+        with open(alert_file, "r", encoding="utf-8") as f:
+            alert = json.load(f)
+        alert.update(updates)
+        with open(alert_file, "w", encoding="utf-8") as f:
+            json.dump(alert, f, ensure_ascii=False, indent=2)
+        return alert, None
+    except (json.JSONDecodeError, OSError) as e:
+        return None, str(e)
+
+
 class BoardHandler(BaseHTTPRequestHandler):
     """HTTP request handler for the board server."""
 
@@ -141,6 +179,10 @@ class BoardHandler(BaseHTTPRequestHandler):
                     self.send_json({"error": "config unreadable"}, 500)
             else:
                 self.send_json({})
+        elif path == "/api/alerts":
+            qs = parse_qs(parsed.query)
+            include_all = qs.get("all", [""])[0].lower() in ("true", "1", "yes")
+            self.send_json(get_alerts(include_all=include_all))
         elif path == "/api/squad":
             agents_dir = PROJECT_ROOT / "logs" / "agents"
             reports = read_json_files(agents_dir / "squad-report-*.json")
@@ -217,6 +259,52 @@ class BoardHandler(BaseHTTPRequestHandler):
             with open(cards_dir / f"{card_id}.json", "w", encoding="utf-8") as f:
                 json.dump(card, f, ensure_ascii=False, indent=2)
             self.send_json({"ok": True, "card_id": card_id})
+
+        elif path == "/api/alerts/approve":
+            alert_id = payload.get("alert_id")
+            if not alert_id:
+                self.send_json({"error": "alert_id required"}, 400)
+                return
+            alert, err = _update_alert(alert_id, {"status": "approved", "resolved_at": _now_iso()})
+            if err:
+                self.send_json({"error": err}, 404)
+                return
+            suggestion = alert.get("suggestion", "")
+            resp = {"ok": True, "alert_id": alert_id}
+            if suggestion.startswith("didio "):
+                resp["suggestion"] = suggestion
+            self.send_json(resp)
+
+        elif path == "/api/alerts/reject":
+            alert_id = payload.get("alert_id")
+            if not alert_id:
+                self.send_json({"error": "alert_id required"}, 400)
+                return
+            alert, err = _update_alert(alert_id, {"status": "rejected", "resolved_at": _now_iso()})
+            if err:
+                self.send_json({"error": err}, 404)
+                return
+            self.send_json({"ok": True, "alert_id": alert_id})
+
+        elif path == "/api/alerts/approve-all":
+            alerts_data = get_alerts(include_all=False)
+            count = 0
+            for a in alerts_data["alerts"]:
+                aid = a.get("alert_id")
+                if aid:
+                    _update_alert(aid, {"status": "approved", "resolved_at": _now_iso()})
+                    count += 1
+            self.send_json({"ok": True, "approved_count": count})
+
+        elif path == "/api/alerts/dismiss-all":
+            alerts_data = get_alerts(include_all=False)
+            count = 0
+            for a in alerts_data["alerts"]:
+                aid = a.get("alert_id")
+                if aid:
+                    _update_alert(aid, {"status": "rejected", "resolved_at": _now_iso()})
+                    count += 1
+            self.send_json({"ok": True, "dismissed_count": count})
 
         elif path == "/api/command":
             # Execute a didio command suggestion

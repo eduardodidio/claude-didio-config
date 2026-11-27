@@ -410,6 +410,20 @@ Two alternatable views: War Room (card triage columns) and Standard Board
 auto-refresh every 10s from live project JSON data, card detail panel.
 JSON APIs: `/api/warroom`, `/api/pipelines`, `/api/features`. 8 E2E tests.
 
+**F45 (Black Hawk Autonomous Card Advancement)** ✅ Black Hawk Alpha operates
+autonomously in a loop: triages incoming War Room cards, auto-promotes high-confidence
+recommendations (>= 0.8 threshold), creates alerts for low-confidence or ambiguous
+decisions, and surfaces pipeline failures to the operator via the Command Center.
+Alert engine (`lib/alert-engine.sh`) manages the full alert lifecycle
+(create/approve/reject/expire) with file-based JSON storage in
+`logs/warroom/alerts/`. Config keys `blackhawk.auto_advance`,
+`auto_confidence_threshold`, `auto_interval_minutes`, `auto_max_promotions_per_cycle`
+control loop behavior. CLI: `didio blackhawk auto [--once] [--dry-run]`.
+Alert schema (`schemas/alert.schema.json`) validates alert format. Server endpoints
+`/api/alerts`, `/api/alerts/approve`, `/api/alerts/reject`, `/api/alerts/approve-all`
+enable operator actions from the HTML board. 10 E2E tests covering alert CRUD,
+confidence gating, and server endpoints.
+
 **F42 (Squad Dashboard)** ✅ Visual health panel in Black Hawk Desktop app.
 5th tab "Squad" shows per-scanner status (Bravo/Charlie/Delta) with color-coded
 indicators, correlation alerts, and scan trigger button. React hook

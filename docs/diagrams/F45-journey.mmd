@@ -1,0 +1,57 @@
+flowchart LR
+    subgraph Operator["Operator"]
+        START([Start: didio blackhawk auto])
+        VIEW_BOARD([View Command Center])
+        ACT_APPROVE([Approve Alert])
+        ACT_REJECT([Reject Alert])
+        STOP([Send Stop Signal])
+    end
+
+    subgraph Alpha["Black Hawk Alpha"]
+        LOOP_START[Begin Cycle]
+        CHECK_SIGNAL{Stop Signal?}
+        SCAN_CARDS[Scan Incoming Cards]
+        RUN_TRIAGE[Triage Each Card]
+        EVAL_CONF{Confidence Check}
+        AUTO_PROMOTE[Auto-Promote Card]
+        AUTO_DEFER[Auto-Defer Card]
+        RAISE_ALERT[Create Alert]
+        CHECK_PIPES[Check Pipeline Health]
+        PIPE_FAIL{Pipeline Failed?}
+        FAIL_ALERT[Raise Failure Alert]
+        SLEEP_WAIT[Sleep Interval]
+        HALT[Halt Loop]
+    end
+
+    subgraph Board["Command Center"]
+        PENDING[Pending Alerts List]
+        CONF_BADGE[Confidence Score Badge]
+        ACTION_BTN[Approve / Reject Buttons]
+        TOAST[Toast Notification]
+    end
+
+    START --> LOOP_START
+    LOOP_START --> CHECK_SIGNAL
+    CHECK_SIGNAL -- "Yes" --> HALT
+    CHECK_SIGNAL -- "No" --> SCAN_CARDS
+    SCAN_CARDS --> RUN_TRIAGE
+    RUN_TRIAGE --> EVAL_CONF
+    EVAL_CONF -- "High (>= 0.8)" --> AUTO_PROMOTE
+    EVAL_CONF -- "High + defer" --> AUTO_DEFER
+    EVAL_CONF -- "Low (< 0.8)" --> RAISE_ALERT
+    AUTO_PROMOTE --> CHECK_PIPES
+    AUTO_DEFER --> CHECK_PIPES
+    RAISE_ALERT --> PENDING
+    CHECK_PIPES --> PIPE_FAIL
+    PIPE_FAIL -- "Yes" --> FAIL_ALERT
+    PIPE_FAIL -- "No" --> SLEEP_WAIT
+    FAIL_ALERT --> PENDING
+    SLEEP_WAIT --> LOOP_START
+
+    VIEW_BOARD --> PENDING
+    PENDING --> CONF_BADGE
+    PENDING --> ACTION_BTN
+    ACT_APPROVE --> ACTION_BTN
+    ACT_REJECT --> ACTION_BTN
+    ACTION_BTN --> TOAST
+    STOP --> HALT

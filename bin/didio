@@ -56,6 +56,10 @@ case "$SUBCMD" in
       triage)   exec "$DIDIO_HOME/bin/didio-blackhawk-triage.sh" "$@" ;;
       promote)  exec "$DIDIO_HOME/bin/didio-blackhawk-promote.sh" "$@" ;;
       defer)    exec "$DIDIO_HOME/bin/didio-blackhawk-defer.sh" "$@" ;;
+      auto)
+        source "$DIDIO_HOME/bin/didio-blackhawk-auto.sh"
+        blackhawk_auto_main "$@"
+        ;;
       help|--help|-h|"")
         echo "Usage: didio blackhawk <subcommand> [args...]"
         echo ""
@@ -64,6 +68,7 @@ case "$SUBCMD" in
         echo "  triage    Run Black Hawk Alpha triage on War Room cards"
         echo "  promote   Promote a triaged card to a Standard Board feature"
         echo "  defer     Defer a card with rationale"
+        echo "  auto      Start autonomous card advancement loop"
         echo ""
         echo "Run 'didio blackhawk <subcommand> --help' for details."
         ;;
@@ -275,9 +280,11 @@ Usage:
   didio blackhawk promote <card-id>
   didio blackhawk defer <card-id>
   didio blackhawk monitor
+  didio blackhawk auto [--once] [--dry-run]
       Black Hawk Alpha strategic command. Triage incoming War Room cards,
-      promote cards to features, defer cards with rationale, or
-      monitor governance patterns.
+      promote cards to features, defer cards with rationale,
+      monitor governance patterns, or run the autonomous advancement loop.
+      --once runs a single cycle and exits. --dry-run previews without executing.
       (Alias: didio overlord ... still works for backward compatibility.)
 
   didio action-listener [--interval SECS] [--once]

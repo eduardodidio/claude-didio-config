@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Black Hawk Alert",
+  "type": "object",
+  "required": ["alert_id", "type", "title", "status", "created_at"],
+  "properties": {
+    "alert_id": { "type": "string", "pattern": "^ALT-\\d{8}-\\d{3}$" },
+    "type": { "type": "string", "enum": ["needs_approval", "failed_pipeline", "low_confidence", "escalation"] },
+    "card_id": { "type": ["string", "null"] },
+    "feature": { "type": ["string", "null"] },
+    "title": { "type": "string", "minLength": 1 },
+    "description": { "type": "string" },
+    "suggestion": { "type": ["string", "null"] },
+    "confidence": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+    "status": { "type": "string", "enum": ["pending", "approved", "rejected", "expired"] },
+    "created_at": { "type": "string" },
+    "resolved_at": { "type": ["string", "null"] }
+  }
+}

@@ -1,0 +1,58 @@
+flowchart TB
+    subgraph AutonomousLoop["Autonomous Loop (didio blackhawk auto)"]
+        SCAN[Scan Incoming Cards]
+        TRIAGE[Alpha Triage Assessment]
+        GATE{Confidence >= Threshold?}
+        AUTO_EXEC[Auto-Execute: Promote/Defer]
+        CREATE_ALERT[Create Alert in Command Center]
+        MONITOR[Monitor Running Pipelines]
+        SLEEP[Sleep Interval]
+    end
+
+    subgraph CommandCenter["Command Center (HTML Board)"]
+        ALERTS_API["/api/alerts"]
+        APPROVE_BTN[Approve Button]
+        REJECT_BTN[Reject Button]
+        ALERT_LIST[Pending Alerts Panel]
+    end
+
+    subgraph AlertEngine["Alert Engine (lib/alert-engine.sh)"]
+        CREATE_FN[create_alert]
+        LIST_FN[list_pending_alerts]
+        APPROVE_FN[approve_alert]
+        REJECT_FN[reject_alert]
+        EXPIRE_FN[expire_stale_alerts]
+    end
+
+    subgraph Storage["File Storage"]
+        ALERTS_DIR["logs/warroom/alerts/*.json"]
+        CARDS_DIR["logs/warroom/cards/*.json"]
+        SIGNALS["logs/agents/signals/blackhawk.*"]
+        CONFIG["didio.config.json (blackhawk section)"]
+    end
+
+    SCAN --> TRIAGE
+    TRIAGE --> GATE
+    GATE -- "Yes (>= 0.8)" --> AUTO_EXEC
+    GATE -- "No (< 0.8)" --> CREATE_ALERT
+    AUTO_EXEC --> MONITOR
+    CREATE_ALERT --> MONITOR
+    MONITOR --> SLEEP
+    SLEEP --> SCAN
+
+    CREATE_ALERT --> CREATE_FN
+    CREATE_FN --> ALERTS_DIR
+
+    ALERTS_API --> LIST_FN
+    LIST_FN --> ALERTS_DIR
+
+    APPROVE_BTN --> APPROVE_FN
+    REJECT_BTN --> REJECT_FN
+    APPROVE_FN --> ALERTS_DIR
+    REJECT_FN --> ALERTS_DIR
+
+    SCAN --> CARDS_DIR
+    CONFIG --> GATE
+    SIGNALS --> SCAN
+
+    ALERT_LIST --> ALERTS_API
